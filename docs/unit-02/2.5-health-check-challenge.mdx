@@ -10,8 +10,6 @@ import Unit2Simulator from '@site/src/components/Unit2Simulator';
 
 # Lesson 2.5: Challenge — Build a Robot Health-Check OpMode with Telemetry
 
-<Unit2Simulator />
-
 ---
 
 ## Context
@@ -80,32 +78,7 @@ public class HealthCheck extends OpMode {
 
 Create a master health-check program. Use `init_loop()` to show the driver the current runtime while they are waiting to press start, and use `stop()` to print "Robot Powering Down".
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
-@TeleOp(name="Final_Unit2_Challenge")
-public class HealthMaster extends OpMode {
-
-    @Override
-    public void init() {
-        telemetry.addData("System", "Booting...");
-    }
-
-    // USE init_loop() TO REPEATEDLY SHOW THE RUNTIME BEFORE THE MATCH STARTS
-    // INSERT CODE HERE
-
-    @Override
-    public void loop() {
-        telemetry.addData("Match", "In Progress");
-    }
-
-    // USE stop() TO PRINT "Robot Powering Down"
-    // INSERT CODE HERE
-}
-```
+<Unit2Simulator lesson="health-check-challenge" />
 
 <details>
 <summary>Show answer</summary>

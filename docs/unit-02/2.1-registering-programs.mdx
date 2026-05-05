@@ -10,8 +10,6 @@ import Unit2Simulator from '@site/src/components/Unit2Simulator';
 
 # Lesson 2.1: Getting Your OpModes to Show Up with @TeleOp and @Autonomous
 
-<Unit2Simulator />
-
 ---
 
 ## Context
@@ -77,27 +75,7 @@ public class ManualControl extends OpMode {
 
 Your team has a dedicated program for testing a new intake mechanism. Register this class as an Autonomous program named `"Intake_Test"` so it appears in the correct folder on the Driver Station.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-
-// ANNOTATE THIS CLASS AS AN AUTONOMOUS PROGRAM NAMED "Intake_Test"
-// INSERT CODE HERE
-public class IntakeDiagnostic extends OpMode {
-
-    @Override
-    public void init() {
-        telemetry.addData("System", "Intake Logic Loaded");
-    }
-
-    @Override
-    public void loop() {
-        // Logic for motor testing
-    }
-}
-```
+<Unit2Simulator lesson="registering-programs" />
 
 <details>
 <summary>Show answer</summary>

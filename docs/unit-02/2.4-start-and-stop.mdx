@@ -10,8 +10,6 @@ import Unit2Simulator from '@site/src/components/Unit2Simulator';
 
 # Lesson 2.4: Using start() and stop() for One-Time Robot Actions
 
-<Unit2Simulator />
-
 ---
 
 ## Context
@@ -83,32 +81,7 @@ public class TransitionDemo extends OpMode {
 
 Your team needs to reset the robot's timer at the start of the match and display a "Robot Shutdown" message when the program is stopped.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-
-@Autonomous(name="Lifecycle_Challenge")
-public class LifecycleChallenge extends OpMode {
-
-    @Override
-    public void init() {
-        telemetry.addData("Status", "Init Pressed");
-    }
-
-    // IMPLEMENT THE START METHOD TO RESET THE RUNTIME
-    // INSERT CODE HERE
-
-    @Override
-    public void loop() {
-        telemetry.addData("Elapsed", getRuntime());
-    }
-
-    // IMPLEMENT THE STOP METHOD TO PRINT "Robot Shutdown"
-    // INSERT CODE HERE
-}
-```
+<Unit2Simulator lesson="start-and-stop" />
 
 <details>
 <summary>Show answer</summary>

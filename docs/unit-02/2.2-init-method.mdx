@@ -10,8 +10,6 @@ import Unit2Simulator from '@site/src/components/Unit2Simulator';
 
 # Lesson 2.2: Setting Up Hardware in init() Before the Match Starts
 
-<Unit2Simulator />
-
 ---
 
 ## Context
@@ -76,32 +74,7 @@ public class InitDemo extends OpMode {
 
 You need to prepare a `Servo` named `"claw"` for the match. Use the `init()` method to map it and ensure it is ready to move once the match starts.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.Servo;
-
-@TeleOp(name="Claw_Init")
-public class ClawInit extends OpMode {
-
-    // DECLARE A SERVO VARIABLE NAMED 'claw'
-    // INSERT CODE HERE
-
-    @Override
-    public void init() {
-        // MAP THE 'claw' VARIABLE TO THE HARDWARE CONFIGURATION "claw_servo"
-        // INSERT CODE HERE
-        telemetry.addData("Status", "Claw Initialized");
-    }
-
-    @Override
-    public void loop() {
-        // Claw control logic
-    }
-}
-```
+<Unit2Simulator lesson="init-method" />
 
 <details>
 <summary>Show answer</summary>

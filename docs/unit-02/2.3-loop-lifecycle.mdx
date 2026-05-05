@@ -10,8 +10,6 @@ import Unit2Simulator from '@site/src/components/Unit2Simulator';
 
 # Lesson 2.3: Running Real-Time Robot Logic Inside loop()
 
-<Unit2Simulator />
-
 ---
 
 ## Context
@@ -74,27 +72,7 @@ public class LoopDemo extends OpMode {
 
 You need to create a simple diagnostic that shows the status of the "A" button on `gamepad1` during the entire match.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
-@TeleOp(name="Input_Monitor")
-public class InputMonitor extends OpMode {
-
-    @Override
-    public void init() {
-        telemetry.addData("Diagnostic", "Press Start to monitor input");
-    }
-
-    @Override
-    public void loop() {
-        // USE TELEMETRY TO SHOW THE BOOLEAN STATE OF gamepad1.a
-        // INSERT CODE HERE
-    }
-}
-```
+<Unit2Simulator lesson="loop-lifecycle" />
 
 <details>
 <summary>Show answer</summary>
