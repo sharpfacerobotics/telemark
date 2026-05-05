@@ -503,6 +503,14 @@ function syncScroll(el) {
 // ─── Smart Editor ────────────────────────────────────────────────────────────
 const codeEditor = document.getElementById('code-editor');
 
+function loadInitialCode() {
+  const params = new URLSearchParams(window.location.search);
+  const starterCode = params.get('code');
+  if (starterCode) {
+    codeEditor.value = starterCode;
+  }
+}
+
 codeEditor.addEventListener('keydown', function (e) {
   const start = this.selectionStart;
   const end   = this.selectionEnd;
@@ -862,6 +870,7 @@ window.addEventListener('blur', () => {
 
 // ─── Boot ────────────────────────────────────────────────────────────────────
 window.addEventListener('load', () => {
+  loadInitialCode();
   updateCode(codeEditor.value);
   updateHints(codeEditor.value);
   Object.values(sticks).forEach(resetStick);
