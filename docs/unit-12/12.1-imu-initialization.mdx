@@ -1,0 +1,155 @@
+---
+id: imu-initialization
+title: "Lesson 12.1: Initializing the REV Hub Gyro and Setting Robot Orientation"
+sidebar_label: "12.1 · IMU Initialization"
+sidebar_position: 1
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 12.1: Initializing the REV Hub Gyro and Setting Robot Orientation
+
+---
+
+## Why Orientation Configuration Matters
+
+The IMU inside the REV Control Hub is a physical chip soldered to the Hub's circuit board. It measures acceleration and rotation along three axes -- X, Y, and Z -- based on its own internal frame of reference. Those internal axes are fixed to the chip, not to the robot. When the Hub is mounted flat on a robot with its logo facing up, the chip's Z-axis happens to point straight up, which aligns with how FTC defines the "turning" axis. But teams frequently mount the Control Hub on a side panel, at an angle, or upside down to fit their robot's geometry. In every one of those cases, the chip's internal axes no longer align with the field's axes, and without correction, every heading value the IMU reports will be mathematically wrong.
+
+The SDK's solution is to ask you to declare exactly how the Hub is physically mounted. It then performs the coordinate transformation internally, so that regardless of how the Hub is oriented on the robot, the Yaw value you read always represents rotation around the field's vertical axis. You never have to implement that trigonometry yourself.
+
+---
+
+## The RevHubOrientationOnRobot Class
+
+Starting with FTC SDK version 8.1, physical mounting is declared using the `RevHubOrientationOnRobot` class. Its constructor takes two enum values:
+
+- `LogoFacingDirection` -- which direction the REV logo on the face of the Hub is pointing.
+- `UsbFacingDirection` -- which direction the USB ports on the Hub are facing.
+
+Together, these two values completely specify the Hub's orientation in three-dimensional space. You then wrap this orientation object inside an `IMU.Parameters` object and pass it into `imu.initialize()`. This chain is not optional. Calling `initialize()` without parameters, or skipping the call entirely, leaves the IMU unconfigured and will cause all subsequent angle reads to return incorrect data.
+
+Valid direction values for both enums are: `UP`, `DOWN`, `FORWARD`, `BACKWARD`, `LEFT`, and `RIGHT`. "Forward" is defined as the direction the robot drives toward during normal operation.
+
+---
+
+## Annotated Code
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
+@TeleOp(name="IMU_Init_Demo")
+public class ImuInitDemo extends LinearOpMode {
+
+    private IMU imu;
+
+    @Override
+    public void runOpMode() {
+        imu = hardwareMap.get(IMU.class, "imu");
+
+        // Declare how the Control Hub is physically mounted on the robot.
+        // This example: Hub lying flat with logo facing up and USB ports facing forward.
+        RevHubOrientationOnRobot orientation = new RevHubOrientationOnRobot(
+            RevHubOrientationOnRobot.LogoFacingDirection.UP,
+            RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
+        );
+
+        // Pass the orientation to the IMU through IMU.Parameters.
+        // Skipping this call will produce incorrect angle readings.
+        imu.initialize(new IMU.Parameters(orientation));
+
+        telemetry.addData("IMU", "Initialized successfully");
+        telemetry.update();
+
+        waitForStart();
+
+        while (opModeIsActive()) {
+            // Heading is readable immediately after initialization completes
+            double heading = imu.getRobotYawPitchRollAngles()
+                               .getYaw(AngleUnit.DEGREES);
+
+            telemetry.addData("Heading (deg)", "%.1f", heading);
+            telemetry.update();
+        }
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. The class used to declare how the Control Hub is physically mounted on the robot is `__________`.
+2. To provide the mounting configuration to the IMU, you pass an orientation object into `imu.initialize(new IMU.__________(orientation))`.
+3. The two enum parameters required by `RevHubOrientationOnRobot` are `LogoFacingDirection` and `__________`.
+
+<details>
+<summary>Show answers</summary>
+
+1. **`RevHubOrientationOnRobot`**
+2. **`Parameters`**
+3. **`UsbFacingDirection`**
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** Your Control Hub is mounted vertically on the side of the robot. The REV logo faces to the right side of the robot, and the USB ports face upward. Write the initialization block that correctly configures the IMU for this mounting position.
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+
+@TeleOp(name="Vertical_IMU_Challenge")
+public class VerticalImuChallenge extends LinearOpMode {
+
+    private IMU imu;
+
+    @Override
+    public void runOpMode() {
+        imu = hardwareMap.get(IMU.class, "imu");
+
+        // INSERT CODE HERE: Create a RevHubOrientationOnRobot with
+        // LogoFacingDirection.RIGHT and UsbFacingDirection.UP
+
+        // INSERT CODE HERE: Call imu.initialize() with an IMU.Parameters
+        // wrapping the orientation object above
+
+        telemetry.addData("IMU", "Configured for vertical mount");
+        telemetry.update();
+
+        waitForStart();
+    }
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+RevHubOrientationOnRobot orientation = new RevHubOrientationOnRobot(
+    RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
+    RevHubOrientationOnRobot.UsbFacingDirection.UP
+);
+
+imu.initialize(new IMU.Parameters(orientation));
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-12/imu-initialization"
+  nextUnit="/docs/unit-12/yaw-data"
+  nextUnitName="Lesson 12.2: Extracting Real-time Yaw Data using the AngleUnit Class"
+/>

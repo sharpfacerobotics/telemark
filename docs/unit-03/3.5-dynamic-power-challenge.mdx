@@ -6,6 +6,7 @@ sidebar_position: 5
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit3Simulator from '@site/src/components/Unit3Simulator';
 
 # Lesson 3.5: Challenge — Build Dynamic Power Logic with Multiple Variables
 
@@ -82,42 +83,7 @@ public class DynamicControl extends OpMode {
 
 **Robot Scenario:** Create a "Precision Mode." If the driver holds the left bumper, the motor power should be exactly half of the joystick input. Use variables for `input`, `scaleFactor`, and `finalPower`.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-
-@TeleOp(name="Precision_Mode_Challenge")
-public class PrecisionMode extends OpMode {
-
-    DcMotor motor;
-    double scaleFactor = 0.5;
-
-    @Override
-    public void init() {
-        motor = hardwareMap.get(DcMotor.class, "motor");
-    }
-
-    @Override
-    public void loop() {
-        // 1. CAPTURE JOYSTICK Y-AXIS INTO A DOUBLE VARIABLE 'input'
-        // INSERT CODE HERE
-
-        double finalPower;
-
-        if (gamepad1.left_bumper) {
-            // 2. CALCULATE finalPower BY MULTIPLYING input BY scaleFactor
-            // INSERT CODE HERE
-        } else {
-            finalPower = input;
-        }
-
-        motor.setPower(finalPower);
-    }
-}
-```
+<Unit3Simulator lesson="dynamic-power-challenge" />
 
 <details>
 <summary>Show answer</summary>

@@ -6,6 +6,7 @@ sidebar_position: 2
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit4Simulator from '@site/src/components/Unit4Simulator';
 
 # Lesson 4.2: Turning Joystick X and Y into Smooth Drive Control
 
@@ -69,28 +70,7 @@ public class JoystickScaling extends OpMode {
 
 **Robot Scenario:** Your robot's drivetrain is too fast for a rookie driver. Create a program that scales the joystick's Y-axis input to 50% of its maximum value and negates it so the robot moves forward when the stick is pushed up.
 
-```java
-package org.firstinspires.ftc.teamcode.opmodes;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
-@TeleOp(name="Rookie_Drive_Mode")
-public class RookieDrive extends OpMode {
-
-    @Override
-    public void init() {}
-
-    @Override
-    public void loop() {
-        // 1. CALCULATE 'safePower' BY NEGATING THE STICK Y AND DIVIDING BY 2.0
-        // INSERT CODE HERE
-
-        // 2. USE TELEMETRY TO OUTPUT THE 'safePower' VALUE
-        // INSERT CODE HERE
-    }
-}
-```
+<Unit4Simulator lesson="joystick-scaling" />
 
 <details>
 <summary>Show answer</summary>

@@ -6,6 +6,7 @@ sidebar_position: 3
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit4Simulator from '@site/src/components/Unit4Simulator';
 
 # Lesson 4.3: Using Triggers for Gradual Braking Control
 
@@ -68,28 +69,7 @@ public class TriggerBrake extends OpMode {
 
 **Robot Scenario:** The drive team wants to use the Left Trigger to control the robot's "Slow Mode." Create a variable that stores the trigger value and use it to report the current "Speed Limit" to the drivers.
 
-```java
-package org.firstinspires.ftc.teamcode.opmodes;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
-@TeleOp(name="Variable_Speed_Check")
-public class VariableSpeed extends OpMode {
-
-    @Override
-    public void init() {}
-
-    @Override
-    public void loop() {
-        // 1. CAPTURE THE LEFT TRIGGER VALUE INTO A DOUBLE CALLED 'brakeForce'
-        // INSERT CODE HERE
-
-        // 2. OUTPUT THE 'brakeForce' VALUE TO TELEMETRY
-        // INSERT CODE HERE
-    }
-}
-```
+<Unit4Simulator lesson="trigger-inputs" />
 
 <details>
 <summary>Show answer</summary>

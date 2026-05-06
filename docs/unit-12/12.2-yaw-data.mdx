@@ -1,0 +1,174 @@
+---
+id: yaw-data
+title: "Lesson 12.2: Extracting Real-time Yaw Data using the AngleUnit Class"
+sidebar_label: "12.2 · Yaw Data"
+sidebar_position: 2
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 12.2: Extracting Real-time Yaw Data using the AngleUnit Class
+
+---
+
+## The Three Rotation Axes
+
+The IMU tracks rotation along three distinct axes. Yaw describes rotation around the vertical axis -- this is the robot turning left or right on the field, which is what most navigation code cares about. Pitch describes rotation around the side-to-side axis, meaning the robot tilting forward or backward. Roll describes rotation around the front-to-back axis, meaning the robot leaning left or right. Lesson 12.4 covers pitch and roll for tip detection. This lesson focuses entirely on Yaw.
+
+A critical detail: the IMU measures Yaw as the accumulated rotation from wherever the robot was pointing when `resetYaw()` was last called, or from the orientation at power-on if it was never called. The IMU does not know which direction is "toward the opposing alliance wall." What it knows is how many degrees the robot has rotated since the reference point was established. This relative nature is important to keep in mind when designing autonomous routines.
+
+---
+
+## Reading Yaw with AngleUnit
+
+The primary method for reading all three rotation angles simultaneously is `imu.getRobotYawPitchRollAngles()`. This returns a `YawPitchRollAngles` object. From that object, you call `getYaw(AngleUnit)` and pass in the unit you want the value expressed in.
+
+The `AngleUnit` enum has two relevant values: `DEGREES` and `RADIANS`. Choosing degrees gives you a value between -180 and 180, where positive values represent counterclockwise rotation and negative values represent clockwise rotation as viewed from above. Choosing radians gives you the equivalent range from -π to π.
+
+The SDK handles normalization automatically. If the robot spins multiple full revolutions, `getYaw()` will never return a value outside the -180 to 180 range. There is no need to implement your own wraparound logic when reading the angle.
+
+The reason the method exists as a separate call from `getYaw(AngleUnit.DEGREES)` on the angles object -- rather than as a direct call on the `imu` -- is that `getRobotYawPitchRollAngles()` takes one snapshot of all three angles at the same instant. Calling it once and then reading individual axes from the result is slightly more consistent than calling separate methods multiple times, since the second call might capture a slightly different physical orientation than the first.
+
+---
+
+## Annotated Code
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+
+@TeleOp(name="Yaw_Data_Demo")
+public class YawDataDemo extends OpMode {
+
+    private IMU imu;
+
+    @Override
+    public void init() {
+        imu = hardwareMap.get(IMU.class, "imu");
+
+        RevHubOrientationOnRobot orientation = new RevHubOrientationOnRobot(
+            RevHubOrientationOnRobot.LogoFacingDirection.UP,
+            RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
+        );
+        imu.initialize(new IMU.Parameters(orientation));
+
+        telemetry.addData("IMU", "Ready");
+    }
+
+    @Override
+    public void loop() {
+        // Take a single snapshot of all three rotation axes
+        YawPitchRollAngles angles = imu.getRobotYawPitchRollAngles();
+
+        // Extract Yaw specifically in degrees (-180 to 180)
+        double yawDegrees = angles.getYaw(AngleUnit.DEGREES);
+
+        // Extract the same value in radians if needed for math (-PI to PI)
+        double yawRadians = angles.getYaw(AngleUnit.RADIANS);
+
+        telemetry.addData("Yaw (degrees)", "%.2f", yawDegrees);
+        telemetry.addData("Yaw (radians)", "%.4f", yawRadians);
+        telemetry.update();
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. The method called on the `IMU` object to retrieve all three rotation axes at once is `imu.__________()`.
+2. To receive the heading as a value normalized between -180 and 180, pass `AngleUnit.__________` to `getYaw()`.
+3. Rotation around the vertical axis, representing the robot turning left or right, is called `__________`.
+
+<details>
+<summary>Show answers</summary>
+
+1. **`getRobotYawPitchRollAngles()`**
+2. **`DEGREES`**
+3. **Yaw**
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** Create a TeleOp that reads the robot's current heading in degrees and displays it on the Driver Station. Also display whether the robot is currently pointed within 10 degrees of its starting heading (a `boolean` called `isAligned`). Assume the Hub is mounted flat with logo up and USB ports facing forward.
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
+@TeleOp(name="Heading_Display_Challenge")
+public class HeadingDisplay extends OpMode {
+
+    private IMU imu;
+
+    @Override
+    public void init() {
+        imu = hardwareMap.get(IMU.class, "imu");
+
+        // INSERT CODE HERE: Initialize the IMU with logo UP and USB FORWARD
+
+        telemetry.addData("IMU", "Ready");
+    }
+
+    @Override
+    public void loop() {
+        // INSERT CODE HERE: Read current yaw in degrees
+
+        // INSERT CODE HERE: Compute isAligned -- true if Math.abs(yaw) < 10.0
+
+        // INSERT CODE HERE: Display both values via telemetry
+    }
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+@Override
+public void init() {
+    imu = hardwareMap.get(IMU.class, "imu");
+
+    RevHubOrientationOnRobot orientation = new RevHubOrientationOnRobot(
+        RevHubOrientationOnRobot.LogoFacingDirection.UP,
+        RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
+    );
+    imu.initialize(new IMU.Parameters(orientation));
+
+    telemetry.addData("IMU", "Ready");
+}
+
+@Override
+public void loop() {
+    double yaw = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+
+    boolean isAligned = Math.abs(yaw) < 10.0;
+
+    telemetry.addData("Heading (deg)", "%.2f", yaw);
+    telemetry.addData("Aligned",       isAligned);
+    telemetry.update();
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-12/yaw-data"
+  nextUnit="/docs/unit-12/field-centric"
+  nextUnitName="Lesson 12.3: Normalizing Angular Values for Field-Centric Driving"
+/>

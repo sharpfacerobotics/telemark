@@ -6,6 +6,7 @@ sidebar_position: 4
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit3Simulator from '@site/src/components/Unit3Simulator';
 
 # Lesson 3.4: Using int Values to Count Cycles and Repetitions
 
@@ -73,34 +74,7 @@ public class CycleCounter extends OpMode {
 
 **Robot Scenario:** Your autonomous requires the robot to keep track of how many "laps" it has completed. Declare an `int` variable and increment it every time the `"B"` button is pressed.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
-@TeleOp(name="Lap_Counter_Challenge")
-public class LapCounter extends OpMode {
-
-    // DECLARE AN INT VARIABLE 'laps' AT THE CLASS LEVEL
-    // INSERT CODE HERE
-
-    @Override
-    public void init() {
-        // INITIALIZE laps TO ZERO
-        // INSERT CODE HERE
-    }
-
-    @Override
-    public void loop() {
-        if (gamepad1.b) {
-            // INCREMENT THE laps VARIABLE
-            // INSERT CODE HERE
-        }
-        telemetry.addData("Laps completed", laps);
-    }
-}
-```
+<Unit3Simulator lesson="int-datatypes" />
 
 <details>
 <summary>Show answer</summary>

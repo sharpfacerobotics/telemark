@@ -6,6 +6,7 @@ sidebar_position: 3
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit3Simulator from '@site/src/components/Unit3Simulator';
 
 # Lesson 3.3: Using boolean Values for On-or-Off Robot State
 
@@ -72,30 +73,7 @@ public class BooleanLogic extends OpMode {
 
 **Robot Scenario:** Capture the state of the `"A"` button on `gamepad1` into a `boolean` variable and send that variable to the Driver Station via telemetry.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
-@TeleOp(name="Button_Capture_Challenge")
-public class ButtonCapture extends OpMode {
-
-    @Override
-    public void init() {
-        telemetry.addData("Status", "Init Ready");
-    }
-
-    @Override
-    public void loop() {
-        // DECLARE A BOOLEAN 'buttonState' AND ASSIGN IT THE VALUE OF gamepad1.a
-        // INSERT CODE HERE
-
-        // USE TELEMETRY TO DISPLAY THE VALUE OF buttonState
-        // INSERT CODE HERE
-    }
-}
-```
+<Unit3Simulator lesson="boolean-flags" />
 
 <details>
 <summary>Show answer</summary>

@@ -6,6 +6,7 @@ sidebar_position: 1
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit3Simulator from '@site/src/components/Unit3Simulator';
 
 # Lesson 3.1: Using Strings to Match Hardware Names Exactly
 
@@ -75,32 +76,7 @@ public class StringMapping extends OpMode {
 
 **Robot Scenario:** Your team has named a Servo `"claw_servo"` in the configuration app. Create a `String` variable to store this name and use it to map the hardware.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.Servo;
-
-@TeleOp(name="Variable_Map_Challenge")
-public class VariableMap extends OpMode {
-
-    // DECLARE A STRING VARIABLE NAMED 'configName' AND ASSIGN IT "claw_servo"
-    // INSERT CODE HERE
-
-    Servo claw;
-
-    @Override
-    public void init() {
-        // USE THE configName VARIABLE TO MAP THE SERVO
-        // INSERT CODE HERE
-        telemetry.addData("Status", "Claw Map Successful");
-    }
-
-    @Override
-    public void loop() {}
-}
-```
+<Unit3Simulator lesson="string-literals" />
 
 <details>
 <summary>Show answer</summary>

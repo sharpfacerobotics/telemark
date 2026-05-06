@@ -6,6 +6,7 @@ sidebar_position: 2
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit3Simulator from '@site/src/components/Unit3Simulator';
 
 # Lesson 3.2: Using double for Motor Power and Precise Math
 
@@ -71,32 +72,7 @@ public class PrecisionPower extends OpMode {
 
 **Robot Scenario:** Your driver wants a specific "Auton Speed" of `0.45`. Create a `double` variable to store this and apply it to a motor.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-
-@TeleOp(name="Double_Speed_Challenge")
-public class DoubleSpeed extends OpMode {
-
-    DcMotor motor;
-
-    @Override
-    public void init() {
-        motor = hardwareMap.get(DcMotor.class, "motor");
-    }
-
-    @Override
-    public void loop() {
-        // DECLARE A DOUBLE VARIABLE 'autonSpeed' AND ASSIGN IT 0.45
-        // INSERT CODE HERE
-
-        motor.setPower(autonSpeed);
-    }
-}
-```
+<Unit3Simulator lesson="double-precision" />
 
 <details>
 <summary>Show answer</summary>

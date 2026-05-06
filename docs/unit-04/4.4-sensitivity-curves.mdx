@@ -6,6 +6,7 @@ sidebar_position: 4
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit4Simulator from '@site/src/components/Unit4Simulator';
 
 # Lesson 4.4: Shaping Joystick Sensitivity with squareInputWithSign()
 
@@ -77,28 +78,7 @@ public class SensitivityTuning extends OpMode {
 
 **Robot Scenario:** You need to create a custom scaling method for the drive team. Implement a method that **cubes** the input (`input * input * input`) instead of squaring it to provide an even "softer" feel at low speeds. (Note: Cubing naturally preserves the sign!)
 
-```java
-package org.firstinspires.ftc.teamcode.opmodes;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
-@TeleOp(name="Cube_Scaling_Test")
-public class CubeScaling extends OpMode {
-
-    // 1. DEFINE A METHOD 'cubeInput' THAT TAKES A DOUBLE AND RETURNS A DOUBLE
-    // INSERT CODE HERE
-
-    @Override
-    public void init() {}
-
-    @Override
-    public void loop() {
-        // 2. CALL YOUR METHOD ON gamepad1.right_stick_x AND SHOW RESULT
-        // INSERT CODE HERE
-    }
-}
-```
+<Unit4Simulator lesson="sensitivity-curves" />
 
 <details>
 <summary>Show answer</summary>

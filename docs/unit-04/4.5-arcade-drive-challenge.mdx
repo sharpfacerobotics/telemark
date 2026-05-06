@@ -6,6 +6,7 @@ sidebar_position: 5
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit4Simulator from '@site/src/components/Unit4Simulator';
 
 # Lesson 4.5: Challenge — Build Full Arcade Drive with Deadzones and Sensitivity Curves
 
@@ -74,31 +75,7 @@ public class ProDrive extends OpMode {
 
 **Robot Scenario:** Combine everything. Create an OpMode where the `A` button acts as a "Turbo Switch." If `A` is pressed, use the raw joystick values. If `A` is **NOT** pressed, use squared joystick values for precision.
 
-```java
-package org.firstinspires.ftc.teamcode.opmodes;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
-@TeleOp(name="Turbo_Logic_Challenge")
-public class TurboChallenge extends OpMode {
-
-    @Override
-    public void init() {}
-
-    @Override
-    public void loop() {
-        double rawY = -gamepad1.left_stick_y;
-        double finalPower;
-
-        // 1. IF gamepad1.a IS PRESSED, finalPower IS rawY (turbo/raw)
-        // 2. ELSE, finalPower IS rawY * rawY * (SIGN OF rawY) (precision)
-        // INSERT CODE HERE
-
-        telemetry.addData("Drive Power", finalPower);
-    }
-}
-```
+<Unit4Simulator lesson="arcade-drive-challenge" />
 
 <details>
 <summary>Show answer</summary>

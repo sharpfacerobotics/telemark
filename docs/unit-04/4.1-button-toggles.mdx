@@ -6,6 +6,7 @@ sidebar_position: 1
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit4Simulator from '@site/src/components/Unit4Simulator';
 
 # Lesson 4.1: Mapping gamepad Buttons to Simple Mechanism Toggles
 
@@ -76,32 +77,7 @@ public class ButtonLogicTest extends OpMode {
 
 **Robot Scenario:** Your team needs to verify if the Driver Station is receiving signals from the bumpers. Create an OpMode that displays `"Left Bumper Pressed"` on the screen only when that physical button is active.
 
-```java
-package org.firstinspires.ftc.teamcode.opmodes;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
-@TeleOp(name="Bumper_Diagnostic")
-public class BumperDiag extends OpMode {
-
-    @Override
-    public void init() {
-        telemetry.addData("Status", "Ready");
-    }
-
-    @Override
-    public void loop() {
-        // 1. DECLARE A BOOLEAN 'isPressed' AND ASSIGN IT TO gamepad1.left_bumper
-        // INSERT CODE HERE
-
-        if (isPressed) {
-            // 2. USE TELEMETRY TO SHOW THE MESSAGE "Left Bumper Pressed"
-            // INSERT CODE HERE
-        }
-    }
-}
-```
+<Unit4Simulator lesson="button-toggles" />
 
 <details>
 <summary>Show answer</summary>
