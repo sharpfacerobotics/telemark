@@ -2,6 +2,7 @@
   "label": "Unit 12: IMU & Rotation",
   "position": 12,
   "link": {
-    "type": "generated-index"
+    "type": "doc",
+    "id": "unit-12/overview"
   }
 }
