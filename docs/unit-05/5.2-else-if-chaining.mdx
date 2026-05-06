@@ -6,6 +6,7 @@ sidebar_position: 2
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit5Simulator from '@site/src/components/Unit5Simulator';
 
 # Lesson 5.2: Using else if Chains to Pick One Robot Action at a Time
 
@@ -66,43 +67,7 @@ public void loop() {
 
 **Robot Scenario:** Control a Servo named `"grabber"`. If Button A is pressed, set the position to `1.0` (closed). If Button B is pressed, set it to `0.0` (open). Otherwise, the servo should stay at `0.5` (ready position).
 
-```java
-package org.firstinspires.ftc.teamcode.opmodes;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.Servo;
-
-@TeleOp(name="Grabber_Control")
-public class GrabberControl extends OpMode {
-
-    private Servo grabber;
-
-    @Override
-    public void init() {
-        grabber = hardwareMap.get(Servo.class, "grabber");
-    }
-
-    @Override
-    public void loop() {
-        // 1. IF GAMEPAD1.A IS PRESSED, SET SERVO TO 1.0
-        // INSERT CODE HERE
-        {
-            grabber.setPosition(1.0);
-        }
-        // 2. ELSE IF GAMEPAD1.B IS PRESSED, SET SERVO TO 0.0
-        // INSERT CODE HERE
-        {
-            grabber.setPosition(0.0);
-        }
-        // 3. ELSE, SET SERVO TO 0.5
-        // INSERT CODE HERE
-        {
-            grabber.setPosition(0.5);
-        }
-    }
-}
-```
+<Unit5Simulator lesson="else-if-chaining" />
 
 <details>
 <summary>Show answer</summary>

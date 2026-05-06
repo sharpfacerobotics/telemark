@@ -6,6 +6,7 @@ sidebar_position: 1
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit5Simulator from '@site/src/components/Unit5Simulator';
 
 # Lesson 5.1: Using if Statements to Decide When a Motor Should Run
 
@@ -79,34 +80,7 @@ public class BasicLogic extends OpMode {
 
 **Robot Scenario:** Your team needs a safety switch. The DC Motor named `"flywheel"` should only run at full power if the driver is holding `gamepad1.right_bumper`.
 
-```java
-package org.firstinspires.ftc.teamcode.opmodes;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-
-@TeleOp(name="Safety_Switch_Challenge")
-public class SafetySwitch extends OpMode {
-
-    private DcMotor flywheel;
-
-    @Override
-    public void init() {
-        flywheel = hardwareMap.get(DcMotor.class, "flywheel");
-    }
-
-    @Override
-    public void loop() {
-        // EVALUATE IF THE RIGHT BUMPER IS PRESSED
-        // INSERT CODE HERE
-        {
-            // ACTIVATE THE FLYWHEEL AT 100% POWER
-            // INSERT CODE HERE
-        }
-    }
-}
-```
+<Unit5Simulator lesson="if-statements" />
 
 <details>
 <summary>Show answer</summary>

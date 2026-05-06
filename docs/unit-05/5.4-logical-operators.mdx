@@ -6,6 +6,7 @@ sidebar_position: 4
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit5Simulator from '@site/src/components/Unit5Simulator';
 
 # Lesson 5.4: Combining Sensor Checks with AND and OR Logic
 
@@ -70,37 +71,7 @@ public void loop() {
 
 **Robot Scenario:** Your robot should only activate the drivetrain if the Start button is **NOT** pressed **AND** the Left Trigger is held down more than halfway. (This is a complex safety check.)
 
-```java
-package org.firstinspires.ftc.teamcode.opmodes;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-
-@TeleOp(name="Trigger_Safety_Challenge")
-public class TriggerSafety extends OpMode {
-
-    private DcMotor drive;
-
-    @Override
-    public void init() {
-        drive = hardwareMap.get(DcMotor.class, "drive");
-    }
-
-    @Override
-    public void loop() {
-        // IF (NOT gamepad1.start) AND (gamepad1.left_trigger > 0.5)
-        // INSERT CODE HERE
-        {
-            telemetry.addLine("Drive System Active");
-            drive.setPower(-gamepad1.left_stick_y);
-        }
-        else {
-            drive.setPower(0.0);
-        }
-    }
-}
-```
+<Unit5Simulator lesson="logical-operators" />
 
 <details>
 <summary>Show answer</summary>
@@ -110,7 +81,7 @@ public class TriggerSafety extends OpMode {
 public void loop() {
     if (!gamepad1.start && gamepad1.left_trigger > 0.5) {
         telemetry.addLine("Drive System Active");
-        drive.setPower(-gamepad1.left_stick_y);
+        drive.setPower(-1 * gamepad1.left_stick_y);
     } else {
         drive.setPower(0.0);
     }

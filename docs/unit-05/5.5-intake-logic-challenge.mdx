@@ -6,6 +6,7 @@ sidebar_position: 5
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit5Simulator from '@site/src/components/Unit5Simulator';
 
 # Lesson 5.5: Challenge — Build Intake Logic for Multi-Stage Game Piece Sorting
 
@@ -70,46 +71,7 @@ public void loop() {
 
 **Robot Scenario:** Create a sorting logic. If the Color Sensor sees Blue (`blue() > 100`), set Servo 1 to `0.0`. If it sees Red (`red() > 100`), set Servo 1 to `1.0`. If it sees neither, set Servo 1 to `0.5`.
 
-```java
-package org.firstinspires.ftc.teamcode.opmodes;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.Servo;
-
-@TeleOp(name="Sorter_Challenge")
-public class SorterChallenge extends OpMode {
-
-    private ColorSensor sensor;
-    private Servo       sorter;
-
-    @Override
-    public void init() {
-        sensor = hardwareMap.get(ColorSensor.class, "sensor");
-        sorter = hardwareMap.get(Servo.class, "sorter");
-    }
-
-    @Override
-    public void loop() {
-        // 1. CHECK IF BLUE VALUE IS > 100
-        // INSERT CODE HERE
-        {
-            sorter.setPosition(0.0);
-        }
-        // 2. ELSE CHECK IF RED VALUE IS > 100
-        // INSERT CODE HERE
-        {
-            sorter.setPosition(1.0);
-        }
-        // 3. ELSE (NEITHER SEEN)
-        // INSERT CODE HERE
-        {
-            sorter.setPosition(0.5);
-        }
-    }
-}
-```
+<Unit5Simulator lesson="intake-logic-challenge" />
 
 <details>
 <summary>Show answer</summary>
