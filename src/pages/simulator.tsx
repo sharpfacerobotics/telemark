@@ -31,7 +31,7 @@ export default function SimulatorPage(): React.JSX.Element {
 
           <div className={pageStyles.simulatorWrapper}>
             <iframe
-              src="/ftc-curriculum/simulator/index.html"
+              src="/telemark/simulator/index.html"
               allowFullScreen
               title="Telemark Simulator"
               scrolling="no"

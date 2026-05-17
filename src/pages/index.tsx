@@ -74,7 +74,7 @@ const TIER_CLASS: Record<Tier, string> = {
 function NavLogo(): React.JSX.Element {
   return (
     <img
-      src="/ftc-curriculum/img/telemark.png"
+      src="/telemark/img/telemark.png"
       alt="Telemark Logo"
       style={{ width: '36px', height: '36px', borderRadius: '50%' }}
     />
@@ -243,7 +243,7 @@ function SimulatorSection(): React.JSX.Element {
       </p>
       <div className={styles.simulatorWrapper}>
         <iframe
-          src="/ftc-curriculum/simulator/index.html"
+          src="/telemark/simulator/index.html"
           allowFullScreen
           title="Telemark Simulator"
           scrolling="no"

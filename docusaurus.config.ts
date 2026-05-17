@@ -16,12 +16,12 @@ const config: Config = {
 
   // Set the production url of your site here
   url: 'https://sharpfacerobotics.github.io',
-  baseUrl: '/ftc-curriculum/',
+  baseUrl: '/telemark/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'sharpfacerobotics', // Usually your GitHub org/user name.
-  projectName: 'ftc-curriculum', // Usually your repo name.
+  projectName: 'telemark', // Usually your repo name.
   deploymentBranch: 'gh-pages',
   trailingSlash: false,
 

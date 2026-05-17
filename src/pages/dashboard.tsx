@@ -21,7 +21,7 @@ export default function DashboardPage(): React.JSX.Element {
   // Redirect to login if not signed in
   useEffect(() => {
     if (!loading && !user) {
-      history.push('/ftc-curriculum/login');
+      history.push('/telemark/login');
     }
   }, [user, loading, history]);
 
@@ -73,7 +73,7 @@ export default function DashboardPage(): React.JSX.Element {
 
   async function handleSignOut() {
     await signOut(auth);
-    history.push('/ftc-curriculum/');
+    history.push('/telemark/');
   }
 
   function toggleUnit(unitSlug: string, nextValue: boolean) {
