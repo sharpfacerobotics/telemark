@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcake_recipes=globalThis.webpackChunkcake_recipes||[]).push([[1903],{1912(e){e.exports=JSON.parse('{"blogBasePath":"/telemark/blog","blogTitle":"Blog","authorsListPath":"/telemark/blog/authors"}')}}]);
