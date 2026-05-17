@@ -40,7 +40,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Unit 2: OpMode Structure',
     lessonCount: 10,
     overview:
-      'This unit gets every student onto the same stable FTC development setup before any robot code is written.',
+      'In this unit, we get the full FTC development environment working cleanly before we write any robot code.',
     outcomes: [
       'Install JDK 17 and Android Studio with the right FTC-compatible settings.',
       'Clone and open the FTC SDK without Gradle or build configuration issues.',
@@ -58,9 +58,9 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     startPath: '/docs/unit-02/registering-programs',
     nextPath: '/docs/unit-03',
     nextLabel: 'Unit 3: Java Variables',
-    lessonCount: 6,
+    lessonCount: 7,
     overview:
-      'This unit introduces the FTC OpMode lifecycle so students understand where initialization, real-time control, and one-time transitions belong.',
+      'In this unit, we map out the FTC OpMode lifecycle so it is clear where setup, repeated control logic, and one-time transitions belong.',
     outcomes: [
       'Choose the right annotation so programs appear correctly on the Driver Station.',
       'Separate setup work from repeated loop logic and one-time start/stop transitions.',
@@ -80,7 +80,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Unit 4: Gamepad Input',
     lessonCount: 6,
     overview:
-      'This unit focuses on the Java datatypes students will use constantly when mapping hardware, reading sensors, and calculating robot behavior.',
+      'In this unit, we focus on the Java data types that show up constantly in FTC code, from hardware mapping to sensor reads and control calculations.',
     outcomes: [
       'Choose the correct datatype for names, numeric precision, binary state, and whole-number counts.',
       'Avoid common FTC bugs caused by integer truncation or mismatched hardware identifiers.',
@@ -100,7 +100,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Unit 5: Logic & Decisions',
     lessonCount: 6,
     overview:
-      'This unit teaches students how driver input gets translated into robot behavior, from simple button toggles to analog control shaping.',
+      'In this unit, we turn driver input into deliberate robot behavior, from simple button toggles to analog control shaping.',
     outcomes: [
       'Use buttons, joysticks, and triggers appropriately based on whether the mechanism needs digital or analog control.',
       'Implement deadzones and sensitivity shaping so the robot feels stable and intuitive to drive.',
@@ -120,7 +120,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Unit 6: Loops & Iteration',
     lessonCount: 6,
     overview:
-      'This unit builds the decision-making layer of robot code — from simple button checks to multi-sensor logic trees that automate game element sorting.',
+      'In this unit, we build the decision-making layer of robot code, from basic button checks to multi-sensor logic that safely automates mechanism behavior.',
     outcomes: [
       'Use if/else if/else chains to guarantee a single unambiguous command reaches hardware each loop cycle.',
       'Implement comparison operators to create soft-limit safety zones that prevent motors from exceeding physical bounds.',
@@ -140,7 +140,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Unit 7: Hardware Mapping',
     lessonCount: 6,
     overview:
-      'This unit moves students from one-shot commands into repeated execution, timing control, and scalable iteration patterns for real FTC robots.',
+      'In this unit, we move from one-shot commands into repeated execution, timing control, and scalable iteration patterns for real FTC robots.',
     outcomes: [
       'Use loop-based control structures safely so code stops when the OpMode stops.',
       'Automate repeated actions and multi-device commands with for loops and array iteration.',
@@ -160,7 +160,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Unit 8: DC Motor Control',
     lessonCount: 6,
     overview:
-      'This unit connects FTC configuration names to Java objects so students can safely instantiate motors, sensors, and reusable mechanisms.',
+      'In this unit, we connect FTC configuration names to Java objects so motors, sensors, and reusable mechanisms can be instantiated safely and consistently.',
     outcomes: [
       'Use the hardwareMap registry to retrieve configured devices with the correct Java class and exact robot configuration name.',
       'Map motors and sensors consistently while diagnosing name mismatches and configuration overlay problems quickly.',
@@ -180,7 +180,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Unit 9: Servo Control',
     lessonCount: 6,
     overview:
-      'This unit turns mapped motors into predictable mechanisms by covering power control, direction reversal, braking behavior, and safety-limited motion.',
+      'In this unit, we turn mapped motors into predictable mechanisms by covering power control, direction reversal, braking behavior, and safety-limited motion.',
     outcomes: [
       'Apply motor power intentionally with setPower() so mechanisms move at the right speed and stop when expected.',
       'Correct mechanical orientation issues with setDirection() and choose between coasting and braking behavior deliberately.',
@@ -200,7 +200,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Unit 10: Encoders & Precision',
     lessonCount: 6,
     overview:
-      'This unit extends mechanism control beyond DC motors by teaching students how to command standard and continuous rotation servos safely and predictably.',
+      'In this unit, we extend mechanism control beyond DC motors by working through both positional and continuous-rotation servos in a safe, predictable way.',
     outcomes: [
       'Use setPosition() and scaleRange() to command positional servos without overdriving physical linkages.',
       'Configure mirrored mechanisms cleanly with servo direction settings instead of duplicating inversion math across OpModes.',
@@ -220,7 +220,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Unit 11: Digital & Analog Sensors',
     lessonCount: 6,
     overview:
-      'This unit teaches students how to use encoders as real feedback, turning motors from guesswork into measurable, repeatable motion.',
+      'In this unit, we use encoders as real feedback so autonomous movement becomes measurable and repeatable instead of guesswork.',
     outcomes: [
       'Read encoder tick counts and understand how they relate to real motor rotation.',
       'Convert ticks into meaningful distances using ticks-per-revolution data and wheel geometry.',
@@ -240,7 +240,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Unit 12: IMU & Rotation',
     lessonCount: 6,
     overview:
-      'This unit teaches students how to read, scale, and act on data from the three main sensor categories available in FTC: digital binary sensors, analog voltage sensors, and I2C sensors for color and distance.',
+      'In this unit, we read, scale, and respond to the main sensor categories used in FTC: digital, analog, and I2C-based color and distance sensors.',
     outcomes: [
       'Read digital touch sensors correctly, accounting for active-low hardware logic, and use them as reliable software limit switches.',
       'Convert raw potentiometer voltage into engineering units using Range.scale() for absolute positional feedback without a homing sequence.',
@@ -260,7 +260,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Unit 13: OOP & Inheritance',
     lessonCount: 6,
     overview:
-      'This unit teaches students to use the IMU built into the REV Control Hub for real-time heading data, field-relative motion translation, tilt detection, and closed-loop autonomous turning.',
+      'In this unit, we use the REV Hub IMU for heading data, field-relative control, tilt monitoring, and closed-loop autonomous turning.',
     outcomes: [
       'Initialize the IMU correctly for any physical Hub mounting orientation using RevHubOrientationOnRobot.',
       'Read and normalize Yaw, Pitch, and Roll data using the AngleUnit class for reliable heading and tilt feedback.',
@@ -276,15 +276,55 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     slug: 'unit-13',
     overviewPath: '/docs/unit-13',
     startPath: '/docs/unit-13/encapsulation',
-    nextPath: '/dashboard',
-    nextLabel: 'Dashboard',
+    nextPath: '/docs/unit-14',
+    nextLabel: 'Unit 14: Computer Vision',
     lessonCount: 6,
     overview:
-      'This unit teaches students to structure a competition robot codebase using object-oriented principles -- encapsulation, inheritance, method overriding, shared constants, and composition -- so that the project is maintainable, reusable, and resilient to last-minute hardware changes.',
+      'In this unit, we structure a competition robot codebase with object-oriented design so it stays maintainable, reusable, and resilient to last-minute hardware changes.',
     outcomes: [
       'Encapsulate mechanism hardware and logic into private-member classes with clean public interfaces, eliminating duplicated code across OpModes.',
       'Apply inheritance and @Override to build a family of specialized mechanisms from a shared parent, with the compiler enforcing correct implementation.',
       'Architect a master robot class using composition so that every OpMode initializes and controls the entire robot through a single object.',
+    ],
+  },
+  {
+    id: 'UNIT_14',
+    label: 'Unit 14',
+    title: 'Computer Vision',
+    desc: 'Open webcam streams with VisionPortal, detect and identify AprilTags, extract pose data for closed-loop navigation, define OpenCV Rect analysis zones, and build a full multi-zone autonomous scoring selector.',
+    tier: 'Advanced',
+    slug: 'unit-14',
+    overviewPath: '/docs/unit-14',
+    startPath: '/docs/unit-14/vision-portal',
+    nextPath: '/docs/unit-15',
+    nextLabel: 'Unit 15: Advanced Integration',
+    lessonCount: 6,
+    overview:
+      'In this unit, we give the robot visual awareness of the field using the FTC Vision SDK, building from camera setup to a reliable autonomous scoring selector.',
+    outcomes: [
+      'Configure a VisionPortal, attach processors, and manage the camera stream lifecycle to preserve CPU resources during the driving phase.',
+      'Detect and iterate over AprilTag detections safely, extracting pose data to implement closed-loop vision-based robot alignment.',
+      'Build a custom VisionProcessor using OpenCV Rect zones and HSV saturation comparison to identify game element spike mark locations reliably across varying competition lighting.',
+    ],
+  },
+  {
+    id: 'UNIT_15',
+    label: 'Unit 15',
+    title: 'Advanced Integration',
+    desc: 'Integrate Limelight pipelines, Pedro Pathing, Bezier curves, AprilTag-based relocalization, and non-blocking autonomous architecture.',
+    tier: 'Advanced',
+    slug: 'unit-15',
+    overviewPath: '/docs/unit-15',
+    startPath: '/docs/unit-15/limelight',
+    nextPath: '/dashboard',
+    nextLabel: 'Dashboard',
+    lessonCount: 6,
+    overview:
+      'In this unit, we bring the advanced systems together into competition-grade autonomous routines, combining vision, localization, path following, and state-machine control.',
+    outcomes: [
+      'Use the Limelight 3A to run dedicated vision pipelines and retrieve validated targeting data from robot code.',
+      'Build smooth autonomous trajectories with Pedro Pathing, including PathChains and Bezier-based motion planning.',
+      'Fuse AprilTag-based global pose corrections with odometry and coordinate full routines using non-blocking state-machine logic.',
     ],
   },
 ];
@@ -419,8 +459,17 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-02/health-check-challenge',
     label: '2.5 · Challenge: Health-Check',
-    title: 'Lesson 2.5: Challenge — Build a Robot Health-Check OpMode with Telemetry',
+    title: 'Lesson 2.5: Challenge: Build a Robot Health-Check OpMode with Telemetry',
     path: '/docs/unit-02/health-check-challenge',
+    unitSlug: 'unit-02',
+    unitLabel: 'Unit 2',
+    unitTitle: 'OpMode Structure',
+  },
+  {
+    id: 'unit-02/choosing-opmode-type',
+    label: '2.6 · Choosing OpMode Type',
+    title: 'Lesson 2.6: Choosing Your OpMode Type',
+    path: '/docs/unit-02/choosing-opmode-type',
     unitSlug: 'unit-02',
     unitLabel: 'Unit 2',
     unitTitle: 'OpMode Structure',
@@ -473,7 +522,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-03/dynamic-power-challenge',
     label: '3.5 · Challenge: Dynamic Power',
-    title: 'Lesson 3.5: Challenge — Build Dynamic Power Logic with Multiple Variables',
+    title: 'Lesson 3.5: Challenge: Build Dynamic Power Logic with Multiple Variables',
     path: '/docs/unit-03/dynamic-power-challenge',
     unitSlug: 'unit-03',
     unitLabel: 'Unit 3',
@@ -527,7 +576,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-04/arcade-drive-challenge',
     label: '4.5 · Challenge: Arcade Drive',
-    title: 'Lesson 4.5: Challenge — Build Full Arcade Drive with Deadzones and Sensitivity Curves',
+    title: 'Lesson 4.5: Challenge: Build Full Arcade Drive with Deadzones and Sensitivity Curves',
     path: '/docs/unit-04/arcade-drive-challenge',
     unitSlug: 'unit-04',
     unitLabel: 'Unit 4',
@@ -581,7 +630,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-05/intake-logic-challenge',
     label: '5.5 · Challenge: Intake Logic',
-    title: 'Lesson 5.5: Challenge — Build Intake Logic for Multi-Stage Game Piece Sorting',
+    title: 'Lesson 5.5: Challenge: Build Intake Logic for Multi-Stage Game Piece Sorting',
     path: '/docs/unit-05/intake-logic-challenge',
     unitSlug: 'unit-05',
     unitLabel: 'Unit 5',
@@ -635,7 +684,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-06/nonblocking-timer',
     label: '6.5 · Challenge: Non-Blocking Timer',
-    title: 'Lesson 6.5: Challenge — Build a Non-Blocking Timer for Parallel Mechanism Control',
+    title: 'Lesson 6.5: Challenge: Build a Non-Blocking Timer for Parallel Mechanism Control',
     path: '/docs/unit-06/nonblocking-timer',
     unitSlug: 'unit-06',
     unitLabel: 'Unit 6',
@@ -689,7 +738,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-07/mechanism-classes',
     label: '7.5 · Challenge: Mechanism Classes',
-    title: 'Lesson 7.5: Challenge — Keep Shared Hardware Classes Consistent Across OpModes',
+    title: 'Lesson 7.5: Challenge: Keep Shared Hardware Classes Consistent Across OpModes',
     path: '/docs/unit-07/mechanism-classes',
     unitSlug: 'unit-07',
     unitLabel: 'Unit 7',
@@ -743,7 +792,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-08/linear-slide-challenge',
     label: '8.5 · Challenge: Linear Slide',
-    title: 'Lesson 8.5: Challenge — Build a Two-Way Linear Slide with Software Limits',
+    title: 'Lesson 8.5: Challenge: Build a Two-Way Linear Slide with Software Limits',
     path: '/docs/unit-08/linear-slide-challenge',
     unitSlug: 'unit-08',
     unitLabel: 'Unit 8',
@@ -797,7 +846,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-09/dual-servo-challenge',
     label: '9.5 · Challenge: Dual-Servo Gripper',
-    title: 'Lesson 9.5: Challenge — Sync a Dual-Servo Gripper with Offset Tuning',
+    title: 'Lesson 9.5: Challenge: Sync a Dual-Servo Gripper with Offset Tuning',
     path: '/docs/unit-09/dual-servo-challenge',
     unitSlug: 'unit-09',
     unitLabel: 'Unit 9',
@@ -851,7 +900,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-10/drive-and-stop',
     label: '10.5 · Challenge: Drive and Stop',
-    title: 'Lesson 10.5: Challenge — Developing a Precise Drive and Stop System for Linear Navigation',
+    title: 'Lesson 10.5: Challenge: Developing a Precise Drive and Stop System for Linear Navigation',
     path: '/docs/unit-10/drive-and-stop',
     unitSlug: 'unit-10',
     unitLabel: 'Unit 10',
@@ -905,7 +954,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-11/sensor-gated-intake',
     label: '11.5 · Challenge: Sensor-Gated Intake',
-    title: 'Lesson 11.5: Challenge — Creating an Automated Sensor-Gated Intake System',
+    title: 'Lesson 11.5: Challenge: Creating an Automated Sensor-Gated Intake System',
     path: '/docs/unit-11/sensor-gated-intake',
     unitSlug: 'unit-11',
     unitLabel: 'Unit 11',
@@ -959,7 +1008,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-12/imu-turn',
     label: '12.5 · Challenge: IMU Turn',
-    title: 'Lesson 12.5: Challenge — Implementing an IMU-Corrected 90-Degree Autonomous Turn',
+    title: 'Lesson 12.5: Challenge: Implementing an IMU-Corrected 90-Degree Autonomous Turn',
     path: '/docs/unit-12/imu-turn',
     unitSlug: 'unit-12',
     unitLabel: 'Unit 12',
@@ -1013,7 +1062,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-13/robot-class',
     label: '13.5 · Challenge: Robot Class',
-    title: 'Lesson 13.5: Challenge — Architecting a Modular Robot Class with Nested Subsystems',
+    title: 'Lesson 13.5: Challenge: Architecting a Modular Robot Class with Nested Subsystems',
     path: '/docs/unit-13/robot-class',
     unitSlug: 'unit-13',
     unitLabel: 'Unit 13',
@@ -1027,6 +1076,114 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
     unitSlug: 'unit-13',
     unitLabel: 'Unit 13',
     unitTitle: 'OOP & Inheritance',
+  },
+  {
+    id: 'unit-14/vision-portal',
+    label: '14.1 · VisionPortal',
+    title: 'Lesson 14.1: Configuring VisionPortal and Opening Webcam Streams',
+    path: '/docs/unit-14/vision-portal',
+    unitSlug: 'unit-14',
+    unitLabel: 'Unit 14',
+    unitTitle: 'Computer Vision',
+  },
+  {
+    id: 'unit-14/apriltag-detection',
+    label: '14.2 · AprilTag Detection',
+    title: 'Lesson 14.2: Detecting Field Locations using AprilTagProcessor',
+    path: '/docs/unit-14/apriltag-detection',
+    unitSlug: 'unit-14',
+    unitLabel: 'Unit 14',
+    unitTitle: 'Computer Vision',
+  },
+  {
+    id: 'unit-14/pose-data',
+    label: '14.3 · Pose Data',
+    title: 'Lesson 14.3: Extracting Detection IDs and Pose Data for Navigation',
+    path: '/docs/unit-14/pose-data',
+    unitSlug: 'unit-14',
+    unitLabel: 'Unit 14',
+    unitTitle: 'Computer Vision',
+  },
+  {
+    id: 'unit-14/opencv-zones',
+    label: '14.4 · OpenCV Zones',
+    title: 'Lesson 14.4: Defining Vision Windows with OpenCV Rect Boundaries',
+    path: '/docs/unit-14/opencv-zones',
+    unitSlug: 'unit-14',
+    unitLabel: 'Unit 14',
+    unitTitle: 'Computer Vision',
+  },
+  {
+    id: 'unit-14/multi-zone-challenge',
+    label: '14.5 · Challenge: Multi-Zone Vision',
+    title: 'Lesson 14.5: Challenge: Multi-Zone Vision Processing for Autonomous Scoring Selection',
+    path: '/docs/unit-14/multi-zone-challenge',
+    unitSlug: 'unit-14',
+    unitLabel: 'Unit 14',
+    unitTitle: 'Computer Vision',
+  },
+  {
+    id: 'unit-14/mastery-quiz',
+    label: 'Unit 14 · Mastery Quiz',
+    title: 'Unit 14 Mastery Quiz: Computer Vision',
+    path: '/docs/unit-14/mastery-quiz',
+    unitSlug: 'unit-14',
+    unitLabel: 'Unit 14',
+    unitTitle: 'Computer Vision',
+  },
+  {
+    id: 'unit-15/limelight',
+    label: '15.1 · Limelight 3A',
+    title: 'Lesson 15.1: Tuning Vision Pipelines on the Limelight 3A Interface',
+    path: '/docs/unit-15/limelight',
+    unitSlug: 'unit-15',
+    unitLabel: 'Unit 15',
+    unitTitle: 'Advanced Integration',
+  },
+  {
+    id: 'unit-15/pedro-pathing',
+    label: '15.2 · Pedro Pathing',
+    title: 'Lesson 15.2: Interfacing with Pedro Pathing for Follower Control',
+    path: '/docs/unit-15/pedro-pathing',
+    unitSlug: 'unit-15',
+    unitLabel: 'Unit 15',
+    unitTitle: 'Advanced Integration',
+  },
+  {
+    id: 'unit-15/bezier-curves',
+    label: '15.3 · Bézier Curves',
+    title: 'Lesson 15.3: Implementing Path Following with Bézier Curves',
+    path: '/docs/unit-15/bezier-curves',
+    unitSlug: 'unit-15',
+    unitLabel: 'Unit 15',
+    unitTitle: 'Advanced Integration',
+  },
+  {
+    id: 'unit-15/limelight-fusion',
+    label: '15.4 · Limelight Fusion',
+    title: 'Lesson 15.4: Global Field Localization with AprilTag and Limelight Fusion',
+    path: '/docs/unit-15/limelight-fusion',
+    unitSlug: 'unit-15',
+    unitLabel: 'Unit 15',
+    unitTitle: 'Advanced Integration',
+  },
+  {
+    id: 'unit-15/full-autonomous',
+    label: '15.5 · Challenge: Full Autonomous',
+    title: 'Lesson 15.5: Challenge: Designing a Full Autonomous Sequence using Bézier Pathing and Vision',
+    path: '/docs/unit-15/full-autonomous',
+    unitSlug: 'unit-15',
+    unitLabel: 'Unit 15',
+    unitTitle: 'Advanced Integration',
+  },
+  {
+    id: 'unit-15/mastery-quiz',
+    label: 'Unit 15 · Mastery Quiz',
+    title: 'Unit 15 Mastery Quiz: Advanced Integration',
+    path: '/docs/unit-15/mastery-quiz',
+    unitSlug: 'unit-15',
+    unitLabel: 'Unit 15',
+    unitTitle: 'Advanced Integration',
   },
 ];
 

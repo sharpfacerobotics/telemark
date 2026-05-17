@@ -13,7 +13,7 @@ import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
 ## Technical Context
 
-When power is set to `0.0`, a heavy mechanism — like a lift or a high-momentum drivetrain — may continue to move due to gravity or inertia. In FTC, this is critical for high-reach scoring assemblies: without software braking, a lift will **"drift" downward** as soon as the driver releases the joystick, potentially dropping a game element or crashing into the robot frame.
+When power is set to `0.0`, a heavy mechanism, like a lift or a high-momentum drivetrain, may continue to move due to gravity or inertia. In FTC, this is critical for high-reach scoring assemblies: without software braking, a lift will **"drift" downward** as soon as the driver releases the joystick, potentially dropping a game element or crashing into the robot frame.
 
 ---
 
@@ -21,10 +21,10 @@ When power is set to `0.0`, a heavy mechanism — like a lift or a high-momentum
 
 The `setZeroPowerBehavior()` method defines how the Expansion Hub motor controller handles a zero-power state. There are two options:
 
-- **`BRAKE`** — electronically shorts the motor's terminals together, creating a resistive force that opposes any external motion. The motor actively resists gravity and inertia. This draws a small holding current.
-- **`FLOAT`** (the default) — disconnects the motor terminals, allowing the motor shaft to spin freely until mechanical friction brings it to rest. This is also called "coast."
+- **`BRAKE`**: electronically shorts the motor's terminals together, creating a resistive force that opposes any external motion. The motor actively resists gravity and inertia. This draws a small holding current.
+- **`FLOAT`** (the default): disconnects the motor terminals, allowing the motor shaft to spin freely until mechanical friction brings it to rest. This is also called "coast."
 
-The behavior is set on the **hardware controller**, not just in software — the Control Hub physically changes the circuit configuration of the motor port. This means `BRAKE` still holds its position even during brief communication interruptions.
+The behavior is set on the **hardware controller**, not just in software. The Control Hub physically changes the circuit configuration of the motor port. This means `BRAKE` still holds its position even during brief communication interruptions.
 
 Set `ZeroPowerBehavior` in `init()` immediately after mapping, so the hardware is always in the correct state before the match begins.
 
@@ -52,7 +52,7 @@ public class BrakeDemo extends OpMode {
         armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         armMotor.setPower(0);
 
-        telemetry.addData("Status", "Arm motor — BRAKE mode active");
+        telemetry.addData("Status", "Arm motor: BRAKE mode active");
     }
 
     @Override
@@ -70,7 +70,7 @@ public class BrakeDemo extends OpMode {
 ## Fill-in-the-Blank Practice
 
 1. To allow a robot to coast smoothly to a stop, set the behavior to `DcMotor.ZeroPowerBehavior.__________`.
-2. The `BRAKE` behavior is implemented by the `__________` on the robot, not just the software — the port circuit is physically reconfigured.
+2. The `BRAKE` behavior is implemented by the `__________` on the robot, not just the software. The port circuit is physically reconfigured.
 3. If you want a linear slide to hold its position against gravity when the driver releases the joystick, you should use the `__________` behavior.
 
 <details>

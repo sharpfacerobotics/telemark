@@ -2,7 +2,7 @@
 id: mastery-quiz
 title: "Unit 2 Mastery Quiz: OpMode Structure"
 sidebar_label: "Unit 2 · Mastery Quiz"
-sidebar_position: 6
+sidebar_position: 7
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
@@ -100,14 +100,14 @@ public class LiftMonitor extends OpMode {
 <details>
 <summary>Show answers</summary>
 
-**Error 1 — Syntax Error:**
+**Error 1 - Syntax Error:**
 The line `lift = hardwareMap.get(DcMotor.class, "lift_motor")` is missing a semicolon (`;`) at the end. In Java, every statement must terminate with a semicolon.
 
 ```java
 lift = hardwareMap.get(DcMotor.class, "lift_motor"); // ← semicolon added
 ```
 
-**Error 2 — Logic Error:**
+**Error 2 - Logic Error:**
 The programmer used `@Autonomous` for a program named `"TeleOp_Main"`, the wrong annotation for a driver-controlled program. Additionally, `lift.setPower(0.8)` is placed inside `init()`. This is a critical safety failure: as soon as the driver presses "Init", the lift will immediately activate at 80% power before the match has begun. Hardware movement commands must be restricted to `start()` or `loop()`.
 
 ```java
@@ -115,7 +115,7 @@ The programmer used `@Autonomous` for a program named `"TeleOp_Main"`, the wrong
 
 @Override
 public void init() {
-    lift = hardwareMap.get(DcMotor.class, "lift_motor"); // map only — no power
+    lift = hardwareMap.get(DcMotor.class, "lift_motor"); // map only, no power
 }
 
 @Override

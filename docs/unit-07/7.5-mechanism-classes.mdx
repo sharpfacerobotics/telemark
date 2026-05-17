@@ -6,6 +6,7 @@ sidebar_position: 5
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit7Simulator from '@site/src/components/Unit7Simulator';
 
 # Lesson 7.5: Challenge — Keep Shared Hardware Classes Consistent Across OpModes
 
@@ -104,94 +105,11 @@ public class IntakeTeleOp extends OpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** Create a separate `LinearSlide` class. It should map a motor named `"slide_motor"`, set its `ZeroPowerBehavior` to `BRAKE`, and expose a `move(double speed)` method. Then use it inside a TeleOp.
+Use the simulator below to practice wiring a reusable mechanism class into a TeleOp and keeping the mapping logic in one place.
 
-**Step 1 — The mechanism class:**
-
-```java
-package org.firstinspires.ftc.teamcode.mechanisms;
-
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-
-public class LinearSlide {
-
-    private DcMotor slideMotor;
-
-    // INSERT CODE HERE: Write an init() method that accepts HardwareMap,
-    // maps "slide_motor", and sets ZeroPowerBehavior to BRAKE
-
-    // INSERT CODE HERE: Write a public move() method that takes a
-    // double 'speed' and applies it to slideMotor
-}
-```
-
-**Step 2 — Using it in a TeleOp:**
-
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import org.firstinspires.ftc.teamcode.mechanisms.LinearSlide;
-
-@TeleOp(name="Slide_TeleOp_Challenge")
-public class SlideTeleOp extends OpMode {
-
-    // INSERT CODE HERE: Declare and instantiate a LinearSlide object
-
-    @Override
-    public void init() {
-        // INSERT CODE HERE: Initialize the slide using hardwareMap
-    }
-
-    @Override
-    public void loop() {
-        // INSERT CODE HERE: Drive the slide with gamepad1.left_stick_y
-    }
-}
-```
-
-<details>
-<summary>Show answer</summary>
-
-**LinearSlide.java:**
-```java
-public class LinearSlide {
-
-    private DcMotor slideMotor;
-
-    public void init(HardwareMap hwMap) {
-        slideMotor = hwMap.get(DcMotor.class, "slide_motor");
-        slideMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        slideMotor.setPower(0);
-    }
-
-    public void move(double speed) {
-        slideMotor.setPower(speed);
-    }
-}
-```
-
-**SlideTeleOp.java:**
-```java
-private LinearSlide slide = new LinearSlide();
-
-@Override
-public void init() {
-    slide.init(hardwareMap);
-    telemetry.addData("Status", "Slide ready");
-}
-
-@Override
-public void loop() {
-    slide.move(-gamepad1.left_stick_y);
-}
-```
-
-</details>
+<Unit7Simulator lesson="mechanism-classes" />
 
 <MarkComplete
   lessonId="unit-07/mechanism-classes"

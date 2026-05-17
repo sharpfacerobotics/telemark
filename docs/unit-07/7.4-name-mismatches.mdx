@@ -6,6 +6,7 @@ sidebar_position: 4
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit7Simulator from '@site/src/components/Unit7Simulator';
 
 # Lesson 7.4: Debugging Name Mismatches and Configuration Problems
 
@@ -75,66 +76,11 @@ rightDrive = hardwareMap.get(DcMotor.class, RobotConfig.RIGHT_DRIVE);
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** Your robot has a motor configured on the Hub as `"wrist"` (all lowercase). The code below is crashing — identify the mismatch and correct it. Then refactor the name into a constant inside a `WristConfig` class.
+Use the simulator below to track down a name mismatch, then refactor the correct hardware name into a shared constant.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-
-@TeleOp(name="Wrist_Fix_Challenge")
-public class WristFix extends OpMode {
-
-    private DcMotor wrist;
-
-    @Override
-    public void init() {
-        // BUG: Hub configuration name is "wrist" but the string below is wrong
-        wrist = hardwareMap.get(DcMotor.class, "Wrist_Motor");
-    }
-
-    @Override
-    public void loop() {
-        wrist.setPower(gamepad1.right_stick_y);
-    }
-}
-```
-
-Then write a `WristConfig` class:
-
-```java
-// INSERT CODE HERE: Create a class named WristConfig with a
-// static final String constant named WRIST that equals "wrist"
-```
-
-<details>
-<summary>Show answer</summary>
-
-**Fixed init():**
-```java
-@Override
-public void init() {
-    wrist = hardwareMap.get(DcMotor.class, "wrist"); // matches Hub config exactly
-}
-```
-
-**WristConfig class:**
-```java
-public class WristConfig {
-    public static final String WRIST = "wrist";
-}
-```
-
-**Even better — using the constant:**
-```java
-wrist = hardwareMap.get(DcMotor.class, WristConfig.WRIST);
-```
-
-</details>
+<Unit7Simulator lesson="name-mismatches" />
 
 <MarkComplete
   lessonId="unit-07/name-mismatches"

@@ -30,8 +30,8 @@ export default function CurriculumPage(): React.JSX.Element {
           <p className={pageStyles.sectionLabel}>// curriculum.live[]</p>
           <h1 className={pageStyles.sectionTitle}>Live Curriculum</h1>
           <p className={pageStyles.sectionDesc}>
-            {CURRICULUM_UNIT_COUNT} units, {CURRICULUM_LESSON_COUNT} lessons,
-            and a dashboard that tracks the same lesson order you see in the docs.
+            {CURRICULUM_UNIT_COUNT} units and {CURRICULUM_LESSON_COUNT} lessons,
+            organized in the same sequence used throughout the docs and dashboard.
           </p>
 
           <div className={pageStyles.curriculumGrid}>
@@ -40,7 +40,7 @@ export default function CurriculumPage(): React.JSX.Element {
                 <div className={pageStyles.unitNum}>{unit.label}</div>
                 <div className={pageStyles.unitTitle}>{unit.title}</div>
                 <div className={pageStyles.unitDesc}>
-                  {unit.desc} {unit.lessonCount} lessons are live in this unit.
+                  {unit.desc} {unit.lessonCount} lessons are currently available in this unit.
                 </div>
                 <span className={`${pageStyles.unitTag} ${pageStyles.tagBasic}`}>
                   {unit.tier}

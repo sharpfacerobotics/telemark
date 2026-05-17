@@ -38,7 +38,7 @@ export default function UnitOverview({
   return (
     <>
       <section className={styles.hero}>
-        <div className={styles.eyebrow}>{unit.id} // unit.overview</div>
+        <div className={styles.eyebrow}>{unit.id} // course overview</div>
         <div className={styles.titleRow}>
           <div className={styles.titleBlock}>
             <h1 className={styles.title}>
@@ -125,8 +125,8 @@ export default function UnitOverview({
           </div>
 
           <div className={styles.coachNote}>
-            Use this page to orient students quickly, resume the right lesson,
-            or skip ahead without digging through the entire sidebar.
+            Use this page to review the sequence, pick up where you left off,
+            or get clear on the unit goals before moving ahead.
           </div>
         </div>
       </section>

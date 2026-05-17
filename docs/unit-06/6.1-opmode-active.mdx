@@ -6,6 +6,7 @@ sidebar_position: 1
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit6Simulator from '@site/src/components/Unit6Simulator';
 
 # Lesson 6.1: Keeping a LinearOpMode Safe with while(opModeIsActive())
 
@@ -70,53 +71,11 @@ public class SafeLoopDemo extends LinearOpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** You are writing a safety-first autonomous program. The robot must rotate a motor named `"spinner"` at 40% power, but only as long as the match is active and the hardware is responding.
+Use the simulator below to practice building a safe `LinearOpMode` loop around `opModeIsActive()`.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.hardware.DcMotor;
-
-@Autonomous(name="Safety_Spin")
-public class SafetySpin extends LinearOpMode {
-
-    @Override
-    public void runOpMode() {
-        DcMotor spinner = hardwareMap.get(DcMotor.class, "spinner");
-
-        waitForStart();
-
-        // INSERT CODE HERE: Create a safeguard loop using opModeIsActive()
-        {
-            // INSERT CODE HERE: Command spinner to 0.4 power
-            telemetry.update();
-        }
-
-        spinner.setPower(0); // Safe stop after loop exits
-    }
-}
-```
-
-<details>
-<summary>Show answer</summary>
-
-```java
-waitForStart();
-
-while (opModeIsActive()) {
-    spinner.setPower(0.4);
-    telemetry.addData("Spinner", "Running at 40%");
-    telemetry.update();
-}
-
-spinner.setPower(0);
-```
-
-</details>
+<Unit6Simulator lesson="opmode-active" />
 
 <MarkComplete
   lessonId="unit-06/opmode-active"

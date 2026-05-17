@@ -13,7 +13,7 @@ import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
 ## Technical Context
 
-Robots with differential drivetrains — whether two-wheel or four-wheel mecanum — typically have motors mounted in **mirror-image orientations** on the left and right sides. Without software normalization, commanding "forward" power to both sides simultaneously would cause the robot to spin in place, because one side's physical "forward" is the other side's "backward." Correcting this in `init()` ensures every OpMode on the robot shares the same logical motor orientation without any manual math.
+Robots with differential drivetrains, whether two-wheel or four-wheel mecanum, typically have motors mounted in **mirror-image orientations** on the left and right sides. Without software normalization, commanding "forward" power to both sides simultaneously would cause the robot to spin in place, because one side's physical "forward" is the other side's "backward." Correcting this in `init()` ensures every OpMode on the robot shares the same logical motor orientation without any manual math.
 
 ---
 
@@ -22,9 +22,9 @@ Robots with differential drivetrains — whether two-wheel or four-wheel mecanum
 The `setDirection()` method allows the programmer to flip the **logical orientation** of a `DcMotor` object. By passing `DcMotorSimple.Direction.REVERSE`, all subsequent positive power commands and encoder tick counts are inverted by the SDK before the signal reaches the Control Hub port.
 
 This is technically superior to negating joystick values manually in `loop()` because:
-- It applies universally — every `setPower()` call everywhere in the codebase behaves correctly without needing manual adjustment.
+- It applies universally. Every `setPower()` call everywhere in the codebase behaves correctly without needing manual adjustment.
 - It also inverts the **encoder direction**, so `getCurrentPosition()` increments in the expected direction.
-- It documents intent — a teammate reading the code immediately understands the motor is physically reversed.
+- It documents intent. A teammate reading the code immediately understands the motor is physically reversed.
 
 The default direction for all motors is `DcMotorSimple.Direction.FORWARD`.
 

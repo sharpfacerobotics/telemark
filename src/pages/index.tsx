@@ -14,7 +14,7 @@ import {
 } from '../telemark/curriculum';
 
 const STATS = [
-  { num: String(CURRICULUM_UNIT_COUNT),   label: 'Live Units'        },
+  { num: String(CURRICULUM_UNIT_COUNT),   label: 'Curriculum Units'  },
   { num: String(CURRICULUM_LESSON_COUNT), label: 'Lessons'           },
   { num: 'Java',                          label: 'Primary Language'  },
   { num: 'FTC SDK',                       label: 'Framework'         },
@@ -23,7 +23,7 @@ const STATS = [
 const FEATURES = [
   {
     title: 'Embedded Simulator',
-    desc:  'Open the Unity-based robot simulator directly in your browser while you work through the curriculum.',
+    desc:  'Use the browser-based simulator alongside the lessons to test ideas and build intuition without leaving the curriculum.',
     icon: (
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
         <rect x="2" y="6" width="28" height="20" rx="2" stroke="#00BFFF" strokeWidth="1.5" />
@@ -33,7 +33,7 @@ const FEATURES = [
   },
   {
     title: 'Progress Tracking',
-    desc:  'Sign in with Google to save completed lessons and resume the next unfinished page from your dashboard.',
+    desc:  'Sign in with Google to save completed lessons, monitor progress, and return to the next unfinished page from the dashboard.',
     icon: (
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
         <path d="M16 4L28 10V22L16 28L4 22V10L16 4Z" stroke="#00BFFF" strokeWidth="1.5" />
@@ -43,7 +43,7 @@ const FEATURES = [
   },
   {
     title: 'Tiered Challenges',
-    desc:  'Simple fill-in-the-blank templates to build confidence, followed by hard problems that require real understanding to solve.',
+    desc:  'Work from guided templates into harder problems that ask you to apply the idea instead of just repeating syntax.',
     icon: (
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
         <circle cx="16" cy="16" r="10" stroke="#00BFFF" strokeWidth="1.5" />
@@ -53,7 +53,7 @@ const FEATURES = [
   },
   {
     title: 'Open Source',
-    desc:  'Built on Docusaurus, hosted on GitHub Pages. Fork it, contribute lessons, and help other FTC teams across the world.',
+    desc:  'Built on Docusaurus and published openly so teams can study it, extend it, and improve it together.',
     icon: (
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
         <path d="M6 26L14 6l8 12 4-6 4 14" stroke="#00BFFF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
@@ -139,7 +139,7 @@ function HeroSection(): React.JSX.Element {
     <section className={styles.hero}>
       <div className={styles.heroBadge}>
         <span className={styles.badgeDot} aria-hidden="true" />
-        <span>FTC Season 2025–2026 · Open Source</span>
+        <span>Student-Built FTC Curriculum · Open Source</span>
       </div>
 
       <h1 className={styles.heroTitle}>
@@ -148,8 +148,9 @@ function HeroSection(): React.JSX.Element {
       </h1>
 
       <p className={styles.heroSub}>
-        A structured, hands-on curriculum built by student engineers.
-        From environment setup through hardware mapping, motor control, and servos.
+        A structured FTC Java curriculum written by students for students.
+        We start with environment setup and fundamentals, then build through hardware,
+        motion control, sensors, vision, and full autonomous integration.
       </p>
 
       <div className={styles.terminalLine} aria-hidden="true">
@@ -184,9 +185,9 @@ function CurriculumSection(): React.JSX.Element {
   return (
     <section className={styles.section} id="curriculum">
       <p className={styles.sectionLabel}>// curriculum.units[]</p>
-      <h2 className={styles.sectionTitle}>{CURRICULUM_UNIT_COUNT} Live Units. Zero Fluff.</h2>
+      <h2 className={styles.sectionTitle}>{CURRICULUM_UNIT_COUNT} Structured Units. One Clear Path.</h2>
       <p className={styles.sectionDesc}>
-        Every unit below is live, and the tracker matches the lesson order in the docs.
+        Each unit builds on the last, and the lesson order on the site matches the sequence we would use when teaching a new teammate.
       </p>
 
       <div className={styles.curriculumGrid}>
@@ -215,8 +216,8 @@ function FeaturesSection(): React.JSX.Element {
       <p className={styles.sectionLabel}>// platform.features[]</p>
       <h2 className={styles.sectionTitle}>Built for Real Learning</h2>
       <p className={styles.sectionDesc}>
-        Not just another tutorial site. Every feature exists to make you a
-        better FTC programmer.
+        The platform is designed to keep the learning path practical, organized,
+        and easy to pick back up between meetings.
       </p>
 
       <div className={styles.featuresGrid}>
@@ -238,8 +239,7 @@ function SimulatorSection(): React.JSX.Element {
       <p className={styles.sectionLabel}>// simulator.live[]</p>
       <h2 className={styles.sectionTitle}>Try It Right Now</h2>
       <p className={styles.sectionDesc}>
-        No installation. No setup. Open the simulator and explore robot behavior
-        right in the browser.
+        Open the simulator in the browser and experiment with robot behavior while you work through the lessons.
       </p>
       <div className={styles.simulatorWrapper}>
         <iframe
@@ -258,18 +258,16 @@ function CtaSection(): React.JSX.Element {
     <div className={styles.ctaSection}>
       <div className={styles.ctaBox}>
         <p className={styles.sectionLabel} style={{ marginBottom: '1.5rem' }}>
-          // ready.to.build?
+          // start.here
         </p>
         <h2 className={styles.ctaTitle}>
-          Your robot won't<br />program itself.
+          Start with the fundamentals.<br />Build toward competition.
         </h2>
         <p className={styles.ctaSub}>
-          Start with Unit 1 — no prior programming experience required. The
-          live curriculum now spans {CURRICULUM_UNIT_COUNT} units, from
-          environment setup through hardware mapping and motor control.
+          Begin with Unit 1. We will get the toolchain working first, then move step by step into hardware, control systems, vision, and advanced autonomous routines.
         </p>
         <Link to="/docs/unit-01/prerequisites" className={styles.btnPrimary}>
-          Launch Unit 1 →
+          Begin Unit 1 →
         </Link>
       </div>
     </div>
@@ -288,7 +286,7 @@ export default function Home(): React.JSX.Element {
         <title>{siteConfig.title}</title>
         <meta
           name="description"
-          content="Telemark by EHS Robotics — open-source FTC programming lessons from environment setup through hardware mapping, DC motor control, and servo control."
+          content="Telemark by EHS Robotics — an open-source FTC Java curriculum built by students, covering environment setup, hardware, sensors, control, vision, and advanced autonomous systems."
         />
       </Head>
     

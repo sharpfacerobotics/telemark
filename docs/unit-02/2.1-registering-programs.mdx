@@ -22,6 +22,8 @@ Sometimes valid Java classes fail to appear on the Driver Station menu. This is 
 
 Annotations in the FTC SDK are metadata tags that start with the `@` symbol. When the Robot Controller app starts, it scans the TeamCode package for classes that extend `OpMode` and possess the `@TeleOp` or `@Autonomous` annotation. This process registers the class into the SDK's internal registry, allowing the Driver Station to build its user interface menu.
 
+Because `LinearOpMode` extends `OpMode`, both TeleOp and Autonomous classes are still discovered through this same registration system.
+
 Using parameters like `name` and `group` within the annotation provides human-readable labels and organized folders for the drivers. Alternatively, you can use `@Disabled` to hide the program from the compiler.
 
 ---
@@ -82,8 +84,11 @@ Your team has a dedicated program for testing a new intake mechanism. Register t
 
 ```java
 @Autonomous(name="Intake_Test", group="Diagnostics")
-public class IntakeDiagnostic extends OpMode {
-    ...
+public class IntakeDiagnostic extends LinearOpMode {
+    @Override
+    public void runOpMode() {
+        // autonomous logic here
+    }
 }
 ```
 

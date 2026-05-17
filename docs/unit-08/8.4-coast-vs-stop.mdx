@@ -23,10 +23,10 @@ Precision in autonomous and TeleOp depends on **predictable stops**. If a progra
 
 | `ZeroPowerBehavior` | Effect of `setPower(0.0)` |
 |---|---|
-| `FLOAT` (default) | Motor terminals disconnected — robot coasts to a stop via friction |
-| `BRAKE` | Motor terminals shorted — robot decelerates rapidly and holds position |
+| `FLOAT` (default) | Motor terminals disconnected, so the robot coasts to a stop via friction |
+| `BRAKE` | Motor terminals shorted, so the robot decelerates rapidly and holds position |
 
-In a high-speed drivetrain, switching to `0.0` power with `FLOAT` behavior can cause the robot to over-travel its target by several inches — enough to miss a scoring zone entirely. `BRAKE` mode reduces this over-travel dramatically, making autonomous navigation far more repeatable.
+In a high-speed drivetrain, switching to `0.0` power with `FLOAT` behavior can cause the robot to over-travel its target by several inches, enough to miss a scoring zone entirely. `BRAKE` mode reduces this over-travel dramatically, making autonomous navigation far more repeatable.
 
 A common professional pattern is to set `BRAKE` on all drive motors in `init()`, then send `setPower(0.0)` as the last command of every autonomous step to guarantee a clean stop before the next movement begins.
 
@@ -59,7 +59,7 @@ public class CoastVsStopDemo extends LinearOpMode {
         driveMotor.setPower(0.6);
         sleep(2000);
 
-        // This stops the motor AND holds position — not a coast
+        // This stops the motor AND holds position, not a coast
         driveMotor.setPower(0.0);
 
         telemetry.addData("Status", "Stopped at target position");
@@ -154,5 +154,5 @@ public void loop() {
 <MarkComplete
   lessonId="unit-08/coast-vs-stop"
   nextUnit="/docs/unit-08/linear-slide-challenge"
-  nextUnitName="Lesson 8.5: Challenge — Creating a Bidirectional Linear Slide Control with Software Limiters"
+  nextUnitName="Lesson 8.5: Challenge: Build a Two-Way Linear Slide with Software Limits"
 />

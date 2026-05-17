@@ -13,7 +13,7 @@ import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
 ## Technical Context
 
-The Robot Controller manages motor output by sending **pulse-width modulation (PWM)** signals to the Expansion Hub or Control Hub. Sending power levels allows for variable speed control; however, providing too much power to a stalled mechanism — such as an arm pressed against a hard stop — can lead to motor burnout or stripped gears from sustained high-current draw.
+The Robot Controller manages motor output by sending **pulse-width modulation (PWM)** signals to the Expansion Hub or Control Hub. Sending power levels allows for variable speed control; however, providing too much power to a stalled mechanism, such as an arm pressed against a hard stop, can lead to motor burnout or stripped gears from sustained high-current draw.
 
 ---
 
@@ -22,13 +22,15 @@ The Robot Controller manages motor output by sending **pulse-width modulation (P
 The `setPower(double power)` method is the primary tool for commanding hardware motion. It accepts a `double` parameter ranging from `-1.0` (full reverse) to `1.0` (full forward), where `0.0` signifies a stop command.
 
 Important behaviors to understand:
-- **Values above `1.0` or below `-1.0`** are automatically clamped by the SDK — passing `1.5` is treated as `1.0`.
-- **The method does not directly control velocity** — it controls the PWM duty cycle (effectively the voltage fraction). Actual speed depends on battery voltage, load, and the motor's run mode.
-- **The command is held** until another `setPower()` call overrides it — if you never call `setPower(0)`, the motor keeps running after your code finishes that loop cycle.
+- **Values above `1.0` or below `-1.0`** are automatically clamped by the SDK. Passing `1.5` is treated as `1.0`.
+- **The method does not directly control velocity**. It controls the PWM duty cycle (effectively the voltage fraction). Actual speed depends on battery voltage, load, and the motor's run mode.
+- **The command is held** until another `setPower()` call overrides it. If you never call `setPower(0)`, the motor keeps running after your code finishes that loop cycle.
 
 ---
 
-## Annotated Code
+## In TeleOp (OpMode)
+
+When a driver is commanding the motor live, `setPower()` belongs in `loop()`. The SDK refreshes the gamepad values between loop cycles, so this is the correct place to read stick or trigger input.
 
 ```java
 package org.firstinspires.ftc.teamcode;
@@ -57,6 +59,38 @@ public class SetPowerDemo extends OpMode {
         intake.setPower(powerRequest);
 
         telemetry.addData("Power Sent", powerRequest);
+    }
+}
+```
+
+## In Autonomous (LinearOpMode)
+
+In autonomous, motor power is part of a planned sequence. No gamepad input is read. Instead, the program maps the hardware, waits for the start signal, runs the step, and then stops the motor.
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@Autonomous(name="SetPower_Auto_Demo")
+public class SetPowerAutoDemo extends LinearOpMode {
+
+    private DcMotor driveMotor;
+
+    @Override
+    public void runOpMode() {
+        driveMotor = hardwareMap.get(DcMotor.class, "drive_motor");
+        driveMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        driveMotor.setPower(0.0);
+
+        waitForStart();
+
+        driveMotor.setPower(0.5);
+        sleep(1500);
+
+        driveMotor.setPower(0.0);
     }
 }
 ```

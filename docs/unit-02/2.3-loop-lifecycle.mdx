@@ -24,6 +24,10 @@ In an `OpMode`, the `loop()` method is executed repeatedly after the driver pres
 
 Since `loop()` is non-blocking, it is ideal for TeleOp where driver inputs are changing in real-time.
 
+:::warning Gamepad input only works in TeleOp (OpMode)
+Never read gamepad values in an Autonomous program. The values will always be zero, and your robot will not behave as expected.
+:::
+
 ---
 
 ## Annotated Code

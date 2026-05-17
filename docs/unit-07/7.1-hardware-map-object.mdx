@@ -6,6 +6,7 @@ sidebar_position: 1
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit7Simulator from '@site/src/components/Unit7Simulator';
 
 # Lesson 7.1: Using hardwareMap to Find the Devices You Configured
 
@@ -76,47 +77,11 @@ public class HardwareMapDemo extends OpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** You have a new robot build. You need to map a motor that controls a `"lift"` mechanism. The motor is named `"lift_motor"` in the Robot Controller configuration.
+Use the simulator below to practice mapping a single motor from the Robot Controller configuration into Java.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-
-@TeleOp(name="Lift_Map_Challenge")
-public class LiftMap extends OpMode {
-
-    private DcMotor lift;
-
-    @Override
-    public void init() {
-        // INSERT CODE HERE: Use hardwareMap to instantiate the lift motor
-        // using the configuration name "lift_motor"
-    }
-
-    @Override
-    public void loop() {
-        lift.setPower(-gamepad1.left_stick_y);
-    }
-}
-```
-
-<details>
-<summary>Show answer</summary>
-
-```java
-@Override
-public void init() {
-    lift = hardwareMap.get(DcMotor.class, "lift_motor");
-    telemetry.addData("Status", "Lift motor mapped");
-}
-```
-
-</details>
+<Unit7Simulator lesson="hardware-map-object" />
 
 <MarkComplete
   lessonId="unit-07/hardware-map-object"

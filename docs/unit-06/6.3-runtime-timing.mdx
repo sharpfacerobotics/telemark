@@ -6,6 +6,7 @@ sidebar_position: 3
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit6Simulator from '@site/src/components/Unit6Simulator';
 
 # Lesson 6.3: Timing Robot Actions with getRuntime()
 
@@ -83,56 +84,11 @@ public class TimedDriveDemo extends LinearOpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** The robot must run a `"test_motor"` for exactly 1.5 seconds when the user presses the `'X'` button, but it must **not** use `sleep()`.
+Use the simulator below to practice non-blocking timing with `getRuntime()` inside a TeleOp-style `loop()`.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-
-@TeleOp(name="Non_Blocking_Timer")
-public class NonBlockingTimer extends OpMode {
-
-    private DcMotor test_motor;
-    private double endTime = 0;
-
-    @Override
-    public void init() {
-        test_motor = hardwareMap.get(DcMotor.class, "test_motor");
-    }
-
-    @Override
-    public void loop() {
-        if (gamepad1.x) {
-            // INSERT CODE HERE: Capture the current runtime plus 1.5 seconds into 'endTime'
-        }
-
-        if (getRuntime() < endTime) {
-            test_motor.setPower(1.0);
-        } else {
-            test_motor.setPower(0.0);
-        }
-
-        telemetry.addData("Motor Active", getRuntime() < endTime);
-        telemetry.update();
-    }
-}
-```
-
-<details>
-<summary>Show answer</summary>
-
-```java
-if (gamepad1.x) {
-    endTime = getRuntime() + 1.5;
-}
-```
-
-</details>
+<Unit6Simulator lesson="runtime-timing" />
 
 <MarkComplete
   lessonId="unit-06/runtime-timing"

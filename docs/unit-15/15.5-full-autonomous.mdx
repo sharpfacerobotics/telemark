@@ -1,0 +1,327 @@
+---
+id: full-autonomous
+title: "Lesson 15.5: Challenge: Designing a Full Autonomous Sequence using Bézier Pathing and Vision"
+sidebar_label: "15.5 · Challenge: Full Autonomous"
+sidebar_position: 5
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 15.5: Challenge: Designing a Full Autonomous Sequence using Bézier Pathing and Vision
+
+---
+
+## What This Challenge Assembles
+
+    This challenge brings the major techniques from the unit into one competition-grade autonomous sequence. It combines:
+
+- Pre-match spike mark detection via a custom `VisionProcessor` (Unit 14) to select the correct scoring path.
+- A `Follower` and `PathChain` of `BezierCurve` segments (Lessons 15.2 and 15.3) to execute smooth field navigation.
+- Periodic Limelight AprilTag corrections (Lesson 15.4) to prevent accumulated odometry drift from corrupting later path segments.
+- A state machine (introduced in the curriculum PDF) to coordinate mechanism actions with drivetrain movement without blocking `follower.update()`.
+
+None of these components is new on its own. The work here is integrating them into a coherent, non-blocking program structure.
+
+---
+
+## The State Machine Architecture
+
+A sequential `LinearOpMode` that calls `followPath()` and then blocks on `isBusy()` before activating a mechanism cannot execute both simultaneously. While it is blocking on `isBusy()`, `follower.update()` is still being called, but no mechanism logic runs. The moment you need a claw to open at a specific field position while the robot is still in motion, sequential logic fails.
+
+A state machine replaces sequential `if-this-then-that` logic with an `enum` that names each phase of the routine and a `switch` block that executes the logic for the current state. The loop body runs on every iteration: `follower.update()` is called first, then the current state's logic runs, then the state transitions if its completion condition is met. No state blocks the loop.
+
+```java
+enum AutoState { DRIVE_TO_SCORE, SCORE_ELEMENT, DRIVE_TO_PICKUP, PICKUP, DONE }
+AutoState state = AutoState.DRIVE_TO_SCORE;
+
+while (opModeIsActive()) {
+    follower.update();
+
+    switch (state) {
+        case DRIVE_TO_SCORE:
+            if (!follower.isBusy()) {
+                claw.open();
+                state = AutoState.SCORE_ELEMENT;
+            }
+            break;
+        // ...
+    }
+}
+```
+
+The state transitions only when the completion condition for the current state is satisfied -- the path is finished, the mechanism has reached its position, or a sensor confirms the action is complete. Until then, `follower.update()` continues to run and the drivetrain continues to track its path.
+
+---
+
+## Non-Blocking Mechanism Actions
+
+Mechanism actions inside a state machine must also be non-blocking. A `sleep(500)` to wait for a claw to close blocks `follower.update()` for 500 milliseconds, during which the Follower cannot correct the robot's position. Use a timer instead: record the time when the action starts, and check `getRuntime()` against the target time as a condition in the state's `case` block. Only transition to the next state when the timer has elapsed, not when a sleep returns.
+
+```java
+case SCORE_ELEMENT:
+    if (getRuntime() > scoreActionEndTime) {
+        claw.close();
+        follower.followPath(driveToPickupPath);
+        state = AutoState.DRIVE_TO_PICKUP;
+    }
+    break;
+```
+
+---
+
+## Annotated Code
+
+:::note
+This is an autonomous program. No gamepad input is used.
+:::
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.localization.Pose;
+import com.pedropathing.pathgen.BezierCurve;
+import com.pedropathing.pathgen.BezierLine;
+import com.pedropathing.pathgen.Path;
+import com.pedropathing.pathgen.PathChain;
+import com.pedropathing.pathgen.Point;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.teamcode.vision.SpikeMarkVisionProcessor;
+import org.firstinspires.ftc.teamcode.vision.SpikeMarkVisionProcessor.SpikeLocation;
+import com.qualcomm.robotcore.hardware.WebcamName;
+import com.qualcomm.robotcore.hardware.Servo;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+
+@Autonomous(name="Full_Autonomous_Challenge")
+public class FullAutonomousChallenge extends LinearOpMode {
+
+    // ── Subsystems ─────────────────────────────────────────────────────
+    private Follower               follower;
+    private Limelight3A            limelight;
+    private SpikeMarkVisionProcessor spikeProcessor;
+    private VisionPortal           visionPortal;
+    private Servo                  claw;
+
+    // ── State machine ──────────────────────────────────────────────────
+    private enum AutoState { DRIVE_TO_SPIKE, PLACE_ELEMENT, DRIVE_TO_BACKDROP, SCORE, DONE }
+    private AutoState currentState;
+
+    // ── Paths (built during init, executed during run) ─────────────────
+    private Path      driveToSpikeLeft, driveToSpikeCenter, driveToSpikeRight;
+    private PathChain driveToBackdrop;
+
+    // ── Constants ──────────────────────────────────────────────────────
+    private static final int    LIMELIGHT_PIPELINE = 0;
+    private static final double M_TO_IN            = 39.3701;
+    private static final double CLAW_OPEN          = 0.1;
+    private static final double CLAW_CLOSED        = 0.9;
+    private static final double ACTION_DURATION_S  = 0.4; // seconds for claw to move
+
+    private double actionTimer = 0;
+
+    @Override
+    public void runOpMode() {
+        // ── Hardware initialization ────────────────────────────────────
+        follower  = new Follower(hardwareMap);
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        claw      = hardwareMap.get(Servo.class,        "claw");
+
+        follower.setStartingPose(new Pose(12, 12, 0));
+        claw.setPosition(CLAW_CLOSED);
+
+        // ── Vision initialization ──────────────────────────────────────
+        WebcamName webcam = hardwareMap.get(WebcamName.class, "Webcam 1");
+        spikeProcessor = new SpikeMarkVisionProcessor();
+        visionPortal   = VisionPortal.easyCreateWithDefaults(webcam, spikeProcessor);
+
+        limelight.pipelineSwitch(LIMELIGHT_PIPELINE);
+        limelight.start();
+
+        // ── Path pre-computation ───────────────────────────────────────
+        // Pre-building paths in init() avoids computation latency at match start
+        Point startPt       = new Point(12,  12,  Point.CARTESIAN);
+        Point spikeLPt      = new Point(36,  12,  Point.CARTESIAN);
+        Point spikeCPt      = new Point(36,  60,  Point.CARTESIAN);
+        Point spikeRPt      = new Point(36,  108, Point.CARTESIAN);
+        Point backdropPt    = new Point(108, 60,  Point.CARTESIAN);
+        Point backdropCtrl  = new Point(108, 12,  Point.CARTESIAN);
+
+        driveToSpikeLeft   = new Path(new BezierLine(startPt, spikeLPt));
+        driveToSpikeCenter = new Path(new BezierLine(startPt, spikeCPt));
+        driveToSpikeRight  = new Path(new BezierLine(startPt, spikeRPt));
+
+        // Curved return path to the backdrop -- same regardless of spike location
+        driveToBackdrop = follower.pathBuilder()
+            .addPath(new Path(new BezierCurve(spikeLPt, backdropCtrl, backdropPt)))
+            .build();
+
+        // ── Pre-match vision feedback ──────────────────────────────────
+        while (!isStarted() && !isStopRequested()) {
+            telemetry.addData("Spike Location", spikeProcessor.detectedLocation);
+            telemetry.addData("Instruction",    "Aim camera, then press Start");
+            telemetry.update();
+        }
+
+        SpikeLocation spike = spikeProcessor.detectedLocation;
+        visionPortal.stopStreaming(); // Camera decision made -- free CPU
+
+        // ── Select and start the correct first path ────────────────────
+        switch (spike) {
+            case LEFT:   follower.followPath(driveToSpikeLeft);   break;
+            case CENTER: follower.followPath(driveToSpikeCenter); break;
+            default:     follower.followPath(driveToSpikeRight);  break;
+        }
+
+        currentState = AutoState.DRIVE_TO_SPIKE;
+
+        // ── Main execution loop ────────────────────────────────────────
+        while (opModeIsActive()) {
+            // 1. Update the Follower every cycle
+            follower.update();
+
+            // 2. Apply Limelight correction whenever a tag is visible
+            applyLimelightCorrection();
+
+            // 3. State machine
+            switch (currentState) {
+
+                case DRIVE_TO_SPIKE:
+                    if (!follower.isBusy()) {
+                        claw.setPosition(CLAW_OPEN);
+                        actionTimer = getRuntime() + ACTION_DURATION_S;
+                        currentState = AutoState.PLACE_ELEMENT;
+                    }
+                    break;
+
+                case PLACE_ELEMENT:
+                    // Wait for the claw to fully open before driving away
+                    if (getRuntime() > actionTimer) {
+                        follower.followPath(driveToBackdrop);
+                        currentState = AutoState.DRIVE_TO_BACKDROP;
+                    }
+                    break;
+
+                case DRIVE_TO_BACKDROP:
+                    if (!follower.isBusy()) {
+                        claw.setPosition(CLAW_CLOSED);
+                        actionTimer = getRuntime() + ACTION_DURATION_S;
+                        currentState = AutoState.SCORE;
+                    }
+                    break;
+
+                case SCORE:
+                    if (getRuntime() > actionTimer) {
+                        currentState = AutoState.DONE;
+                    }
+                    break;
+
+                case DONE:
+                    // All actions complete -- robot holds position
+                    break;
+            }
+
+            telemetry.addData("State", currentState);
+            telemetry.addData("X",     "%.1f", follower.getPose().getX());
+            telemetry.addData("Y",     "%.1f", follower.getPose().getY());
+            telemetry.update();
+        }
+
+        limelight.stop();
+    }
+
+    private void applyLimelightCorrection() {
+        LLResult result = limelight.getLatestResult();
+        if (result == null || !result.isValid()) return;
+
+        Pose3D botPose = result.getBotpose();
+        if (botPose == null) return;
+
+        follower.setPose(new Pose(
+            botPose.getPosition().x * M_TO_IN,
+            botPose.getPosition().y * M_TO_IN,
+            botPose.getOrientation().getYaw(AngleUnit.RADIANS)
+        ));
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. In a state machine, each phase of the autonomous routine is represented by a value in a Java `__________`.
+2. The correct approach to waiting for a mechanism action (such as a claw closing) without blocking `follower.update()` is to record a target time using `getRuntime()` and transition only when `__________` has elapsed.
+3. Paths should be constructed during `__________` rather than inside the main loop to avoid computation latency at the moment the robot needs to start moving.
+
+<details>
+<summary>Show answers</summary>
+
+1. **`enum`**
+2. **the timer** (when `getRuntime() > actionTimer`)
+3. **`init()`** (or before `waitForStart()`)
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** Complete the state machine transition logic below. The routine has two states: `DRIVE_TO_TARGET` and `DELIVER`. When the robot finishes driving (`!follower.isBusy()`), it should transition to `DELIVER` and open the claw. When the claw has been open for 0.5 seconds (use `getRuntime()` and a timer variable), transition to `DONE`. Assume `follower`, `claw`, `CLAW_OPEN`, and `CLAW_CLOSED` are class-level variables already configured.
+
+```java
+enum AutoState { DRIVE_TO_TARGET, DELIVER, DONE }
+AutoState state    = AutoState.DRIVE_TO_TARGET;
+double    clawTimer = 0;
+
+// Called inside: while (opModeIsActive()) { follower.update(); ... }
+
+switch (state) {
+    case DRIVE_TO_TARGET:
+        // INSERT CODE HERE: If the follower is no longer busy,
+        // open the claw, record the timer, and transition to DELIVER
+
+        break;
+
+    case DELIVER:
+        // INSERT CODE HERE: If 0.5 seconds have elapsed since clawTimer was set,
+        // transition to DONE
+
+        break;
+
+    case DONE:
+        break;
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+case DRIVE_TO_TARGET:
+    if (!follower.isBusy()) {
+        claw.setPosition(CLAW_OPEN);
+        clawTimer = getRuntime() + 0.5;
+        state = AutoState.DELIVER;
+    }
+    break;
+
+case DELIVER:
+    if (getRuntime() > clawTimer) {
+        state = AutoState.DONE;
+    }
+    break;
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-15/full-autonomous"
+  nextUnit="/docs/unit-15/mastery-quiz"
+  nextUnitName="Unit 15 Mastery Quiz"
+/>

@@ -1,0 +1,191 @@
+---
+id: pedro-pathing
+title: "Lesson 15.2: Interfacing with Pedro Pathing for Follower Control"
+sidebar_label: "15.2 · Pedro Pathing"
+sidebar_position: 2
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 15.2: Interfacing with Pedro Pathing for Follower Control
+
+---
+
+## The Limitation of Encoder-Only Navigation
+
+Every encoder-based autonomous routine in this curriculum so far has followed the same pattern: command a motor to a tick target, wait for `isBusy()` to return false, then proceed to the next step. This works well for straight lines and simple turns on a clean practice floor. At competition, the combination of wheel slip on textured field tiles, variation in battery voltage between matches, and incidental contact with game elements introduces cumulative positioning errors. Each step in a multi-step autonomous sequence starts slightly off from where the previous step ended, and those offsets compound until the robot misses its final scoring target.
+
+Pedro Pathing addresses this by maintaining a continuous estimate of the robot's position on the field using a high-frequency odometry system -- typically three dead-wheel encoders that are independent of the drivetrain. Because the dead wheels do not transmit drive torque, they do not slip when the drive motors do. The Follower reads this position estimate many times per second, compares it to the commanded path, and adjusts motor power to correct for any deviation. The robot follows the intended geometric trajectory regardless of what the drivetrain wheels are doing.
+
+---
+
+## The Follower Class
+
+The central object in Pedro Pathing is the `Follower`. It manages the odometry localizer, the path execution, and the motor power calculations. Its entire public interface is built around three responsibilities:
+
+- **Initialization** -- `new Follower(hardwareMap)` wires the Follower to your hardware. `setStartingPose(new Pose(x, y, heading))` tells it where on the field the robot begins, measured in inches from the field origin with heading in radians.
+- **Path execution** -- `followPath(path)` commands the Follower to begin tracking a `Path` or `PathChain` object. The Follower takes over motor control for the duration of the path.
+- **Status polling** -- `isBusy()` returns `true` while the Follower is actively tracking a path. `update()` must be called every loop iteration to process the latest odometry readings and recompute motor outputs.
+
+The `update()` call is not optional and not occasional. It is a contract. Every iteration of your main loop must call `follower.update()`. If `update()` is not called for even a single cycle, the Follower's position estimate drifts, the path tracking correction falls behind, and the robot will deviate from the intended trajectory. Placing `follower.update()` as the first statement inside your main loop, before any other logic, ensures it is never skipped.
+
+---
+
+## Pose and Field Coordinates
+
+Pedro Pathing uses a field coordinate system where the origin (0, 0) is at one corner of the field, distances are measured in inches, and heading is in radians. Heading 0 points along the positive X-axis. The `Pose` class holds three values: `x`, `y`, and `heading`. It is used both to define the robot's starting position and to specify waypoints along a path.
+
+```java
+// Robot starts at the left side of the field, 12 inches from the back wall,
+// facing toward the opposing alliance wall (heading = 0 radians)
+follower.setStartingPose(new Pose(12, 12, 0));
+```
+
+---
+
+## Annotated Code
+
+:::note
+This is an autonomous program. No gamepad input is used.
+:::
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.localization.Pose;
+import com.pedropathing.pathgen.BezierLine;
+import com.pedropathing.pathgen.Path;
+import com.pedropathing.pathgen.Point;
+
+@Autonomous(name="Pedro_Intro_Demo")
+public class PedroIntroDemo extends LinearOpMode {
+
+    private Follower follower;
+
+    @Override
+    public void runOpMode() {
+        // Initialize the Follower -- it maps its own hardware internally
+        follower = new Follower(hardwareMap);
+
+        // Declare where the robot starts on the field
+        follower.setStartingPose(new Pose(12, 12, 0));
+
+        waitForStart();
+
+        // Build a straight-line path from start to a point 48 inches ahead
+        Path straightPath = new Path(
+            new BezierLine(
+                new Point(12, 12, Point.CARTESIAN),
+                new Point(60, 12, Point.CARTESIAN)
+            )
+        );
+
+        // Hand the path to the Follower to execute
+        follower.followPath(straightPath);
+
+        // Main execution loop -- update() must be called every iteration
+        while (opModeIsActive() && follower.isBusy()) {
+            follower.update();
+
+            telemetry.addData("X",      "%.2f", follower.getPose().getX());
+            telemetry.addData("Y",      "%.2f", follower.getPose().getY());
+            telemetry.addData("Busy",   follower.isBusy());
+            telemetry.update();
+        }
+
+        // Path complete -- Follower has stopped the motors
+        telemetry.addData("Status", "Path complete");
+        telemetry.update();
+        sleep(500);
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. To maintain accurate position tracking, `follower.__________()` must be called on every iteration of the main loop without exception.
+2. The robot's position and orientation on the field are represented by a `__________` object containing x, y, and heading values.
+3. `follower.__________()` returns `true` while the robot is actively executing a path and `false` once it has arrived at the destination.
+
+<details>
+<summary>Show answers</summary>
+
+1. **`update`**
+2. **`Pose`**
+3. **`isBusy`**
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** Write the initialization and status-check logic for an autonomous program that uses Pedro Pathing. The robot starts at position (8, 60) with a heading of 0 radians. After `waitForStart()`, initialize the Follower, set the starting pose, and write a loop that calls `follower.update()` and reports the robot's current X, Y, and heading to telemetry while the Follower is busy. Do not worry about building a path yet -- just demonstrate the correct Follower lifecycle.
+
+:::note
+This is an autonomous program. No gamepad input is used.
+:::
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.localization.Pose;
+
+@Autonomous(name="Follower_Lifecycle_Challenge")
+public class FollowerLifecycleChallenge extends LinearOpMode {
+
+    private Follower follower;
+
+    @Override
+    public void runOpMode() {
+        // INSERT CODE HERE: Initialize the Follower with hardwareMap
+
+        // INSERT CODE HERE: Set starting pose to (8, 60, 0)
+
+        waitForStart();
+
+        // INSERT CODE HERE: Write the main loop that calls update() and
+        // reports X, Y, and heading while follower.isBusy() is true.
+        // (For this challenge there is no path, so the loop will exit immediately
+        //  since isBusy() starts false -- the structure is what matters.)
+
+        telemetry.addData("Status", "Follower ready");
+        telemetry.update();
+        sleep(500);
+    }
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+follower = new Follower(hardwareMap);
+
+follower.setStartingPose(new Pose(8, 60, 0));
+
+while (opModeIsActive() && follower.isBusy()) {
+    follower.update();
+
+    telemetry.addData("X",       "%.2f", follower.getPose().getX());
+    telemetry.addData("Y",       "%.2f", follower.getPose().getY());
+    telemetry.addData("Heading", "%.4f", follower.getPose().getHeading());
+    telemetry.update();
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-15/pedro-pathing"
+  nextUnit="/docs/unit-15/bezier-curves"
+  nextUnitName="Lesson 15.3: Implementing Path Following with Bézier Curves"
+/>

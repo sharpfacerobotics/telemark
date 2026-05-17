@@ -88,7 +88,7 @@ export default function DashboardPage(): React.JSX.Element {
       <Layout title="Dashboard — Telemark" noFooter>
         <main className={styles.page}>
           <div className={styles.loading}>
-            <span className={styles.loadingText}>Loading Telemark...</span>
+            <span className={styles.loadingText}>Loading your curriculum progress...</span>
           </div>
         </main>
       </Layout>
@@ -117,7 +117,7 @@ export default function DashboardPage(): React.JSX.Element {
               <h1 className={styles.title}>
                 Welcome back,{' '}
                 <span className={styles.name}>
-                  {user.displayName?.split(' ')[0] ?? 'Cadet'}
+                  {user.displayName?.split(' ')[0] ?? 'teammate'}
                 </span>
               </h1>
             </div>
@@ -165,7 +165,7 @@ export default function DashboardPage(): React.JSX.Element {
 
           {/* ── Lesson list ── */}
           <div className={styles.lessonList}>
-            <p className={styles.listLabel}>// unit.progress[]</p>
+            <p className={styles.listLabel}>// progress.byUnit</p>
             {units.map((unit) => {
               const isExpanded = expandedUnits[unit.slug] ?? unit.status === 'in-progress';
               const statusLabel =

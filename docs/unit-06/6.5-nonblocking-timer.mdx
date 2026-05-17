@@ -6,6 +6,7 @@ sidebar_position: 5
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit6Simulator from '@site/src/components/Unit6Simulator';
 
 # Lesson 6.5: Challenge — Build a Non-Blocking Timer for Parallel Mechanism Control
 
@@ -84,66 +85,11 @@ public class ParallelControlDemo extends LinearOpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** Create a `LinearOpMode` that runs an `"intake"` motor for 3 seconds while simultaneously allowing the robot to move with `gamepad1.left_stick_y` on a `"drive"` motor. Neither mechanism should block the other.
+Use the simulator below to practice running one mechanism on a timer while another still responds every loop cycle.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.hardware.DcMotor;
-
-@Autonomous(name="Parallel_Action_Challenge")
-public class ParallelAction extends LinearOpMode {
-
-    @Override
-    public void runOpMode() {
-        DcMotor drive  = hardwareMap.get(DcMotor.class, "drive");
-        DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
-
-        waitForStart();
-
-        // INSERT CODE HERE: Create a timestamp 3 seconds in the future
-        double intakeEnd = // INSERT VALUE HERE
-
-        while (opModeIsActive()) {
-            // INSERT CODE HERE: Set drive power from gamepad1.left_stick_y
-
-            // INSERT CODE HERE: Use an 'if' to run intake ONLY if time remains
-            {
-                intake.setPower(1.0);
-            } else {
-                intake.setPower(0.0);
-            }
-
-            telemetry.update();
-        }
-    }
-}
-```
-
-<details>
-<summary>Show answer</summary>
-
-```java
-double intakeEnd = getRuntime() + 3.0;
-
-while (opModeIsActive()) {
-    drive.setPower(-gamepad1.left_stick_y);
-
-    if (getRuntime() < intakeEnd) {
-        intake.setPower(1.0);
-    } else {
-        intake.setPower(0.0);
-    }
-
-    telemetry.update();
-}
-```
-
-</details>
+<Unit6Simulator lesson="nonblocking-timer" />
 
 <MarkComplete
   lessonId="unit-06/nonblocking-timer"

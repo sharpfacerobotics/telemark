@@ -18,7 +18,7 @@ import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 <details>
 <summary>Show answer</summary>
 
-Using `setDirection(REVERSE)` creates a "logical forward" for the mechanism at the hardware level. This means every positive power command — regardless of which OpMode, which method, or which team member wrote the code — always correlates to the intended physical direction. Manual negation in `loop()` must be remembered and duplicated in every TeleOp and Autonomous file, introducing the risk of inconsistent behavior when someone forgets to apply it.
+Using `setDirection(REVERSE)` creates a "logical forward" for the mechanism at the hardware level. This means every positive power command, regardless of which OpMode, which method, or which team member wrote the code, always correlates to the intended physical direction. Manual negation in `loop()` must be remembered and duplicated in every TeleOp and Autonomous file, introducing the risk of inconsistent behavior when someone forgets to apply it.
 
 </details>
 
@@ -104,15 +104,15 @@ public class ClimbTest extends OpMode {
 <details>
 <summary>Show answers</summary>
 
-**Error 1 — Syntax Error:**
+**Error 1 - Syntax Error:**
 The `hardwareMap.get()` statement in `init()` is missing a semicolon (`;`) at the end. Java requires every statement to be terminated for the compiler to parse the code.
 
 ```java
 climb = hardwareMap.get(DcMotor.class, "climb_motor"); // ← semicolon added
 ```
 
-**Error 2 — Logic Error:**
-The `ZeroPowerBehavior` is set to `FLOAT` instead of `BRAKE`. The goal is to resist gravity and hold the climb motor's position when stopped — `FLOAT` disconnects the terminals and allows the mechanism to drift freely, which is the opposite of the intended behavior.
+**Error 2 - Logic Error:**
+The `ZeroPowerBehavior` is set to `FLOAT` instead of `BRAKE`. The goal is to resist gravity and hold the climb motor's position when stopped. `FLOAT` disconnects the terminals and allows the mechanism to drift freely, which is the opposite of the intended behavior.
 
 ```java
 climb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // ← BRAKE, not FLOAT

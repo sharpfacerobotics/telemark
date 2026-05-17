@@ -1,0 +1,212 @@
+---
+id: bezier-curves
+title: "Lesson 15.3: Implementing Path Following with Bézier Curves"
+sidebar_label: "15.3 · Bézier Curves"
+sidebar_position: 3
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 15.3: Implementing Path Following with Bézier Curves
+
+---
+
+## Why Curves Beat Right Angles
+
+A robot executing a stop-turn-drive pattern decelerates to zero, rotates in place, then accelerates again. This sequence is mechanically straightforward to program but it has two costs. First, it is slow. The deceleration, rotation, and re-acceleration together consume time that could be spent scoring. Second, each stop-and-turn introduces a fresh opportunity for accumulated positioning error because the robot must halt all momentum before the next step can begin with a clean state.
+
+A robot following a smooth Bézier curve never stops. It maintains momentum through the entire trajectory, shedding speed only in proportion to the sharpness of the curve at each point. For a robot covering the full diagonal of the field between two scoring positions, a curved path is consistently faster than the equivalent set of straight-line segments with turns.
+
+---
+
+## How Bézier Curves Work
+
+A Bézier curve is a parametric curve defined by a set of control points. The path passes through the first and last control points (called anchor points) but is only pulled toward the intermediate control points without passing through them. The intermediate points act as "gravity wells" that bend the path away from a straight line.
+
+The most common forms are:
+
+- **Linear (2 points)** -- simply a straight line from start to end. Equivalent to `BezierLine`.
+- **Quadratic (3 points)** -- a single intermediate control point that bends the path into a smooth arc.
+- **Cubic (4 points)** -- two intermediate control points that can define an S-curve or a sharper bend.
+
+In Pedro Pathing, all curves are constructed using the `BezierCurve` class. You pass `Point` objects to the constructor: the first is the start, the last is the end, and any points in between are control points that shape the curvature.
+
+---
+
+## PathChain: Sequencing Multiple Paths
+
+A `Path` wraps a single `BezierCurve` or `BezierLine`. A `PathChain` sequences multiple `Path` objects into a single compound trajectory. The Follower transitions between paths in a `PathChain` without stopping, maintaining momentum through each waypoint. Building a complete autonomous routine from a `PathChain` is far cleaner than calling `followPath()` repeatedly and blocking on `isBusy()` between each segment.
+
+```java
+PathChain routine = follower.pathBuilder()
+    .addPath(new Path(new BezierLine(start, mid)))
+    .addPath(new Path(new BezierCurve(mid, control, end)))
+    .build();
+
+follower.followPath(routine);
+```
+
+---
+
+## Annotated Code
+
+:::note
+This is an autonomous program. No gamepad input is used.
+:::
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.localization.Pose;
+import com.pedropathing.pathgen.BezierCurve;
+import com.pedropathing.pathgen.BezierLine;
+import com.pedropathing.pathgen.Path;
+import com.pedropathing.pathgen.PathChain;
+import com.pedropathing.pathgen.Point;
+
+@Autonomous(name="Bezier_Path_Demo")
+public class BezierPathDemo extends LinearOpMode {
+
+    private Follower follower;
+
+    // Field coordinate waypoints in inches
+    private static final Pose START_POSE    = new Pose(12,  12, 0);
+    private static final Point SCORE_POINT  = new Point(108, 12,  Point.CARTESIAN);
+    private static final Point PICKUP_POINT = new Point(108, 108, Point.CARTESIAN);
+    private static final Point CONTROL_PT   = new Point(108, 60,  Point.CARTESIAN);
+
+    @Override
+    public void runOpMode() {
+        follower = new Follower(hardwareMap);
+        follower.setStartingPose(START_POSE);
+
+        // Segment 1: straight drive from start to the scoring wall
+        Path driveToScore = new Path(
+            new BezierLine(
+                new Point(START_POSE, Point.POSE),
+                SCORE_POINT
+            )
+        );
+
+        // Segment 2: curved path from scoring wall to pickup location.
+        // CONTROL_PT pulls the robot away from the wall as it rounds the corner.
+        Path driveToPickup = new Path(
+            new BezierCurve(
+                SCORE_POINT,
+                CONTROL_PT,   // intermediate control point -- bends the arc
+                PICKUP_POINT
+            )
+        );
+
+        // Chain both segments into one compound path
+        PathChain fullRoutine = follower.pathBuilder()
+            .addPath(driveToScore)
+            .addPath(driveToPickup)
+            .build();
+
+        waitForStart();
+
+        // Execute the full chain -- robot does not stop between segments
+        follower.followPath(fullRoutine);
+
+        while (opModeIsActive() && follower.isBusy()) {
+            follower.update();
+
+            telemetry.addData("X",    "%.1f", follower.getPose().getX());
+            telemetry.addData("Y",    "%.1f", follower.getPose().getY());
+            telemetry.update();
+        }
+
+        telemetry.addData("Status", "Routine complete");
+        telemetry.update();
+        sleep(500);
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. In a `BezierCurve`, the first and last `Point` arguments are the `__________` points that the curve passes through, while intermediate points only pull the path toward them without being crossed.
+2. To sequence multiple paths into a single trajectory without stopping between segments, wrap them in a `__________` using `follower.pathBuilder()`.
+3. The `Point` constructor's third argument specifies the coordinate reference frame. For field-relative inch coordinates, use `Point.__________`.
+
+<details>
+<summary>Show answers</summary>
+
+1. **anchor** (or start/end)
+2. **`PathChain`**
+3. **`CARTESIAN`**
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** Construct a `PathChain` for a two-segment routine. The robot begins at (0, 0) with heading 0. It first drives in a straight line to (60, 0), then follows a quadratic Bézier curve from (60, 0) to (60, 60) with a control point at (80, 30) to produce a smooth arc around the corner. Build the chain using `follower.pathBuilder()` and assign it to a variable named `scoringRoutine`.
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.pedropathing.follower.Follower;
+import com.pedropathing.localization.Pose;
+import com.pedropathing.pathgen.BezierCurve;
+import com.pedropathing.pathgen.BezierLine;
+import com.pedropathing.pathgen.Path;
+import com.pedropathing.pathgen.PathChain;
+import com.pedropathing.pathgen.Point;
+
+public class PathBuilder {
+
+    private Follower follower;
+
+    public PathBuilder(Follower follower) {
+        this.follower = follower;
+        follower.setStartingPose(new Pose(0, 0, 0));
+    }
+
+    public PathChain buildScoringRoutine() {
+        // INSERT CODE HERE: Define Point objects for (0,0), (60,0),
+        // the control point at (80,30), and the end at (60,60)
+
+        // INSERT CODE HERE: Build a PathChain with a BezierLine for the first
+        // segment and a BezierCurve for the second segment
+
+        // INSERT CODE HERE: Return the completed PathChain
+        return null;
+    }
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+public PathChain buildScoringRoutine() {
+    Point start   = new Point(0,  0,  Point.CARTESIAN);
+    Point mid     = new Point(60, 0,  Point.CARTESIAN);
+    Point control = new Point(80, 30, Point.CARTESIAN);
+    Point end     = new Point(60, 60, Point.CARTESIAN);
+
+    Path straightSegment = new Path(new BezierLine(start, mid));
+    Path curvedSegment   = new Path(new BezierCurve(mid, control, end));
+
+    return follower.pathBuilder()
+        .addPath(straightSegment)
+        .addPath(curvedSegment)
+        .build();
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-15/bezier-curves"
+  nextUnit="/docs/unit-15/limelight-fusion"
+  nextUnitName="Lesson 15.4: Global Field Localization with AprilTag and Limelight Fusion"
+/>

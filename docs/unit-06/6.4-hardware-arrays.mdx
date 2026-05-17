@@ -6,6 +6,7 @@ sidebar_position: 4
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit6Simulator from '@site/src/components/Unit6Simulator';
 
 # Lesson 6.4: Looping Through Hardware Arrays with for-each
 
@@ -89,47 +90,11 @@ public class ArrayDriveDemo extends OpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** You have an array of four motors named `drivetrain`. Complete the logic to set the `ZeroPowerBehavior` to `BRAKE` for every motor in the array.
+Use the simulator below to practice looping across an array of motors and applying the same configuration to every element.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-
-@TeleOp(name="Array_Brake_Challenge")
-public class ArrayBrake extends OpMode {
-
-    private DcMotor[] drivetrain;
-
-    @Override
-    public void init() {
-        // Assume the array is already populated with 4 mapped motors here
-
-        // INSERT CODE HERE: Use a for..each loop to iterate through 'drivetrain'
-        {
-            // INSERT CODE HERE: Set each motor's ZeroPowerBehavior to BRAKE
-        }
-    }
-
-    @Override
-    public void loop() {}
-}
-```
-
-<details>
-<summary>Show answer</summary>
-
-```java
-for (DcMotor motor : drivetrain) {
-    motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-}
-```
-
-</details>
+<Unit6Simulator lesson="hardware-arrays" />
 
 <MarkComplete
   lessonId="unit-06/hardware-arrays"
