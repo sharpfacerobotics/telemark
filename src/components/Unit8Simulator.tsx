@@ -26,19 +26,48 @@ export default function Unit8Simulator({lesson}: Unit8SimulatorProps): React.JSX
 
   return (
     <>
-      <iframe
-        src={simulatorSrc}
-        width="100%"
-        height="1180px"
-        style={{border: 'none'}}
-        title="Unit 8 simulator"
-      />
+      <div className="simulator-wrapper">
+        <iframe
+          src={simulatorSrc}
+          className="telemark-simulator"
+          title="Unit 8 simulator"
+          loading="lazy"
+        />
+      </div>
 
       <Admonition type="info" title="Unit 8 simulator">
         <div>Loads the lesson-specific Telemark motor challenge with starter code instead of a completed solution.</div>
         <div>Includes live hardware feedback, telemetry checks, and gamepad input for each motor-control concept.</div>
         <div>Best for practicing power, direction, braking, stopping behavior, and limit-switch safety in context.</div>
       </Admonition>
+
+      <style>{`
+        .simulator-wrapper {
+          position: relative;
+          width: 100%;
+          margin: 1.5rem 0;
+        }
+        .telemark-simulator {
+          width: 100%;
+          height: 720px;
+          min-height: 540px;
+          border: none;
+          border-radius: 8px;
+          background: #111;
+        }
+        @media (min-width: 997px) {
+          .telemark-simulator {
+            height: 780px;
+            max-height: 80vh;
+          }
+        }
+        @media (max-width: 640px) {
+          .telemark-simulator {
+            height: 560px;
+            min-height: 480px;
+          }
+        }
+      `}</style>
     </>
   );
 }

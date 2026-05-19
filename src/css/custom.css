@@ -161,3 +161,16 @@ code {
   background: linear-gradient(#00BFFF, #39FF14);
   border-radius: 3px;
 }
+
+/* ---- SIMULATOR IFRAME ---- */
+.telemark-simulator {
+  aspect-ratio: auto;
+  max-width: 100%;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  transition: height 0.2s ease;
+}
+
+.simulator-wrapper {
+  overflow: hidden;
+  border-radius: 8px;
+}
