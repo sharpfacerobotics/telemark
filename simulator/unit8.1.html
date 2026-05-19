@@ -639,6 +639,71 @@ function setupTrigger(sliderId,fillId,prop){
 setupTrigger('right-trigger-slider','right-trigger-fill','right_trigger');
 setupTrigger('left-trigger-slider','left-trigger-fill','left_trigger');
 
+// ── Joystick Sticks (fix for boundary issue) ──
+var sticks={};
+function setupJoysticks(){
+  var controllerWrap=document.getElementById('controller-wrap');
+  function toPct(rect,x,y){return{left:(x-rect.left)/rect.width*100+'%',top:(y-rect.top)/rect.height*100+'%'};}
+  ['left','right'].forEach(function(side){
+    var zone=document.getElementById('stick-zone-'+side);
+    var knob=document.getElementById('stick-knob-'+side);
+    var centerLeft=side==='left'?35.5:64;
+    var centerTop=65.5;
+    sticks[side]={zone:zone,knob:knob,dragging:false,pointerId:null,centerLeft:centerLeft,centerTop:centerTop};
+    zone.style.cursor='grab';
+    zone.addEventListener('pointerdown',function(e){
+      e.preventDefault();
+      var s=sticks[side];
+      s.dragging=true;
+      s.pointerId=e.pointerId;
+      s.zone.setPointerCapture(e.pointerId);
+      updateStickFromPointer(side,e.clientX,e.clientY);
+    });
+  });
+  function updateStickFromPointer(side,cx,cy){
+    var s=sticks[side];
+    var rect=s.zone.getBoundingClientRect();
+    var wr=controllerWrap.getBoundingClientRect();
+    var cxCenter=rect.left+rect.width/2,cyCenter=rect.top+rect.height/2;
+    var maxR=Math.min(rect.width,rect.height)*0.36;
+    var dx=cx-cxCenter,dy=cy-cyCenter;
+    var len=Math.sqrt(dx*dx+dy*dy);
+    if(len>maxR){dx=dx/len*maxR;dy=dy/len*maxR}
+    var nx=dx/maxR,ny=-dy/maxR;
+    nx=Math.max(-1,Math.min(1,nx));
+    ny=Math.max(-1,Math.min(1,ny));
+    gamepad[side+'_stick_x']=nx;
+    gamepad[side+'_stick_y']=ny;
+    s.knob.style.left=((rect.left-wr.left+rect.width/2+dx)/wr.width*100)+'%';
+    s.knob.style.top=((rect.top-wr.top+rect.height/2+dy)/wr.height*100)+'%';
+    s.knob.style.transform='translate(-50%,-50%)';
+  }
+  window.addEventListener('pointermove',function(e){
+    Object.keys(sticks).forEach(function(side){
+      var s=sticks[side];
+      if(s.dragging&&s.pointerId===e.pointerId)updateStickFromPointer(side,e.clientX,e.clientY);
+    });
+  });
+  function handlePointerEnd(e){
+    Object.keys(sticks).forEach(function(side){
+      var s=sticks[side];
+      if(s.dragging&&s.pointerId===e.pointerId){
+        s.dragging=false;
+        s.pointerId=null;
+        gamepad[side+'_stick_x']=0;
+        gamepad[side+'_stick_y']=0;
+        s.knob.style.left=s.centerLeft+'%';
+        s.knob.style.top=s.centerTop+'%';
+        s.knob.style.transform='translate(-50%,-50%)';
+      }
+    });
+  }
+  window.addEventListener('pointerup',handlePointerEnd);
+  window.addEventListener('pointercancel',handlePointerEnd);
+  window.addEventListener('blur',function(){Object.keys(sticks).forEach(function(side){var s=sticks[side];if(s.dragging){s.dragging=false;s.pointerId=null;gamepad[side+'_stick_x']=0;gamepad[side+'_stick_y']=0;s.knob.style.left=s.centerLeft+'%';s.knob.style.top=s.centerTop+'%';s.knob.style.transform='translate(-50%,-50%)';}})});
+}
+setupJoysticks();
+
 // ── Gamepad Float Card ──
 (function(){
   var card=document.getElementById('gamepad-float-card'),tb=document.getElementById('gamepad-titlebar'),cb=document.getElementById('gp-collapse-btn'),bd=document.getElementById('gamepad-card-body'),rh=document.getElementById('gamepad-resize-handle');

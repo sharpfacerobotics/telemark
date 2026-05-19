@@ -754,9 +754,13 @@ window.addEventListener('resize',function(){
 /* ═══════════════════════════════════════════════════════════════════════════
    GAMEPAD
    ═══════════════════════════════════════════════════════════════════════════ */
+var sticks82={};
 function setupStick(zoneId,knobId,type){
-  var zone=document.getElementById(zoneId),knob=document.getElementById(knobId),drag=false;
+  var zone=document.getElementById(zoneId),knob=document.getElementById(knobId);
   var baseLeft=type==='left'?35.5:64,baseTop=65.5,range=12.2;
+  var dragging=false,pointerId=null;
+  sticks82[type]={zone:zone,knob:knob,dragging:false,pointerId:null};
+  zone.style.cursor='grab';
   function setKnob(nx,ny){knob.style.left=(baseLeft+nx*range)+'%';knob.style.top=(baseTop+ny*range)+'%'}
   function update(e){
     var r=zone.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,max=r.width*.34;
@@ -767,20 +771,47 @@ function setupStick(zoneId,knobId,type){
     if(type==='left'){gamepad.left_stick_x=nx;gamepad.left_stick_y=ny}else{gamepad.right_stick_x=nx}
     setKnob(nx,ny);updateAxisReadout();
   }
-  zone.addEventListener('pointerdown',function(e){drag=true;zone.setPointerCapture(e.pointerId);update(e);});
-  zone.addEventListener('pointermove',function(e){if(drag)update(e)});
-  function release(){
-    drag=false;
+  zone.addEventListener('pointerdown',function(e){dragging=true;pointerId=e.pointerId;zone.setPointerCapture(e.pointerId);update(e);});
+  zone.addEventListener('pointermove',function(e){if(dragging&&pointerId===e.pointerId)update(e)});
+  function release(e){
+    dragging=false;pointerId=null;
     if(type==='left'){gamepad.left_stick_x=0;gamepad.left_stick_y=0}else{gamepad.right_stick_x=0}
     setKnob(0,0);updateAxisReadout();
+    if(e)zone.releasePointerCapture(e.pointerId);
   }
-  zone.addEventListener('pointerup',release);zone.addEventListener('pointercancel',release);
+  zone.addEventListener('pointerup',release);
+  zone.addEventListener('pointercancel',function(e){release(e)});
 }
 function updateAxisReadout(){
   document.getElementById('axis-readout').textContent='LX '+gamepad.left_stick_x.toFixed(2)+'   LY '+gamepad.left_stick_y.toFixed(2)+'   RX '+gamepad.right_stick_x.toFixed(2);
 }
 setupStick('stick-zone-left','stick-knob-left','left');
 setupStick('stick-zone-right','stick-knob-right','right');
+// Window-level pointer handlers for boundary fix
+window.addEventListener('pointerup',function(e){
+  Object.keys(sticks82).forEach(function(type){
+    var s=sticks82[type];
+    if(s.dragging&&s.pointerId===e.pointerId){
+      s.dragging=false;s.pointerId=null;
+      if(type==='left'){gamepad.left_stick_x=0;gamepad.left_stick_y=0}else{gamepad.right_stick_x=0}
+      var baseLeft=type==='left'?35.5:64;
+      s.knob.style.left=baseLeft+'%';s.knob.style.top='65.5%';
+      s.zone.releasePointerCapture(e.pointerId);
+    }
+  });
+});
+window.addEventListener('pointercancel',function(e){
+  Object.keys(sticks82).forEach(function(type){
+    var s=sticks82[type];
+    if(s.dragging&&s.pointerId===e.pointerId){
+      s.dragging=false;s.pointerId=null;
+      if(type==='left'){gamepad.left_stick_x=0;gamepad.left_stick_y=0}else{gamepad.right_stick_x=0}
+      var baseLeft=type==='left'?35.5:64;
+      s.knob.style.left=baseLeft+'%';s.knob.style.top='65.5%';
+      s.zone.releasePointerCapture(e.pointerId);
+    }
+  });
+});
 (function(){
   var card=document.getElementById('gamepad-float-card'),tb=document.getElementById('gamepad-titlebar');
   var cb=document.getElementById('gp-collapse-btn'),bd=document.getElementById('gamepad-card-body'),rh=document.getElementById('gamepad-resize-handle');

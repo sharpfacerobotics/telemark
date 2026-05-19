@@ -405,10 +405,14 @@ document.getElementById('challenge-toggle').addEventListener('click', function()
       'RX ' + gamepadState.right_stick_x.toFixed(2) + ' RY ' + gamepadState.right_stick_y.toFixed(2);
   }
   
+  var sticks85 = {};
   function setupStick(stickId, centerLeft, centerTop, xProp, yProp) {
     const zone = document.getElementById('stick-zone-' + stickId);
     const knob = document.getElementById('stick-knob-' + stickId);
     let dragging = false;
+    let pointerId = null;
+    sticks85[stickId] = { zone, knob, dragging: false, pointerId: null, centerLeft, centerTop, xProp, yProp };
+    zone.style.cursor = 'grab';
     
     function updateFromEvent(e) {
       const rect = zone.getBoundingClientRect();
@@ -428,10 +432,25 @@ document.getElementById('challenge-toggle').addEventListener('click', function()
       updateAxisReadout();
     }
     
-    zone.addEventListener('pointerdown', e => { dragging = true; updateFromEvent(e); zone.setPointerCapture(e.pointerId); });
-    zone.addEventListener('pointermove', e => { if (dragging) updateFromEvent(e); });
+    zone.addEventListener('pointerdown', e => { 
+      dragging = true; 
+      pointerId = e.pointerId;
+      updateFromEvent(e); 
+      zone.setPointerCapture(e.pointerId); 
+    });
+    zone.addEventListener('pointermove', e => { if (dragging && pointerId === e.pointerId) updateFromEvent(e); });
     zone.addEventListener('pointerup', e => {
       dragging = false;
+      pointerId = null;
+      gamepadState[xProp] = gamepadState[yProp] = 0;
+      knob.style.left = centerLeft + '%';
+      knob.style.top = centerTop + '%';
+      zone.releasePointerCapture(e.pointerId);
+      updateAxisReadout();
+    });
+    zone.addEventListener('pointercancel', e => {
+      dragging = false;
+      pointerId = null;
       gamepadState[xProp] = gamepadState[yProp] = 0;
       knob.style.left = centerLeft + '%';
       knob.style.top = centerTop + '%';
@@ -442,6 +461,34 @@ document.getElementById('challenge-toggle').addEventListener('click', function()
   
   setupStick('left', 35.5, 65.5, 'left_stick_x', 'left_stick_y');
   setupStick('right', 64, 65.5, 'right_stick_x', 'right_stick_y');
+
+  // Window-level pointer handlers for boundary fix
+  window.addEventListener('pointerup', function(e) {
+    Object.keys(sticks85).forEach(function(stickId) {
+      const s = sticks85[stickId];
+      if (s.dragging && s.pointerId === e.pointerId) {
+        s.dragging = false;
+        s.pointerId = null;
+        gamepadState[s.xProp] = gamepadState[s.yProp] = 0;
+        s.knob.style.left = s.centerLeft + '%';
+        s.knob.style.top = s.centerTop + '%';
+        s.zone.releasePointerCapture(e.pointerId);
+      }
+    });
+  });
+  window.addEventListener('pointercancel', function(e) {
+    Object.keys(sticks85).forEach(function(stickId) {
+      const s = sticks85[stickId];
+      if (s.dragging && s.pointerId === e.pointerId) {
+        s.dragging = false;
+        s.pointerId = null;
+        gamepadState[s.xProp] = gamepadState[s.yProp] = 0;
+        s.knob.style.left = s.centerLeft + '%';
+        s.knob.style.top = s.centerTop + '%';
+        s.zone.releasePointerCapture(e.pointerId);
+      }
+    });
+  });
   
   const buttons = [
     ['btn-y', 'y'], ['btn-x', 'x'], ['btn-a', 'a'], ['btn-b', 'b'],
