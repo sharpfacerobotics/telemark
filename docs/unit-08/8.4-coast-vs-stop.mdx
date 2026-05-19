@@ -6,6 +6,7 @@ sidebar_position: 4
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit8Simulator from '@site/src/components/Unit8Simulator';
 
 # Lesson 8.4: Choosing Between Coasting and Stopping with setPower(0.0)
 
@@ -89,67 +90,11 @@ public class CoastVsStopDemo extends LinearOpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** You are writing an emergency stop function. If `gamepad1.b` is pressed, all power to `"motor1"` and `"motor2"` must be cut immediately and both motors must resist any further movement.
+Use the simulator below to practice an emergency stop that combines `BRAKE` mode with an immediate `setPower(0.0)` cut.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-
-@TeleOp(name="Emergency_Stop_Challenge")
-public class EmergencyStop extends OpMode {
-
-    private DcMotor motor1;
-    private DcMotor motor2;
-
-    @Override
-    public void init() {
-        motor1 = hardwareMap.get(DcMotor.class, "motor1");
-        motor2 = hardwareMap.get(DcMotor.class, "motor2");
-
-        // INSERT CODE HERE: Set BRAKE behavior on both motors
-    }
-
-    @Override
-    public void loop() {
-        motor1.setPower(-gamepad1.left_stick_y);
-        motor2.setPower(-gamepad1.right_stick_y);
-
-        // INSERT CODE HERE: If gamepad1.b is pressed, set both motors to 0.0
-    }
-}
-```
-
-<details>
-<summary>Show answer</summary>
-
-```java
-@Override
-public void init() {
-    motor1 = hardwareMap.get(DcMotor.class, "motor1");
-    motor2 = hardwareMap.get(DcMotor.class, "motor2");
-
-    motor1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-    motor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-}
-
-@Override
-public void loop() {
-    motor1.setPower(-gamepad1.left_stick_y);
-    motor2.setPower(-gamepad1.right_stick_y);
-
-    if (gamepad1.b) {
-        motor1.setPower(0.0);
-        motor2.setPower(0.0);
-    }
-}
-```
-
-</details>
+<Unit8Simulator lesson="coast-vs-stop" />
 
 <MarkComplete
   lessonId="unit-08/coast-vs-stop"

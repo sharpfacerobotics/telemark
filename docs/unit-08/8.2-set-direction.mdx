@@ -6,6 +6,7 @@ sidebar_position: 2
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit8Simulator from '@site/src/components/Unit8Simulator';
 
 # Lesson 8.2: Fixing Reversed Mechanisms with setDirection(REVERSE)
 
@@ -88,50 +89,11 @@ public class DirectionDemo extends OpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** Your robot has a 4-motor mecanum drivetrain. Both motors on the left side (`"left_front"` and `"left_back"`) are mounted facing the opposite direction of the right side. Reverse them both in `init()`.
+Use the simulator below to practice fixing left-side motor direction on a mecanum drivetrain with lesson-specific starter code.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-
-@TeleOp(name="Direction_Fix_Challenge")
-public class DirectionFix extends OpMode {
-
-    private DcMotor leftFront;
-    private DcMotor leftBack;
-    private DcMotor rightFront;
-    private DcMotor rightBack;
-
-    @Override
-    public void init() {
-        leftFront  = hardwareMap.get(DcMotor.class, "left_front");
-        leftBack   = hardwareMap.get(DcMotor.class, "left_back");
-        rightFront = hardwareMap.get(DcMotor.class, "right_front");
-        rightBack  = hardwareMap.get(DcMotor.class, "right_back");
-
-        // INSERT CODE HERE: Reverse the direction of both left-side motors
-    }
-
-    @Override
-    public void loop() {}
-}
-```
-
-<details>
-<summary>Show answer</summary>
-
-```java
-leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
-leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
-```
-
-</details>
+<Unit8Simulator lesson="set-direction" />
 
 <MarkComplete
   lessonId="unit-08/set-direction"

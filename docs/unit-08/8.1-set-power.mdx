@@ -6,6 +6,7 @@ sidebar_position: 1
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit8Simulator from '@site/src/components/Unit8Simulator';
 
 # Lesson 8.1: Using setPower() to Control Motor Speed
 
@@ -114,57 +115,11 @@ public class SetPowerAutoDemo extends LinearOpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** You need to map a motor named `"intake"` and run it at full speed forward whenever the driver holds `gamepad1.right_trigger` past 50%, and stop it otherwise.
+Use the simulator below to practice intake power control with lesson-specific starter code and live trigger input.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-
-@TeleOp(name="Intake_Power_Challenge")
-public class IntakePower extends OpMode {
-
-    private DcMotor intake;
-
-    @Override
-    public void init() {
-        // INSERT CODE HERE: Map "intake" and set its RunMode to RUN_WITHOUT_ENCODER
-    }
-
-    @Override
-    public void loop() {
-        // INSERT CODE HERE: If right_trigger > 0.5, set power to 1.0
-        // Otherwise, set power to 0.0
-    }
-}
-```
-
-<details>
-<summary>Show answer</summary>
-
-```java
-@Override
-public void init() {
-    intake = hardwareMap.get(DcMotor.class, "intake");
-    intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-    intake.setPower(0);
-}
-
-@Override
-public void loop() {
-    if (gamepad1.right_trigger > 0.5) {
-        intake.setPower(1.0);
-    } else {
-        intake.setPower(0.0);
-    }
-}
-```
-
-</details>
+<Unit8Simulator lesson="set-power" />
 
 <MarkComplete
   lessonId="unit-08/set-power"
