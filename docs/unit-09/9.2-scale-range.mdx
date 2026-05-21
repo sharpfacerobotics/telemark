@@ -6,6 +6,7 @@ sidebar_position: 2
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit9Simulator from '@site/src/components/Unit9Simulator';
 
 # Lesson 9.2: Limiting Servo Travel Safely with scaleRange()
 
@@ -88,56 +89,11 @@ public class ScaleRangeDemo extends OpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** Your scoring arm hits a metal bar if the servo goes below `0.3` or above `0.9`. Configure the `"arm"` servo to operate safely within these bounds, then command it to its open (`1.0`) and closed (`0.0`) positions using the bumpers.
+Use the simulator below to practice constraining a servo with `scaleRange(0.3, 0.9)` before commanding the mechanism against its physical limits.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.Servo;
-
-@TeleOp(name="Range_Safety_Challenge")
-public class RangeSafety extends OpMode {
-
-    private Servo arm;
-
-    @Override
-    public void init() {
-        arm = hardwareMap.get(Servo.class, "arm");
-
-        // INSERT CODE HERE: Constrain the range between 0.3 and 0.9
-        // INSERT CODE HERE: Set initial position to 0.0 (within the constrained range)
-    }
-
-    @Override
-    public void loop() {
-        if (gamepad1.right_bumper) {
-            arm.setPosition(1.0); // Moves to physical 0.9
-        } else if (gamepad1.left_bumper) {
-            arm.setPosition(0.0); // Moves to physical 0.3
-        }
-        telemetry.addData("Arm Position", arm.getPosition());
-    }
-}
-```
-
-<details>
-<summary>Show answer</summary>
-
-```java
-@Override
-public void init() {
-    arm = hardwareMap.get(Servo.class, "arm");
-    arm.scaleRange(0.3, 0.9);
-    arm.setPosition(0.0);
-    telemetry.addData("Arm", "Range set: 0.3 to 0.9");
-}
-```
-
-</details>
+<Unit9Simulator lesson="scale-range" />
 
 <MarkComplete
   lessonId="unit-09/scale-range"

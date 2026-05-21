@@ -6,6 +6,7 @@ sidebar_position: 3
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit9Simulator from '@site/src/components/Unit9Simulator';
 
 # Lesson 9.3: Fixing Inverted Servo Setups with Direction Settings
 
@@ -95,63 +96,11 @@ public class ServoDirectionDemo extends OpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** You have two servos for a double-gate. The `"left_gate"` is mounted normally, but the `"right_gate"` is mounted upside-down and needs its direction reversed. Both gates should open fully (`1.0`) when `gamepad1.y` is pressed, and close fully (`0.0`) when `gamepad1.a` is pressed.
+Use the simulator below to practice reversing the mirrored `"right_gate"` servo so both double-gate flaps open and close symmetrically.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.Servo;
-
-@TeleOp(name="Double_Gate_Challenge")
-public class DoubleGate extends OpMode {
-
-    private Servo leftGate;
-    private Servo rightGate;
-
-    @Override
-    public void init() {
-        leftGate  = hardwareMap.get(Servo.class, "left_gate");
-        rightGate = hardwareMap.get(Servo.class, "right_gate");
-
-        // INSERT CODE HERE: Reverse the direction of rightGate
-        // INSERT CODE HERE: Set both gates to 0.0 initially
-    }
-
-    @Override
-    public void loop() {
-        if (gamepad1.y) {
-            leftGate.setPosition(1.0);
-            rightGate.setPosition(1.0);
-        } else if (gamepad1.a) {
-            leftGate.setPosition(0.0);
-            rightGate.setPosition(0.0);
-        }
-    }
-}
-```
-
-<details>
-<summary>Show answer</summary>
-
-```java
-@Override
-public void init() {
-    leftGate  = hardwareMap.get(Servo.class, "left_gate");
-    rightGate = hardwareMap.get(Servo.class, "right_gate");
-
-    rightGate.setDirection(Servo.Direction.REVERSE);
-
-    leftGate.setPosition(0.0);
-    rightGate.setPosition(0.0);
-    telemetry.addData("Gates", "Initialized closed");
-}
-```
-
-</details>
+<Unit9Simulator lesson="servo-direction" />
 
 <MarkComplete
   lessonId="unit-09/servo-direction"

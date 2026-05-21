@@ -6,6 +6,7 @@ sidebar_position: 4
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit9Simulator from '@site/src/components/Unit9Simulator';
 
 # Lesson 9.4: Using CRServos for Intake-Style Mechanisms
 
@@ -88,63 +89,11 @@ public class CRServoDemo extends OpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** Your robot uses a `CRServo` named `"spinner"` to move game elements into a scoring container. Run it at 60% power forward when the driver holds the `B` button, and at 60% reverse when they hold the `X` button. It should stop otherwise.
+Use the simulator below to practice mapping a `CRServo`, running it forward with `B`, reversing with `X`, and stopping it when neither button is held.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
-
-@TeleOp(name="CR_Spinner_Challenge")
-public class CRSpinner extends OpMode {
-
-    private CRServo spinner;
-
-    @Override
-    public void init() {
-        // INSERT CODE HERE: Map "spinner" as a CRServo
-    }
-
-    @Override
-    public void loop() {
-        // INSERT CODE HERE: If B is pressed, set power to 0.6
-        // INSERT CODE HERE: Else if X is pressed, set power to -0.6
-        // INSERT CODE HERE: Otherwise set power to 0.0
-
-        telemetry.addData("Spinner Power", spinner.getPower());
-    }
-}
-```
-
-<details>
-<summary>Show answer</summary>
-
-```java
-@Override
-public void init() {
-    spinner = hardwareMap.get(CRServo.class, "spinner");
-    spinner.setPower(0);
-    telemetry.addData("Spinner", "Ready");
-}
-
-@Override
-public void loop() {
-    if (gamepad1.b) {
-        spinner.setPower(0.6);
-    } else if (gamepad1.x) {
-        spinner.setPower(-0.6);
-    } else {
-        spinner.setPower(0.0);
-    }
-    telemetry.addData("Spinner Power", spinner.getPower());
-}
-```
-
-</details>
+<Unit9Simulator lesson="cr-servo" />
 
 <MarkComplete
   lessonId="unit-09/cr-servo"

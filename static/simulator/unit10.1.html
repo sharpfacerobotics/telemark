@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Telemark Unit 10.1 Reading Raw Tick Counts</title>
+    <script src="simulator_base.js"></script>
+</head>
+<body>
+<script>
+(function () {
+    "use strict";
+
+    const TICKS_PER_REV = 1120;
+    const TICKS_PER_FRAME = 28;
+    const ARM_PIVOT = { x: -0.85, y: 1.28, z: 0 };
+
+    let motor = null;
+    let armGroup = null;
+    let armMesh = null;
+    let tipSphere = null;
+    let tickCounterSprite = null;
+    let directionSprite = null;
+    let powerBarFillEl = null;
+    let powerReadoutEl = null;
+    let animationCallbackId = -1;
+
+    function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + width - radius, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+        ctx.lineTo(x + width, y + height - radius);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+        ctx.lineTo(x + radius, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+
+        if (fill) {
+            ctx.fillStyle = fill;
+            ctx.fill();
+        }
+        if (stroke) {
+            ctx.strokeStyle = stroke;
+            ctx.lineWidth = 4;
+            ctx.stroke();
+        }
+    }
+
+    function createCanvasSprite(width, height, scaleX, scaleY) {
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true;
+        const material = new THREE.SpriteMaterial({
+            map: texture,
+            transparent: true,
+            depthTest: true,
+            depthWrite: false
+        });
+        const sprite = new THREE.Sprite(material);
+        sprite.scale.set(scaleX, scaleY, 1);
+        sprite.userData.canvas = canvas;
+        sprite.userData.ctx = canvas.getContext("2d");
+        return sprite;
+    }
+
+    function updateTickCounterSprite() {
+        if (!tickCounterSprite) return;
+
+        const canvas = tickCounterSprite.userData.canvas;
+        const ctx = tickCounterSprite.userData.ctx;
+        const ticks = motor ? Math.round(motor._currentPosition) : 0;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        roundRect(
+            ctx,
+            12,
+            12,
+            canvas.width - 24,
+            canvas.height - 24,
+            28,
+            "rgba(8,8,14,0.88)",
+            "rgba(255,102,0,0.55)"
+        );
+
+        ctx.fillStyle = "#d8a05b";
+        ctx.font = '700 30px "JetBrains Mono", monospace';
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("ENCODER TICKS", canvas.width / 2, 54);
+
+        ctx.fillStyle = "#ff9933";
+        ctx.font = '700 72px "JetBrains Mono", monospace';
+        ctx.fillText(String(ticks), canvas.width / 2, 126);
+
+        tickCounterSprite.material.map.needsUpdate = true;
+    }
+
+    function updateDirectionSprite() {
+        if (!directionSprite) return;
+
+        const canvas = directionSprite.userData.canvas;
+        const ctx = directionSprite.userData.ctx;
+        const power = motor ? Number(motor._power || 0) : 0;
+        const absPower = Math.abs(power);
+        let text = "STOPPED";
+        let fill = "#888888";
+        let border = "rgba(180,180,180,0.30)";
+
+        if (power > 0.02) {
+            text = "FWD";
+            fill = "#22cc66";
+            border = "rgba(34,204,102,0.38)";
+        } else if (power < -0.02) {
+            text = "REV";
+            fill = "#4488ff";
+            border = "rgba(68,136,255,0.38)";
+        }
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        roundRect(
+            ctx,
+            8,
+            8,
+            canvas.width - 16,
+            canvas.height - 16,
+            18,
+            "rgba(8,8,14,0.82)",
+            border
+        );
+
+        ctx.fillStyle = fill;
+        ctx.font = absPower < 0.02 ? '700 40px "JetBrains Mono", monospace' : '700 52px "JetBrains Mono", monospace';
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+        directionSprite.material.map.needsUpdate = true;
+    }
+
+    function ensureSceneOverlays() {
+        const container = document.getElementById("sim-scene-container");
+        if (!container) return;
+
+        if (!document.getElementById("sim-unit101-overlay-style")) {
+            const style = document.createElement("style");
+            style.id = "sim-unit101-overlay-style";
+            style.textContent = `
+                .sim-unit101-power-wrap {
+                    position: absolute;
+                    left: 10px;
+                    top: 12px;
+                    bottom: 12px;
+                    width: 42px;
+                    z-index: 14;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: flex-end;
+                    gap: 8px;
+                    pointer-events: none;
+                }
+                .sim-unit101-power-track {
+                    width: 16px;
+                    flex: 1;
+                    min-height: 120px;
+                    border-radius: 999px;
+                    background: rgba(12,12,18,0.9);
+                    border: 1px solid rgba(255,255,255,0.14);
+                    overflow: hidden;
+                    box-shadow: inset 0 0 8px rgba(0,0,0,0.45);
+                    display: flex;
+                    align-items: flex-end;
+                }
+                .sim-unit101-power-fill {
+                    width: 100%;
+                    height: 0%;
+                    background: linear-gradient(to top, #ff6600, #ff9940);
+                    transition: height 0.08s linear, background 0.08s linear;
+                    box-shadow: 0 0 14px rgba(255,102,0,0.35);
+                }
+                .sim-unit101-power-label {
+                    color: #c7c7d8;
+                    font: 700 12px "JetBrains Mono", monospace;
+                    letter-spacing: 1px;
+                    writing-mode: vertical-rl;
+                    transform: rotate(180deg);
+                    text-transform: uppercase;
+                }
+                .sim-unit101-readout {
+                    position: absolute;
+                    right: 12px;
+                    bottom: 12px;
+                    min-width: 220px;
+                    z-index: 14;
+                    padding: 10px 12px;
+                    border-radius: 12px;
+                    background: rgba(8,8,14,0.84);
+                    border: 1px solid rgba(255,102,0,0.28);
+                    box-shadow: 0 10px 24px rgba(0,0,0,0.34);
+                    color: #e6e6ef;
+                    font: 600 0.86rem "IBM Plex Sans", Arial, sans-serif;
+                    pointer-events: none;
+                }
+                .sim-unit101-readout-title {
+                    margin-bottom: 6px;
+                    color: #ffb35c;
+                    font-weight: 700;
+                    letter-spacing: 0.02em;
+                }
+                .sim-unit101-readout-title i {
+                    margin-right: 6px;
+                }
+                .sim-unit101-readout-row {
+                    display: flex;
+                    justify-content: space-between;
+                    gap: 10px;
+                    margin: 4px 0;
+                    font-family: "JetBrains Mono", monospace;
+                    font-size: 0.8rem;
+                }
+                .sim-unit101-readout-row .label {
+                    color: #9ea0b5;
+                }
+                .sim-unit101-readout-row .value {
+                    color: #f4f4fb;
+                    text-align: right;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        if (!powerBarFillEl) {
+            const wrap = document.createElement("div");
+            wrap.className = "sim-unit101-power-wrap";
+            wrap.innerHTML = [
+                '<div class="sim-unit101-power-track"><div class="sim-unit101-power-fill"></div></div>',
+                '<div class="sim-unit101-power-label">POWER</div>'
+            ].join("");
+            container.appendChild(wrap);
+            powerBarFillEl = wrap.querySelector(".sim-unit101-power-fill");
+        }
+
+        if (!powerReadoutEl) {
+            powerReadoutEl = document.createElement("div");
+            powerReadoutEl.className = "sim-unit101-readout";
+            container.appendChild(powerReadoutEl);
+        }
+
+        updateHtmlOverlays();
+    }
+
+    function getDirectionLabel(power) {
+        if (power > 0.02) return "FWD";
+        if (power < -0.02) return "REV";
+        return "STOPPED";
+    }
+
+    function updateHtmlOverlays() {
+        const ticks = motor ? Math.round(motor._currentPosition) : 0;
+        const power = motor ? Number(motor._power || 0) : 0;
+        const rotations = ticks / TICKS_PER_REV;
+
+        if (powerBarFillEl) {
+            powerBarFillEl.style.height = (Math.abs(power) * 100).toFixed(1) + "%";
+            if (power > 0.02) {
+                powerBarFillEl.style.background = "linear-gradient(to top, #ff6600, #ff9940)";
+                powerBarFillEl.style.boxShadow = "0 0 14px rgba(255,102,0,0.35)";
+            } else if (power < -0.02) {
+                powerBarFillEl.style.background = "linear-gradient(to top, #3366ff, #6aa8ff)";
+                powerBarFillEl.style.boxShadow = "0 0 14px rgba(68,136,255,0.35)";
+            } else {
+                powerBarFillEl.style.background = "linear-gradient(to top, #666666, #9a9a9a)";
+                powerBarFillEl.style.boxShadow = "0 0 12px rgba(180,180,180,0.18)";
+            }
+        }
+
+        if (powerReadoutEl) {
+            powerReadoutEl.innerHTML = [
+                '<div class="sim-unit101-readout-title"><i class="fa-solid fa-tachometer-alt"></i> Live Encoder Readout</div>',
+                '<div class="sim-unit101-readout-row"><span class="label">Ticks</span><span class="value">' + ticks + '</span></div>',
+                '<div class="sim-unit101-readout-row"><span class="label">Rotations</span><span class="value">' + rotations.toFixed(3) + '</span></div>',
+                '<div class="sim-unit101-readout-row"><span class="label">Direction</span><span class="value">' + getDirectionLabel(power) + '</span></div>'
+            ].join("");
+        }
+    }
+
+    function updateArmTransform() {
+        if (!armGroup || !motor) return;
+        armGroup.rotation.z = motor._currentPosition * (Math.PI * 2 / TICKS_PER_REV);
+    }
+
+    function updateMotorVisual(name, value) {
+        if (name !== "arm_motor") return;
+        if (motor) {
+            motor._power = clamp(Number(value) || 0, -1, 1);
+        }
+        updateDirectionSprite();
+        updateHtmlOverlays();
+    }
+
+    function resetVisuals() {
+        if (motor) {
+            motor._power = 0;
+            motor._currentPosition = 0;
+        }
+        if (armGroup) {
+            armGroup.rotation.z = 0;
+        }
+        updateTickCounterSprite();
+        updateDirectionSprite();
+        updateHtmlOverlays();
+    }
+
+    function buildScene() {
+        const scene = window.scene;
+        if (!scene) return;
+
+        window.setFieldVisible(false);
+        window.setCameraOrbit({
+            radius: 7.2,
+            theta: 0.45,
+            phi: 0.82,
+            target: { x: 0, y: 1.1, z: 0 }
+        });
+
+        const floor = new THREE.Mesh(
+            new THREE.PlaneGeometry(14, 14),
+            new THREE.MeshPhongMaterial({ color: 0x14141b, side: THREE.DoubleSide })
+        );
+        floor.rotation.x = -Math.PI / 2;
+        floor.position.y = -0.001;
+        floor.receiveShadow = true;
+        scene.add(floor);
+
+        const grid = new THREE.GridHelper(14, 14, 0x303040, 0x1f1f2a);
+        grid.position.y = 0.003;
+        scene.add(grid);
+
+        const base = new THREE.Mesh(
+            new THREE.BoxGeometry(3.2, 1.0, 2.6),
+            new THREE.MeshPhongMaterial({ color: 0x2a2a2a })
+        );
+        base.position.set(0, 0.5, 0);
+        base.castShadow = true;
+        base.receiveShadow = true;
+        scene.add(base);
+
+        const topPlate = new THREE.Mesh(
+            new THREE.BoxGeometry(2.8, 0.1, 2.2),
+            new THREE.MeshPhongMaterial({ color: 0x383838 })
+        );
+        topPlate.position.set(0, 1.05, 0);
+        topPlate.castShadow = true;
+        topPlate.receiveShadow = true;
+        scene.add(topPlate);
+
+        const motorHousing = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.38, 0.38, 0.55, 32),
+            new THREE.MeshPhongMaterial({ color: 0x555566 })
+        );
+        motorHousing.rotation.x = Math.PI / 2;
+        motorHousing.position.set(ARM_PIVOT.x, ARM_PIVOT.y, ARM_PIVOT.z);
+        motorHousing.castShadow = true;
+        scene.add(motorHousing);
+
+        const shaft = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.08, 0.08, 0.7, 16),
+            new THREE.MeshPhongMaterial({ color: 0x888888 })
+        );
+        shaft.rotation.x = Math.PI / 2;
+        shaft.position.set(ARM_PIVOT.x, ARM_PIVOT.y, ARM_PIVOT.z + 0.48);
+        shaft.castShadow = true;
+        scene.add(shaft);
+
+        armGroup = new THREE.Group();
+        armGroup.position.set(ARM_PIVOT.x, ARM_PIVOT.y, ARM_PIVOT.z);
+        scene.add(armGroup);
+
+        armMesh = new THREE.Mesh(
+            new THREE.BoxGeometry(0.18, 2.2, 0.18),
+            new THREE.MeshPhongMaterial({
+                color: 0xff6600,
+                emissive: 0x331200
+            })
+        );
+        armMesh.position.set(0, 1.1, 0.12);
+        armMesh.castShadow = true;
+        armGroup.add(armMesh);
+
+        tipSphere = new THREE.Mesh(
+            new THREE.SphereGeometry(0.18, 20, 20),
+            new THREE.MeshPhongMaterial({ color: 0xffcc00, emissive: 0x483600 })
+        );
+        tipSphere.position.set(0, 2.2, 0.12);
+        tipSphere.castShadow = true;
+        armGroup.add(tipSphere);
+
+        tickCounterSprite = createCanvasSprite(768, 256, 3.2, 1.6);
+        tickCounterSprite.position.set(1.4, 2.6, 0);
+        scene.add(tickCounterSprite);
+
+        directionSprite = createCanvasSprite(512, 140, 2.2, 0.65);
+        directionSprite.position.set(1.4, 1.45, 0);
+        scene.add(directionSprite);
+
+        ensureSceneOverlays();
+        resetVisuals();
+    }
+
+    function extractMethodBody(code, name) {
+        return (window._simGetMethodBody && window._simGetMethodBody(code, name)) || "";
+    }
+
+    function preprocessJavaCode(code) {
+        let processed = code;
+        processed = processed.replace(/\barm\s*\.\s*setPower\s*\(/g, "setArmPower(");
+        processed = processed.replace(/\barm\s*\.\s*getCurrentPosition\s*\(\s*\)/g, "getArmPosition()");
+        processed = processed.replace(/\bgamepad1\s*\.\s*left_stick_y\b/g, "gamepad.left_stick_y");
+        processed = processed.replace(/\btelemetry\s*\.\s*addData\s*\(/g, "addTelemetry(");
+        processed = processed.replace(/\btelemetry\s*\.\s*update\s*\(\s*\)/g, "updateTelemetry()");
+        return processed;
+    }
+
+    function setRequirementStatesFromCode(code) {
+        const initBody = extractMethodBody(code, "init");
+        const loopBody = extractMethodBody(code, "loop");
+
+        const req0 = /\bhardwareMap\s*\.\s*get\(\s*DcMotor\.class\s*,\s*"arm_motor"\s*\)/.test(initBody);
+        const req1 = /\bint\s+[A-Za-z_]\w*(?:\s*=\s*[^;]+)?;/.test(loopBody);
+        const req2 = /\.\s*getCurrentPosition\s*\(\s*\)/.test(loopBody);
+        const req3 = /\btelemetry\s*\.\s*addData\s*\(/.test(loopBody);
+        const req4 = /\btelemetry\s*\.\s*update\s*\(\s*\)/.test(loopBody);
+
+        window.setRequirement(0, req0);
+        window.setRequirement(1, req1);
+        window.setRequirement(2, req2);
+        window.setRequirement(3, req3);
+        window.setRequirement(4, req4);
+
+        configureHints(initBody, loopBody);
+    }
+
+    function configureHints(initBody, loopBody) {
+        if (/\bhardwareMap\s*\.\s*get\s*\(/.test(loopBody)) {
+            window.addHint("Map hardware in init() not loop() — hardwareMap.get() is expensive and should only run once", "error");
+        }
+
+        const hasGetCurrentPosition = /\.\s*getCurrentPosition\s*\(\s*\)/.test(loopBody);
+        if (!hasGetCurrentPosition) {
+            window.addHint("Call arm.getCurrentPosition() in loop() to read the encoder — that is what this lesson is about", "warn");
+        }
+
+        const intStored = /\bint\s+[A-Za-z_]\w*\s*=\s*[A-Za-z_]\w*\s*\.\s*getCurrentPosition\s*\(\s*\)\s*;/.test(loopBody);
+        if (hasGetCurrentPosition && !intStored) {
+            window.addHint("Store the result in an int variable: int currentPos = arm.getCurrentPosition();", "warn");
+        }
+
+        if (!/\btelemetry\s*\.\s*addData\s*\(/.test(loopBody)) {
+            window.addHint("Stream the tick count to the Driver Station using telemetry.addData()", "warn");
+        }
+
+        if (!/\btelemetry\s*\.\s*update\s*\(\s*\)/.test(loopBody)) {
+            window.addHint("Call telemetry.update() at the end of loop() to flush the data to the screen", "warn");
+        }
+
+        if (/\bdouble\s+[A-Za-z_]\w*\s*=\s*[A-Za-z_]\w*\s*\.\s*getCurrentPosition\s*\(\s*\)\s*;/.test(loopBody)) {
+            window.addHint("getCurrentPosition() returns an int — encoder ticks are always whole numbers", "info");
+        }
+    }
+
+    window.onSimulatorReady = function () {
+        const starterCode = `@TeleOp(name="Encoder_Monitor")
+public class EncoderMonitor extends OpMode {
+
+    DcMotor arm;
+
+    @Override
+    public void init() {
+        arm = hardwareMap.get(DcMotor.class, "arm_motor");
+        telemetry.addData("Status", "Initialized");
+    }
+
+    @Override
+    public void loop() {
+        double drivePower = -gamepad1.left_stick_y;
+        arm.setPower(drivePower);
+
+        int currentPos = arm.getCurrentPosition();
+
+        telemetry.addData("Raw Ticks", currentPos);
+        telemetry.addData("Motor Power", drivePower);
+        telemetry.update();
+    }
+}`;
+
+        window.setCode(starterCode);
+
+        window.setChallenge(
+            "Reading Raw Encoder Ticks",
+            "Map an arm motor, drive it with the left joystick, and stream its raw encoder tick count to the Driver Station using getCurrentPosition().",
+            [
+                "Map arm_motor as DcMotor in init()",
+                "Declare an int variable for tick count",
+                "Call getCurrentPosition() on the motor",
+                "Display tick count with telemetry.addData()",
+                "Call telemetry.update()"
+            ]
+        );
+
+        window.setHeader(
+            "Unit 10.1: Reading Raw Tick Counts",
+            "Drive the arm with the left joystick and monitor live encoder ticks"
+        );
+
+        window.setBadges([
+            { iconClass: "fa-solid fa-gear", label: "DcMotor", active: true },
+            { iconClass: "fa-solid fa-tachometer-alt", label: "Encoder", active: true },
+            { iconClass: "fa-solid fa-tower-broadcast", label: "Telemetry", active: true },
+            { iconClass: "fa-solid fa-gamepad", label: "Gamepad", active: true }
+        ]);
+
+        window.setActiveInputs(["left_stick_y"]);
+
+        motor = window.hardwareMap.registerMotor("arm_motor");
+        motor._power = 0;
+        motor._currentPosition = 0;
+
+        window.setArmPower = function (value) {
+            if (!motor) return;
+            motor._power = clamp(Number(value) || 0, -1, 1);
+            updateMotorVisual("arm_motor", motor._power);
+        };
+
+        window.getArmPosition = function () {
+            return motor ? Math.round(motor._currentPosition) : 0;
+        };
+
+        buildScene();
+
+        if (animationCallbackId === -1) {
+            animationCallbackId = window.addAnimationCallback(function () {
+                if (!motor) return;
+                motor._currentPosition += motor._power * TICKS_PER_FRAME;
+                updateArmTransform();
+                updateTickCounterSprite();
+                updateDirectionSprite();
+                updateHtmlOverlays();
+            });
+        }
+
+        window.hardwareMap.onMotorPower(function (name, value) {
+            updateMotorVisual(name, value);
+        });
+
+        const successBanner = document.getElementById("sim-success-banner");
+        if (successBanner) {
+            successBanner.innerHTML =
+                '<i class="fa-solid fa-circle-check"></i> Challenge Complete! You are reading live encoder ticks from the motor.';
+        }
+
+        resetVisuals();
+    };
+
+    window.onRun = function () {
+        window.clearHints();
+
+        if (motor) {
+            motor._currentPosition = 0;
+            motor._power = 0;
+        }
+        if (armGroup) {
+            armGroup.rotation.z = 0;
+        }
+        updateTickCounterSprite();
+        updateDirectionSprite();
+        updateHtmlOverlays();
+
+        const code = window.getCode();
+        setRequirementStatesFromCode(code);
+
+        const processedCode = preprocessJavaCode(code);
+
+        window.transpileAndRun(
+            processedCode,
+            function (initFn) {
+                try {
+                    initFn();
+                } catch (err) {
+                    window._simShowTelemetryError("Init error: " + err.message);
+                }
+            },
+            function (loopFn) {
+                window._simStartLoop(function () {
+                    try {
+                        loopFn();
+                    } catch (err) {
+                        window._simShowTelemetryError("Loop error: " + err.message);
+                    }
+                });
+            }
+        );
+    };
+
+    window.onStop = function () {
+        if (motor) {
+            motor._power = 0;
+        }
+        updateDirectionSprite();
+        updateHtmlOverlays();
+    };
+
+    window.onReset = function () {
+        window.onStop();
+        window.clearHints();
+        if (motor) {
+            motor._currentPosition = 0;
+        }
+        if (armGroup) {
+            armGroup.rotation.z = 0;
+        }
+        updateTickCounterSprite();
+        updateDirectionSprite();
+        updateHtmlOverlays();
+    };
+})();
+</script>
+</body>
+</html>

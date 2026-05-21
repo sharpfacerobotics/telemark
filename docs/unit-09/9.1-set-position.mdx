@@ -6,6 +6,7 @@ sidebar_position: 1
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit9Simulator from '@site/src/components/Unit9Simulator';
 
 # Lesson 9.1: Using setPosition() for Accurate Servo Movement
 
@@ -87,60 +88,11 @@ public class SetPositionDemo extends OpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** You are programming a `"gate"` servo. When the driver presses `gamepad1.y`, the gate must move to 75% of its range to release a game element. When they press `gamepad1.a`, it returns to fully closed (`0.0`).
+Use the simulator below to practice mapping a `"gate"` servo, moving it with `gamepad1.y` and `gamepad1.a`, and reporting the current position through telemetry.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.Servo;
-
-@TeleOp(name="Gate_Control_Challenge")
-public class GateControl extends OpMode {
-
-    private Servo gate;
-
-    @Override
-    public void init() {
-        // INSERT CODE HERE: Map "gate" from the hardwareMap
-        // INSERT CODE HERE: Set initial position to 0.0 (closed)
-    }
-
-    @Override
-    public void loop() {
-        // INSERT CODE HERE: Move gate to 0.75 if Y is pressed
-        // INSERT CODE HERE: Move gate to 0.0 if A is pressed
-        telemetry.addData("Gate Position", gate.getPosition());
-    }
-}
-```
-
-<details>
-<summary>Show answer</summary>
-
-```java
-@Override
-public void init() {
-    gate = hardwareMap.get(Servo.class, "gate");
-    gate.setPosition(0.0);
-    telemetry.addData("Gate", "Initialized closed");
-}
-
-@Override
-public void loop() {
-    if (gamepad1.y) {
-        gate.setPosition(0.75);
-    } else if (gamepad1.a) {
-        gate.setPosition(0.0);
-    }
-    telemetry.addData("Gate Position", gate.getPosition());
-}
-```
-
-</details>
+<Unit9Simulator lesson="set-position" />
 
 <MarkComplete
   lessonId="unit-09/set-position"
