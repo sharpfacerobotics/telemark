@@ -854,17 +854,15 @@ public class SynchronizedServos extends OpMode {
     @Override
     public void loop() {
         if (gamepad1.x) {
-            servoL.setPosition(0.1);
-            servoR.setPosition(0.80 + offset);
-            telemetry.addData("Claw", "Closed");
+            // TODO: Move servoL to 0.1
+            // TODO: Move servoR to 0.80 + offset
+            // TODO: Report that the claw is closed
         } else {
-            servoL.setPosition(0.5);
-            servoR.setPosition(0.5);
-            telemetry.addData("Claw", "Open");
+            // TODO: Return both servos to 0.5
+            // TODO: Report that the claw is at rest
         }
 
-        telemetry.addData("ServoL", servoL.getPosition());
-        telemetry.addData("ServoR", servoR.getPosition());
+        // TODO: Add telemetry for both servo positions
         telemetry.addData("Offset", offset);
         telemetry.update();
     }

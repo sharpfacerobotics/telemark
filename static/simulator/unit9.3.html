@@ -65,7 +65,7 @@ public class DoubleGate extends OpMode {
         left_gate  = hardwareMap.get(Servo.class, "left_gate");
         right_gate = hardwareMap.get(Servo.class, "right_gate");
 
-        right_gate.setDirection(Servo.Direction.REVERSE);
+        // TODO: Reverse right_gate so the mirrored gate moves correctly
 
         telemetry.addData("Status", "Initialized");
     }

@@ -194,7 +194,7 @@ code{font-family:"JetBrains Mono","Fira Code","Consolas",monospace}
 <!-- Three.js loaded via global script tags above -->
 
 <script>
-var STARTER_CODE = '@TeleOp(name="Gate_Servo")\npublic class GateServo extends OpMode {\n\n    Servo gate;\n\n    @Override\n    public void init() {\n        gate = hardwareMap.get(Servo.class, "gate");\n        telemetry.addData("Status", "Initialized");\n    }\n\n    @Override\n    public void loop() {\n        String gateState = "Closed";\n        if (gamepad1.y) {\n            gate.setPosition(0.75);\n        } else if (gamepad1.a) {\n            gate.setPosition(0.0);\n        }\n        if (gate.getPosition() >= 0.5) {\n            gateState = "Open";\n        }\n        telemetry.addData("Gate", gateState);\n        telemetry.update();\n    }\n}';
+var STARTER_CODE = '@TeleOp(name="Gate_Servo")\npublic class GateServo extends OpMode {\n\n    Servo gate;\n\n    @Override\n    public void init() {\n        // TODO: Map "gate" from the hardwareMap\n        // TODO: Set the gate to 0.0 so it starts closed\n        telemetry.addData("Status", "Initialized");\n    }\n\n    @Override\n    public void loop() {\n        if (gamepad1.y) {\n            // TODO: Open the gate to position 0.75\n        } else if (gamepad1.a) {\n            // TODO: Close the gate to position 0.0\n        }\n\n        // TODO: Show the current gate state or position with telemetry\n        telemetry.update();\n    }\n}';
 
 var state = {
   running: false, code: STARTER_CODE, telemetry: [], telemetryError: null, initialized: false,
