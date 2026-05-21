@@ -907,23 +907,22 @@
     }
 
     @media (max-width: 900px) {
-      body {
-        flex-direction: column;
-      }
       #sim-left-panel {
-        width: 100% !important;
+        flex: 1 1 auto;
+        width: auto !important;
         min-width: 0;
-        height: 58%;
-        border-right: none;
-        border-bottom: 1px solid var(--border);
+        height: 100%;
+        border-right: 1px solid var(--border);
+        border-bottom: none;
       }
       #sim-resizer {
         display: none;
       }
       #sim-right-panel {
-        width: 100%;
-        height: 42%;
-        min-height: 280px;
+        flex: 0 0 clamp(260px, 34vw, 330px);
+        width: clamp(260px, 34vw, 330px);
+        min-width: 260px;
+        height: 100%;
       }
       .sim-panel-header {
         padding: 8px 12px;
@@ -952,11 +951,39 @@
       }
       #sim-scene-container {
         margin: 8px;
+        flex: 0 0 auto;
+        width: calc(100% - 16px);
+        aspect-ratio: 1 / 1;
+        min-height: 0;
       }
       .sim-gamepad-card {
         width: min(330px, calc(100vw - 24px));
         right: 8px;
         bottom: 8px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        flex-direction: column;
+      }
+      #sim-left-panel {
+        width: 100% !important;
+        height: 62%;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      #sim-right-panel {
+        flex: 1 1 auto;
+        width: 100%;
+        min-width: 0;
+        height: 38%;
+        min-height: 260px;
+      }
+      #sim-scene-container {
+        flex: 1 1 auto;
+        width: auto;
+        aspect-ratio: auto;
       }
     }
   `;

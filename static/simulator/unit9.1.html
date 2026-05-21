@@ -104,9 +104,8 @@ code{font-family:"JetBrains Mono","Fira Code","Consolas",monospace}
 .dpad-btn{position:absolute;width:33%;height:33%;background:rgba(255,255,255,.01);border:1px solid rgba(255,255,255,.06);pointer-events:auto;cursor:pointer}
 .dpad-btn.pressed{background:rgba(255,255,255,.18);box-shadow:0 0 0 2px rgba(255,255,255,.18)}
 @media (max-width:900px){
-  #main{flex-direction:column}
-  #left-panel{width:100%;min-width:0;height:58%;border-right:none;border-bottom:1px solid #2a2a3a}
-  #right-panel{height:42%;min-height:280px}
+  #left-panel{flex:1 1 auto;width:auto;min-width:0;height:100%;border-right:1px solid #2a2a3a;border-bottom:none}
+  #right-panel{flex:0 0 clamp(260px,34vw,330px);width:clamp(260px,34vw,330px);min-width:260px;height:100%}
   .panel-header{padding:8px 12px}
   #challenge-wrap{padding:6px 8px}
   .challenge-panel{padding:10px;max-height:130px}
@@ -114,7 +113,15 @@ code{font-family:"JetBrains Mono","Fira Code","Consolas",monospace}
   .bottom-bar{padding:8px;gap:6px}
   .telem-panel{padding:8px;max-height:96px}
   #badge-strip{padding:6px 8px;gap:6px;flex-wrap:wrap}
+  #scene-wrap{flex:0 0 auto;width:calc(100% - 16px);aspect-ratio:1/1;margin:8px;min-height:0}
+  #scene-container{border-radius:8px}
   #gamepad-card{width:min(330px,calc(100vw - 24px));right:8px;bottom:8px}
+}
+@media (max-width:640px){
+  #main{flex-direction:column}
+  #left-panel{width:100%;height:62%;border-right:none;border-bottom:1px solid #2a2a3a}
+  #right-panel{flex:1 1 auto;width:100%;min-width:0;height:38%;min-height:260px}
+  #scene-wrap{flex:1 1 auto;width:auto;aspect-ratio:auto;margin:0;min-height:0}
 }
   </style>
 </head>
