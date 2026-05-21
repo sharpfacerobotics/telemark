@@ -155,7 +155,7 @@ function HeroSection(): React.JSX.Element {
 
       <div className={styles.terminalLine} aria-hidden="true">
         <span className={styles.terminalPrompt}>~/ftc $</span>
-        <span>git clone sharpfacerobotics/telemark</span>
+        <span>git clone https://github.com/sharpfacerobotics/telemark </span>
         <span className={styles.cursor} />
       </div>
 
