@@ -269,20 +269,19 @@ public class ArmScaleRange extends OpMode {
     @Override
     public void init() {
         arm = hardwareMap.get(Servo.class, "arm");
-        arm.scaleRange(0.3, 0.9);
+        // TODO: Limit the physical range to 0.3 through 0.9
         telemetry.addData("Status", "Initialized");
     }
 
     @Override
     public void loop() {
         if (gamepad1.right_bumper) {
-            arm.setPosition(1.0);
-            telemetry.addData("Arm", "Open");
+            // TODO: Move the arm to logical position 1.0
         } else if (gamepad1.left_bumper) {
-            arm.setPosition(0.0);
-            telemetry.addData("Arm", "Closed");
+            // TODO: Move the arm to logical position 0.0
         }
-        telemetry.addData("Position", arm.getPosition());
+
+        // TODO: Report the arm position with telemetry
         telemetry.update();
     }
 }`;

@@ -754,22 +754,16 @@ public class CRServoSpinner extends OpMode {
 
     @Override
     public void init() {
-        spinner = hardwareMap.get(CRServo.class, "spinner");
+        // TODO: Map "spinner" as a CRServo
         telemetry.addData("Status", "Initialized");
     }
 
     @Override
     public void loop() {
-        if (gamepad1.b) {
-            spinner.setPower(0.6);
-            telemetry.addData("Spinner", "Forward");
-        } else if (gamepad1.x) {
-            spinner.setPower(-0.6);
-            telemetry.addData("Spinner", "Reverse");
-        } else {
-            spinner.setPower(0.0);
-            telemetry.addData("Spinner", "Stopped");
-        }
+        // TODO: If B is pressed, run spinner forward at 0.6 power
+        // TODO: Else if X is pressed, run spinner reverse at -0.6 power
+        // TODO: Otherwise stop the spinner with 0.0 power
+        // TODO: Show the spinner state with telemetry
         telemetry.update();
     }
 }`;
