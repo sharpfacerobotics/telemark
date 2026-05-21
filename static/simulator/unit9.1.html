@@ -33,6 +33,8 @@ code{font-family:"JetBrains Mono","Fira Code","Consolas",monospace}
 #running-indicator{padding:4px 10px;border-radius:4px;background:rgba(34,204,102,.15);border:1px solid rgba(34,204,102,.3);color:#44cc66;font-size:.75rem;font-family:monospace;font-weight:600;animation:pulse 1.5s ease-in-out infinite;display:none}
 #main{flex:1;display:flex;overflow:hidden}
 #left-panel{width:55%;min-width:320px;display:flex;flex-direction:column;border-right:1px solid #2a2a3a;background:#1b1b1b}
+#split-resizer{width:6px;background:#2a2a3a;cursor:col-resize;z-index:30;flex-shrink:0;touch-action:none}
+#split-resizer:hover,#split-resizer.active{background:#ff6600}
 .panel-header{padding:10px 14px;background:#111;border-bottom:1px solid #2f2f2f;flex-shrink:0}
 .panel-header-title{font-weight:700;color:#fff;font-size:1rem}
 .panel-header-sub{color:#9aa0a6;font-size:.82rem}
@@ -120,6 +122,7 @@ code{font-family:"JetBrains Mono","Fira Code","Consolas",monospace}
 @media (max-width:640px){
   #main{flex-direction:column}
   #left-panel{width:100%;height:62%;border-right:none;border-bottom:1px solid #2a2a3a}
+  #split-resizer{display:none}
   #right-panel{flex:1 1 auto;width:100%;min-width:0;height:38%;min-height:260px}
   #scene-wrap{flex:1 1 auto;width:auto;aspect-ratio:auto;margin:0;min-height:0}
 }
@@ -150,6 +153,7 @@ code{font-family:"JetBrains Mono","Fira Code","Consolas",monospace}
         <div id="telemetry-wrap"></div>
       </div>
     </div>
+    <div id="split-resizer"></div>
     <div id="right-panel">
       <div class="badge-strip" id="badge-strip"></div>
       <div id="scene-wrap"><div id="scene-container"></div></div>
@@ -356,6 +360,7 @@ function handleReset(){handleStop();state.telemetry=[];state.telemetryError=null
 // Gamepad
 var gpCollapsed=false;
 function toggleGamepad(){gpCollapsed=!gpCollapsed;document.getElementById('gamepad-body').style.display=gpCollapsed?'none':'block';document.getElementById('gp-collapse-btn').textContent=gpCollapsed?'▼':'▲'}
+(function(){var rs=document.getElementById('split-resizer'),lp=document.getElementById('left-panel'),drag=false;if(!rs||!lp)return;rs.addEventListener('pointerdown',function(e){drag=true;rs.classList.add('active');if(rs.setPointerCapture)rs.setPointerCapture(e.pointerId);e.preventDefault()});document.addEventListener('pointermove',function(e){if(!drag)return;var pct=e.clientX/window.innerWidth*100;if(pct>25&&pct<75){lp.style.width=pct+'%';lp.style.flexBasis=pct+'%'}});function end(){drag=false;rs.classList.remove('active')}document.addEventListener('pointerup',end);document.addEventListener('pointercancel',end)})();
 (function(){var tb=document.getElementById('gamepad-titlebar'),cd=document.getElementById('gamepad-card'),dr=false,ox=0,oy=0;tb.addEventListener('mousedown',function(e){if(e.target.id==='gp-collapse-btn')return;dr=true;var r=cd.getBoundingClientRect();ox=e.clientX-r.left;oy=e.clientY-r.top});window.addEventListener('mousemove',function(e){if(!dr)return;cd.style.right=Math.max(0,window.innerWidth-(e.clientX-ox)-cd.offsetWidth)+'px';cd.style.bottom=Math.max(0,window.innerHeight-(e.clientY-oy)-cd.offsetHeight)+'px'});window.addEventListener('mouseup',function(){dr=false})})();
 var gpButtonEls={};
 function setGPButton(k,pressed){
