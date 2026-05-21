@@ -54,6 +54,7 @@
       --text-secondary: #888;
       --font-ui: 'IBM Plex Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       --font-code: 'JetBrains Mono', 'Consolas', 'Courier New', monospace;
+      --editor-line-height: 20.8px;
     }
 
     /* ── Scrollbar Styling ── */
@@ -227,9 +228,12 @@
       padding: 16px 16px 16px 56px;
       font-family: var(--font-code);
       font-size: 13px;
-      line-height: 1.6;
+      line-height: var(--editor-line-height);
       tab-size: 4;
       white-space: pre;
+      overflow-wrap: normal;
+      word-break: normal;
+      font-variant-ligatures: none;
       letter-spacing: 0;
       word-spacing: 0;
       border: 0;
@@ -242,6 +246,7 @@
       z-index: 2;
       resize: none;
       overflow: auto;
+      display: block;
     }
     #sim-highlighting {
       z-index: 1;
@@ -256,6 +261,10 @@
       word-spacing: inherit;
       white-space: pre;
       text-shadow: none;
+      display: block;
+      min-height: 100%;
+      transform: translate(0, 0);
+      will-change: transform;
     }
     /* Line numbers gutter */
     #sim-line-numbers {
@@ -277,15 +286,15 @@
       text-align: right;
       font-family: var(--font-code);
       font-size: 13px;
-      line-height: 1.6;
+      line-height: var(--editor-line-height);
       letter-spacing: 0;
       min-height: 100%;
       transform: translateY(0);
     }
     .sim-line-number {
       display: block;
-      height: 1.6em;
-      line-height: 1.6;
+      height: var(--editor-line-height);
+      line-height: var(--editor-line-height);
     }
 
     /* ── Bottom Bar ── */
@@ -1251,11 +1260,16 @@
   function syncScroll() {
     const editor = document.getElementById("sim-code-editor");
     const highlighting = document.getElementById("sim-highlighting");
+    const content = document.getElementById("sim-highlighting-content");
     const lineNumbers = document.getElementById("sim-line-numbers");
     if (!editor || !highlighting) return;
 
-    highlighting.scrollTop = editor.scrollTop;
-    highlighting.scrollLeft = editor.scrollLeft;
+    highlighting.scrollTop = 0;
+    highlighting.scrollLeft = 0;
+    if (content) {
+      content.style.transform =
+        "translate(" + -editor.scrollLeft + "px, " + -editor.scrollTop + "px)";
+    }
     if (lineNumbers) {
       const inner = lineNumbers.querySelector(".sim-line-numbers-inner");
       if (inner) inner.style.transform = "translateY(" + -editor.scrollTop + "px)";
@@ -1365,6 +1379,7 @@
     if (editor) {
       editor.value = str;
       updateHighlighting();
+      syncScroll();
     }
   };
 
@@ -2054,35 +2069,76 @@
   function wireResizerEvents() {
     const resizer = document.getElementById("sim-resizer");
     const leftPanel = document.getElementById("sim-left-panel");
-    if (!resizer || !leftPanel) return;
+    const rightPanel = document.getElementById("sim-right-panel");
+    if (!resizer || !leftPanel || !rightPanel) return;
 
     let isResizing = false;
+    let activePointerId = null;
+
+    function pxValue(value, fallback) {
+      const parsed = parseFloat(value);
+      return Number.isFinite(parsed) ? parsed : fallback;
+    }
+
+    function resizeScene() {
+      window.dispatchEvent(new Event("resize"));
+    }
+
+    function setPanelWidth(clientX) {
+      const bodyRect = document.body.getBoundingClientRect();
+      const totalWidth = bodyRect.width;
+      const resizerWidth = resizer.offsetWidth || 6;
+      const leftStyle = window.getComputedStyle(leftPanel);
+      const rightStyle = window.getComputedStyle(rightPanel);
+      const minLeft = pxValue(leftStyle.minWidth, 260);
+      const minRight = pxValue(rightStyle.minWidth, 260);
+      const minWidth = Math.min(minLeft, Math.max(160, totalWidth - resizerWidth - minRight));
+      const maxWidth = Math.max(minWidth, totalWidth - resizerWidth - minRight);
+      const width = Math.max(minWidth, Math.min(maxWidth, clientX - bodyRect.left));
+
+      leftPanel.style.flex = "0 0 " + width + "px";
+      leftPanel.style.width = width + "px";
+      rightPanel.style.flex = "1 1 0";
+      rightPanel.style.width = "auto";
+      resizeScene();
+    }
 
     resizer.addEventListener("pointerdown", function (e) {
       isResizing = true;
+      activePointerId = e.pointerId;
       resizer.classList.add("active");
       if (resizer.setPointerCapture && e.pointerId != null) {
         resizer.setPointerCapture(e.pointerId);
       }
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+      setPanelWidth(e.clientX);
       e.preventDefault();
     });
 
-    document.addEventListener("pointermove", function (e) {
+    function moveResize(e) {
       if (!isResizing) return;
-      const pct = (e.clientX / window.innerWidth) * 100;
-      if (pct > 25 && pct < 75) {
-        leftPanel.style.width = pct + "%";
-        leftPanel.style.flexBasis = pct + "%";
-      }
-    });
+      if (activePointerId != null && e.pointerId != null && e.pointerId !== activePointerId) return;
+      setPanelWidth(e.clientX);
+      e.preventDefault();
+    }
+
+    document.addEventListener("pointermove", moveResize);
+    window.addEventListener("pointermove", moveResize);
 
     function endResize() {
       isResizing = false;
+      activePointerId = null;
       resizer.classList.remove("active");
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      resizeScene();
     }
 
     document.addEventListener("pointerup", endResize);
     document.addEventListener("pointercancel", endResize);
+    window.addEventListener("pointerup", endResize);
+    window.addEventListener("pointercancel", endResize);
   }
 
   // ========================================================================
@@ -3561,6 +3617,13 @@
 
         // Initial code highlighting
         updateHighlighting();
+        syncScroll();
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(function () {
+            updateHighlighting();
+            syncScroll();
+          });
+        }
 
         // Call the challenge's onSimulatorReady callback
         if (typeof window.onSimulatorReady === "function") {
