@@ -230,6 +230,8 @@
       line-height: 1.6;
       tab-size: 4;
       white-space: pre;
+      letter-spacing: 0;
+      word-spacing: 0;
       border: 0;
       outline: none;
     }
@@ -250,6 +252,9 @@
       font-family: inherit;
       font-size: inherit;
       line-height: inherit;
+      letter-spacing: inherit;
+      word-spacing: inherit;
+      white-space: pre;
       text-shadow: none;
     }
     /* Line numbers gutter */
@@ -273,12 +278,14 @@
       font-family: var(--font-code);
       font-size: 13px;
       line-height: 1.6;
+      letter-spacing: 0;
       min-height: 100%;
       transform: translateY(0);
     }
     .sim-line-number {
       display: block;
       height: 1.6em;
+      line-height: 1.6;
     }
 
     /* ── Bottom Bar ── */
@@ -363,9 +370,10 @@
       width: 6px;
       background: #2a2a3a;
       cursor: col-resize;
-      z-index: 10;
+      z-index: 30;
       transition: background 0.2s;
       flex-shrink: 0;
+      touch-action: none;
     }
     #sim-resizer:hover, #sim-resizer.active {
       background: var(--active);
@@ -915,9 +923,6 @@
         border-right: 1px solid var(--border);
         border-bottom: none;
       }
-      #sim-resizer {
-        display: none;
-      }
       #sim-right-panel {
         flex: 0 0 clamp(260px, 34vw, 330px);
         width: clamp(260px, 34vw, 330px);
@@ -972,6 +977,9 @@
         height: 62%;
         border-right: none;
         border-bottom: 1px solid var(--border);
+      }
+      #sim-resizer {
+        display: none;
       }
       #sim-right-panel {
         flex: 1 1 auto;
@@ -1055,6 +1063,7 @@
       id: "sim-code-editor",
       spellcheck: false,
     });
+    codeEditor.setAttribute("wrap", "off");
     codeWrapper.appendChild(codeEditor);
     const highlighting = el("pre", { id: "sim-highlighting" });
     highlighting.setAttribute("aria-hidden", "true");
@@ -2049,23 +2058,31 @@
 
     let isResizing = false;
 
-    resizer.addEventListener("mousedown", function () {
+    resizer.addEventListener("pointerdown", function (e) {
       isResizing = true;
       resizer.classList.add("active");
+      if (resizer.setPointerCapture && e.pointerId != null) {
+        resizer.setPointerCapture(e.pointerId);
+      }
+      e.preventDefault();
     });
 
-    document.addEventListener("mousemove", function (e) {
+    document.addEventListener("pointermove", function (e) {
       if (!isResizing) return;
       const pct = (e.clientX / window.innerWidth) * 100;
       if (pct > 25 && pct < 75) {
         leftPanel.style.width = pct + "%";
+        leftPanel.style.flexBasis = pct + "%";
       }
     });
 
-    document.addEventListener("mouseup", function () {
+    function endResize() {
       isResizing = false;
       resizer.classList.remove("active");
-    });
+    }
+
+    document.addEventListener("pointerup", endResize);
+    document.addEventListener("pointercancel", endResize);
   }
 
   // ========================================================================
