@@ -1397,6 +1397,18 @@
   /** Whether telemetry has ever been flushed this run */
   let telemetryDirty = false;
 
+  function formatTelemetryValue(format, values) {
+    let valueIndex = 0;
+    return String(format).replace(/%(\.\d+)?([dfs])/g, function (match, precision, type) {
+      const value = values[valueIndex++];
+      if (type === "s") return String(value);
+      if (type === "d") return String(Math.round(Number(value) || 0));
+      const decimals = precision ? Number(precision.slice(1)) : 6;
+      const numeric = Number(value);
+      return Number.isFinite(numeric) ? numeric.toFixed(decimals) : String(value);
+    });
+  }
+
   window.addTelemetry = function (key, value) {
     const k = String(key);
     if (!(k in telemetryData)) {
@@ -1404,6 +1416,9 @@
     }
     // Format numbers
     let v = value;
+    if (arguments.length > 2 && typeof value === "string") {
+      v = formatTelemetryValue(value, Array.prototype.slice.call(arguments, 2));
+    }
     if (typeof v === "number" && v !== Math.floor(v)) {
       v = v.toFixed(2);
     }
@@ -2596,6 +2611,7 @@
                 window.isStopRequested,
                 classScope
               );
+              window.updateTelemetry();
             } catch (e) {
               showTelemetryError("loop() runtime error: " + e.message);
               window.stopExecution();
@@ -2690,6 +2706,7 @@
     this._mode = "RUN_WITHOUT_ENCODER";
     this._zeroPowerBehavior = "BRAKE";
     this._currentPosition = 0;
+    this._ticksPerRev = 1120;
   }
 
   MockDcMotor.prototype.setPower = function (power) {
@@ -2742,6 +2759,14 @@
 
   MockDcMotor.prototype.getCurrentPosition = function () {
     return this._currentPosition;
+  };
+
+  MockDcMotor.prototype.getMotorType = function () {
+    return {
+      getTicksPerRev: function () {
+        return this._ticksPerRev;
+      }.bind(this),
+    };
   };
 
   MockDcMotor.prototype.setTargetPosition = function (pos) {
