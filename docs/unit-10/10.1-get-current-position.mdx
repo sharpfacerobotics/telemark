@@ -6,6 +6,7 @@ sidebar_position: 1
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit10Simulator from '@site/src/components/Unit10Simulator';
 
 # Lesson 10.1: Reading Raw Tick Counts with getCurrentPosition()
 
@@ -86,54 +87,11 @@ public class EncoderMonitorDemo extends OpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** You are troubleshooting a linear slide and need to confirm it is not skipping teeth on the gear rack during manual operation. Display the raw tick count and the current motor power on the Driver Station so you can watch both update in real time.
+Use the simulator below to complete the encoder monitor. Fill in the missing code so the Driver Station shows the raw tick count and current motor power while you move the slide manually.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-
-@TeleOp(name="Encoder_Monitor_Challenge")
-public class EncoderMonitor extends OpMode {
-
-    private DcMotor arm;
-
-    @Override
-    public void init() {
-        arm = hardwareMap.get(DcMotor.class, "arm_motor");
-        arm.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-    }
-
-    @Override
-    public void loop() {
-        arm.setPower(-gamepad1.left_stick_y);
-
-        // INSERT CODE HERE: Store the current tick count in an int variable
-        // INSERT CODE HERE: Display "Raw Ticks" and the value via telemetry
-        // INSERT CODE HERE: Display "Motor Power" and arm.getPower() via telemetry
-    }
-}
-```
-
-<details>
-<summary>Show answer</summary>
-
-```java
-@Override
-public void loop() {
-    arm.setPower(-gamepad1.left_stick_y);
-
-    int rawTicks = arm.getCurrentPosition();
-    telemetry.addData("Raw Ticks",   rawTicks);
-    telemetry.addData("Motor Power", arm.getPower());
-}
-```
-
-</details>
+<Unit10Simulator lesson="get-current-position" />
 
 <MarkComplete
   lessonId="unit-10/get-current-position"

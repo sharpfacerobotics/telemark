@@ -6,6 +6,7 @@ sidebar_position: 5
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit10Simulator from '@site/src/components/Unit10Simulator';
 
 # Lesson 10.5: Challenge — Developing a Precise Drive and Stop System for Linear Navigation
 
@@ -99,55 +100,11 @@ public class DriveAndStopDemo extends LinearOpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** Create a precise autonomous sequence for a `"slider"` motor. Reset its encoder, move exactly 500 ticks forward, and wait until the move is complete before stopping. Display the current position during the move.
+Use the simulator below to complete the precise autonomous slider routine. Fill in the missing reset, target, run mode, power, busy-loop telemetry, and stop logic, then press START to move the game element.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.hardware.DcMotor;
-
-@Autonomous(name="Precision_Slide_Challenge")
-public class PrecisionSlide extends LinearOpMode {
-
-    @Override
-    public void runOpMode() {
-        DcMotor slider = hardwareMap.get(DcMotor.class, "slider");
-        slider.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        waitForStart();
-
-        // INSERT CODE HERE: Reset the encoder
-        // INSERT CODE HERE: Set target to 500 ticks
-        // INSERT CODE HERE: Switch to RUN_TO_POSITION
-        // INSERT CODE HERE: Apply 0.5 power
-
-        while (opModeIsActive() && slider.isBusy()) {
-            telemetry.addData("Position", slider.getCurrentPosition());
-            telemetry.update();
-        }
-
-        slider.setPower(0);
-        telemetry.addData("Status", "Done");
-        telemetry.update();
-    }
-}
-```
-
-<details>
-<summary>Show answer</summary>
-
-```java
-slider.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-slider.setTargetPosition(500);
-slider.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-slider.setPower(0.5);
-```
-
-</details>
+<Unit10Simulator lesson="drive-and-stop" />
 
 <MarkComplete
   lessonId="unit-10/drive-and-stop"

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Telemark Unit 10.1 Reading Raw Tick Counts</title>
+    <title>Telemark Unit 10.1 Linear Slide Encoder Monitor</title>
     <script src="simulator_base.js"></script>
 </head>
 <body>
@@ -13,20 +13,38 @@
 
     const TICKS_PER_REV = 1120;
     const TICKS_PER_FRAME = 28;
-    const ARM_PIVOT = { x: -0.85, y: 1.28, z: 0 };
+    const TICKS_PER_INCH = 224;
+    const MAX_VISUAL_TRAVEL_IN = 12;
+    const MIN_SLIDE_TICKS = 0;
+    const MAX_SLIDE_TICKS = MAX_VISUAL_TRAVEL_IN * TICKS_PER_INCH;
+    const VISUAL_INCH_SCALE = 0.16;
 
     let motor = null;
-    let armGroup = null;
-    let armMesh = null;
-    let tipSphere = null;
-    let tickCounterSprite = null;
-    let directionSprite = null;
-    let powerBarFillEl = null;
-    let powerReadoutEl = null;
+    let carriageGroup = null;
+    let rackGroup = null;
+    let pinionGroup = null;
+    let tickSprite = null;
+    let powerSprite = null;
+    let slideReadoutEl = null;
     let animationCallbackId = -1;
 
     function clamp(value, min, max) {
         return Math.max(min, Math.min(max, value));
+    }
+
+    function clampSlideTicks(ticks) {
+        return clamp(ticks, MIN_SLIDE_TICKS, MAX_SLIDE_TICKS);
+    }
+
+    function getEffectivePower(requestedPower) {
+        if (!motor) return 0;
+        const power = clamp(Number(requestedPower) || 0, -1, 1);
+        const ticks = clampSlideTicks(Number(motor._currentPosition || 0));
+
+        if ((ticks <= MIN_SLIDE_TICKS && power < 0) || (ticks >= MAX_SLIDE_TICKS && power > 0)) {
+            return 0;
+        }
+        return power;
     }
 
     function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
@@ -72,11 +90,11 @@
         return sprite;
     }
 
-    function updateTickCounterSprite() {
-        if (!tickCounterSprite) return;
+    function updateTickSprite() {
+        if (!tickSprite) return;
 
-        const canvas = tickCounterSprite.userData.canvas;
-        const ctx = tickCounterSprite.userData.ctx;
+        const canvas = tickSprite.userData.canvas;
+        const ctx = tickSprite.userData.ctx;
         const ticks = motor ? Math.round(motor._currentPosition) : 0;
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -86,151 +104,106 @@
             12,
             canvas.width - 24,
             canvas.height - 24,
-            28,
-            "rgba(8,8,14,0.88)",
-            "rgba(255,102,0,0.55)"
+            24,
+            "rgba(8,8,14,0.92)",
+            "rgba(255,102,0,0.58)"
         );
 
         ctx.fillStyle = "#d8a05b";
-        ctx.font = '700 30px "JetBrains Mono", monospace';
+        ctx.font = '700 28px "JetBrains Mono", monospace';
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText("ENCODER TICKS", canvas.width / 2, 54);
+        ctx.fillText("RAW TICKS", canvas.width / 2, 48);
 
         ctx.fillStyle = "#ff9933";
         ctx.font = '700 72px "JetBrains Mono", monospace';
         ctx.fillText(String(ticks), canvas.width / 2, 126);
 
-        tickCounterSprite.material.map.needsUpdate = true;
+        tickSprite.material.map.needsUpdate = true;
     }
 
-    function updateDirectionSprite() {
-        if (!directionSprite) return;
+    function updatePowerSprite() {
+        if (!powerSprite) return;
 
-        const canvas = directionSprite.userData.canvas;
-        const ctx = directionSprite.userData.ctx;
+        const canvas = powerSprite.userData.canvas;
+        const ctx = powerSprite.userData.ctx;
         const power = motor ? Number(motor._power || 0) : 0;
         const absPower = Math.abs(power);
-        let text = "STOPPED";
-        let fill = "#888888";
-        let border = "rgba(180,180,180,0.30)";
-
-        if (power > 0.02) {
-            text = "FWD";
-            fill = "#22cc66";
-            border = "rgba(34,204,102,0.38)";
-        } else if (power < -0.02) {
-            text = "REV";
-            fill = "#4488ff";
-            border = "rgba(68,136,255,0.38)";
-        }
+        const label = power > 0.02 ? "RAISING" : power < -0.02 ? "LOWERING" : "STOPPED";
+        const color = power > 0.02 ? "#22cc66" : power < -0.02 ? "#4488ff" : "#aaaaaa";
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         roundRect(
             ctx,
-            8,
-            8,
-            canvas.width - 16,
-            canvas.height - 16,
+            10,
+            10,
+            canvas.width - 20,
+            canvas.height - 20,
             18,
-            "rgba(8,8,14,0.82)",
-            border
+            "rgba(8,8,14,0.86)",
+            "rgba(255,255,255,0.16)"
         );
 
-        ctx.fillStyle = fill;
-        ctx.font = absPower < 0.02 ? '700 40px "JetBrains Mono", monospace' : '700 52px "JetBrains Mono", monospace';
-        ctx.textAlign = "center";
+        ctx.fillStyle = "#9ea0b5";
+        ctx.font = '700 22px "JetBrains Mono", monospace';
+        ctx.textAlign = "left";
         ctx.textBaseline = "middle";
-        ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+        ctx.fillText("POWER", 38, 38);
 
-        directionSprite.material.map.needsUpdate = true;
+        ctx.fillStyle = color;
+        ctx.font = '700 48px "JetBrains Mono", monospace';
+        ctx.fillText(power.toFixed(2), 38, 92);
+
+        ctx.textAlign = "right";
+        ctx.font = absPower < 0.02 ? '700 30px "JetBrains Mono", monospace' : '700 28px "JetBrains Mono", monospace';
+        ctx.fillText(label, canvas.width - 34, 92);
+
+        powerSprite.material.map.needsUpdate = true;
     }
 
-    function ensureSceneOverlays() {
+    function ensureSceneOverlay() {
         const container = document.getElementById("sim-scene-container");
         if (!container) return;
 
-        if (!document.getElementById("sim-unit101-overlay-style")) {
+        if (!document.getElementById("sim-unit101-style")) {
             const style = document.createElement("style");
-            style.id = "sim-unit101-overlay-style";
+            style.id = "sim-unit101-style";
             style.textContent = `
-                .sim-unit101-power-wrap {
-                    position: absolute;
-                    left: 10px;
-                    top: 12px;
-                    bottom: 12px;
-                    width: 42px;
-                    z-index: 14;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: flex-end;
-                    gap: 8px;
-                    pointer-events: none;
-                }
-                .sim-unit101-power-track {
-                    width: 16px;
-                    flex: 1;
-                    min-height: 120px;
-                    border-radius: 999px;
-                    background: rgba(12,12,18,0.9);
-                    border: 1px solid rgba(255,255,255,0.14);
-                    overflow: hidden;
-                    box-shadow: inset 0 0 8px rgba(0,0,0,0.45);
-                    display: flex;
-                    align-items: flex-end;
-                }
-                .sim-unit101-power-fill {
-                    width: 100%;
-                    height: 0%;
-                    background: linear-gradient(to top, #ff6600, #ff9940);
-                    transition: height 0.08s linear, background 0.08s linear;
-                    box-shadow: 0 0 14px rgba(255,102,0,0.35);
-                }
-                .sim-unit101-power-label {
-                    color: #c7c7d8;
-                    font: 700 12px "JetBrains Mono", monospace;
-                    letter-spacing: 1px;
-                    writing-mode: vertical-rl;
-                    transform: rotate(180deg);
-                    text-transform: uppercase;
-                }
                 .sim-unit101-readout {
                     position: absolute;
                     right: 12px;
                     bottom: 12px;
-                    min-width: 220px;
+                    min-width: 250px;
                     z-index: 14;
                     padding: 10px 12px;
-                    border-radius: 12px;
-                    background: rgba(8,8,14,0.84);
+                    border-radius: 8px;
+                    background: rgba(8,8,14,0.88);
                     border: 1px solid rgba(255,102,0,0.28);
                     box-shadow: 0 10px 24px rgba(0,0,0,0.34);
                     color: #e6e6ef;
-                    font: 600 0.86rem "IBM Plex Sans", Arial, sans-serif;
+                    font: 600 0.84rem "IBM Plex Sans", Arial, sans-serif;
                     pointer-events: none;
                 }
                 .sim-unit101-readout-title {
-                    margin-bottom: 6px;
+                    margin-bottom: 7px;
                     color: #ffb35c;
                     font-weight: 700;
-                    letter-spacing: 0.02em;
-                }
-                .sim-unit101-readout-title i {
-                    margin-right: 6px;
+                    display: flex;
+                    gap: 6px;
+                    align-items: center;
                 }
                 .sim-unit101-readout-row {
                     display: flex;
                     justify-content: space-between;
-                    gap: 10px;
+                    gap: 12px;
                     margin: 4px 0;
                     font-family: "JetBrains Mono", monospace;
                     font-size: 0.8rem;
                 }
-                .sim-unit101-readout-row .label {
+                .sim-unit101-label {
                     color: #9ea0b5;
                 }
-                .sim-unit101-readout-row .value {
+                .sim-unit101-value {
                     color: #f4f4fb;
                     text-align: right;
                 }
@@ -238,86 +211,70 @@
             document.head.appendChild(style);
         }
 
-        if (!powerBarFillEl) {
-            const wrap = document.createElement("div");
-            wrap.className = "sim-unit101-power-wrap";
-            wrap.innerHTML = [
-                '<div class="sim-unit101-power-track"><div class="sim-unit101-power-fill"></div></div>',
-                '<div class="sim-unit101-power-label">POWER</div>'
-            ].join("");
-            container.appendChild(wrap);
-            powerBarFillEl = wrap.querySelector(".sim-unit101-power-fill");
+        if (!slideReadoutEl) {
+            slideReadoutEl = document.createElement("div");
+            slideReadoutEl.className = "sim-unit101-readout";
+            container.appendChild(slideReadoutEl);
         }
 
-        if (!powerReadoutEl) {
-            powerReadoutEl = document.createElement("div");
-            powerReadoutEl.className = "sim-unit101-readout";
-            container.appendChild(powerReadoutEl);
-        }
-
-        updateHtmlOverlays();
+        updateHtmlOverlay();
     }
 
-    function getDirectionLabel(power) {
-        if (power > 0.02) return "FWD";
-        if (power < -0.02) return "REV";
-        return "STOPPED";
-    }
+    function updateHtmlOverlay() {
+        if (!slideReadoutEl) return;
 
-    function updateHtmlOverlays() {
         const ticks = motor ? Math.round(motor._currentPosition) : 0;
         const power = motor ? Number(motor._power || 0) : 0;
-        const rotations = ticks / TICKS_PER_REV;
+        const slideInches = ticks / TICKS_PER_INCH;
 
-        if (powerBarFillEl) {
-            powerBarFillEl.style.height = (Math.abs(power) * 100).toFixed(1) + "%";
-            if (power > 0.02) {
-                powerBarFillEl.style.background = "linear-gradient(to top, #ff6600, #ff9940)";
-                powerBarFillEl.style.boxShadow = "0 0 14px rgba(255,102,0,0.35)";
-            } else if (power < -0.02) {
-                powerBarFillEl.style.background = "linear-gradient(to top, #3366ff, #6aa8ff)";
-                powerBarFillEl.style.boxShadow = "0 0 14px rgba(68,136,255,0.35)";
-            } else {
-                powerBarFillEl.style.background = "linear-gradient(to top, #666666, #9a9a9a)";
-                powerBarFillEl.style.boxShadow = "0 0 12px rgba(180,180,180,0.18)";
-            }
-        }
-
-        if (powerReadoutEl) {
-            powerReadoutEl.innerHTML = [
-                '<div class="sim-unit101-readout-title"><i class="fa-solid fa-tachometer-alt"></i> Live Encoder Readout</div>',
-                '<div class="sim-unit101-readout-row"><span class="label">Ticks</span><span class="value">' + ticks + '</span></div>',
-                '<div class="sim-unit101-readout-row"><span class="label">Rotations</span><span class="value">' + rotations.toFixed(3) + '</span></div>',
-                '<div class="sim-unit101-readout-row"><span class="label">Direction</span><span class="value">' + getDirectionLabel(power) + '</span></div>'
-            ].join("");
-        }
+        slideReadoutEl.innerHTML = [
+            '<div class="sim-unit101-readout-title"><i class="fa-solid fa-table-cells-large"></i> Linear Slide Monitor</div>',
+            '<div class="sim-unit101-readout-row"><span class="sim-unit101-label">Raw Ticks</span><span class="sim-unit101-value">' + ticks + '</span></div>',
+            '<div class="sim-unit101-readout-row"><span class="sim-unit101-label">Motor Power</span><span class="sim-unit101-value">' + power.toFixed(2) + '</span></div>',
+            '<div class="sim-unit101-readout-row"><span class="sim-unit101-label">Slide Travel</span><span class="sim-unit101-value">' + slideInches.toFixed(2) + ' in</span></div>'
+        ].join("");
     }
 
-    function updateArmTransform() {
-        if (!armGroup || !motor) return;
-        armGroup.rotation.z = motor._currentPosition * (Math.PI * 2 / TICKS_PER_REV);
+    function createGear(radius, depth, teeth) {
+        const group = new THREE.Group();
+        const hub = new THREE.Mesh(
+            new THREE.CylinderGeometry(radius, radius, depth, 40),
+            new THREE.MeshPhongMaterial({ color: 0x555566, shininess: 42 })
+        );
+        hub.rotation.x = Math.PI / 2;
+        hub.castShadow = true;
+        group.add(hub);
+
+        const toothMat = new THREE.MeshPhongMaterial({ color: 0xff9933, emissive: 0x2a1200 });
+        for (let i = 0; i < teeth; i++) {
+            const angle = (i / teeth) * Math.PI * 2;
+            const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.08, depth + 0.04), toothMat);
+            tooth.position.set(Math.cos(angle) * (radius + 0.08), Math.sin(angle) * (radius + 0.08), 0);
+            tooth.rotation.z = angle;
+            tooth.castShadow = true;
+            group.add(tooth);
+        }
+
+        const axle = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.09, 0.09, depth + 0.22, 20),
+            new THREE.MeshPhongMaterial({ color: 0xb8b8c8 })
+        );
+        axle.rotation.x = Math.PI / 2;
+        axle.castShadow = true;
+        group.add(axle);
+
+        return group;
     }
 
-    function updateMotorVisual(name, value) {
-        if (name !== "arm_motor") return;
-        if (motor) {
-            motor._power = clamp(Number(value) || 0, -1, 1);
+    function addRackTeeth(parent) {
+        const toothMat = new THREE.MeshPhongMaterial({ color: 0xffaa44, emissive: 0x2c1600 });
+        for (let i = 0; i < 24; i++) {
+            const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.055, 0.32), toothMat);
+            tooth.position.set(0.52, -2.25 + i * 0.19, 0.15);
+            tooth.rotation.z = -0.45;
+            tooth.castShadow = true;
+            parent.add(tooth);
         }
-        updateDirectionSprite();
-        updateHtmlOverlays();
-    }
-
-    function resetVisuals() {
-        if (motor) {
-            motor._power = 0;
-            motor._currentPosition = 0;
-        }
-        if (armGroup) {
-            armGroup.rotation.z = 0;
-        }
-        updateTickCounterSprite();
-        updateDirectionSprite();
-        updateHtmlOverlays();
     }
 
     function buildScene() {
@@ -326,14 +283,14 @@
 
         window.setFieldVisible(false);
         window.setCameraOrbit({
-            radius: 7.2,
-            theta: 0.45,
-            phi: 0.82,
-            target: { x: 0, y: 1.1, z: 0 }
+            radius: 7.0,
+            theta: 0.36,
+            phi: 0.78,
+            target: { x: 0.15, y: 1.85, z: 0.05 }
         });
 
         const floor = new THREE.Mesh(
-            new THREE.PlaneGeometry(14, 14),
+            new THREE.PlaneGeometry(12, 12),
             new THREE.MeshPhongMaterial({ color: 0x14141b, side: THREE.DoubleSide })
         );
         floor.rotation.x = -Math.PI / 2;
@@ -341,163 +298,255 @@
         floor.receiveShadow = true;
         scene.add(floor);
 
-        const grid = new THREE.GridHelper(14, 14, 0x303040, 0x1f1f2a);
+        const grid = new THREE.GridHelper(12, 12, 0x303040, 0x1f1f2a);
         grid.position.y = 0.003;
         scene.add(grid);
 
         const base = new THREE.Mesh(
-            new THREE.BoxGeometry(3.2, 1.0, 2.6),
-            new THREE.MeshPhongMaterial({ color: 0x2a2a2a })
+            new THREE.BoxGeometry(3.2, 0.75, 2.4),
+            new THREE.MeshPhongMaterial({ color: 0x25252c })
         );
-        base.position.set(0, 0.5, 0);
+        base.position.set(0, 0.38, 0);
         base.castShadow = true;
         base.receiveShadow = true;
         scene.add(base);
 
-        const topPlate = new THREE.Mesh(
-            new THREE.BoxGeometry(2.8, 0.1, 2.2),
-            new THREE.MeshPhongMaterial({ color: 0x383838 })
+        const uprightMat = new THREE.MeshPhongMaterial({ color: 0x6f7682, shininess: 36 });
+        [-0.48, 0.48].forEach(function (x) {
+            const rail = new THREE.Mesh(new THREE.BoxGeometry(0.12, 4.2, 0.16), uprightMat);
+            rail.position.set(x, 2.35, -0.18);
+            rail.castShadow = true;
+            rail.receiveShadow = true;
+            scene.add(rail);
+        });
+
+        const crossTop = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.14, 0.22), uprightMat);
+        crossTop.position.set(0, 4.42, -0.18);
+        crossTop.castShadow = true;
+        scene.add(crossTop);
+
+        const crossBottom = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.14, 0.22), uprightMat);
+        crossBottom.position.set(0, 0.44, -0.18);
+        crossBottom.castShadow = true;
+        scene.add(crossBottom);
+
+        carriageGroup = new THREE.Group();
+        carriageGroup.position.set(0, 0, 0);
+        scene.add(carriageGroup);
+
+        const carriage = new THREE.Mesh(
+            new THREE.BoxGeometry(1.18, 0.52, 0.34),
+            new THREE.MeshPhongMaterial({ color: 0x2e5f9f, emissive: 0x071326 })
         );
-        topPlate.position.set(0, 1.05, 0);
-        topPlate.castShadow = true;
-        topPlate.receiveShadow = true;
-        scene.add(topPlate);
+        carriage.position.set(0, 2.0, 0.18);
+        carriage.castShadow = true;
+        carriage.receiveShadow = true;
+        carriageGroup.add(carriage);
+
+        const payload = new THREE.Mesh(
+            new THREE.BoxGeometry(0.86, 0.22, 0.64),
+            new THREE.MeshPhongMaterial({ color: 0x22cc66, emissive: 0x061a0c })
+        );
+        payload.position.set(0, 2.38, 0.2);
+        payload.castShadow = true;
+        carriageGroup.add(payload);
+
+        rackGroup = new THREE.Group();
+        carriageGroup.add(rackGroup);
+
+        const rackBack = new THREE.Mesh(
+            new THREE.BoxGeometry(0.18, 4.6, 0.18),
+            new THREE.MeshPhongMaterial({ color: 0xff6600, emissive: 0x331200 })
+        );
+        rackBack.position.set(0.46, 2.0, 0.14);
+        rackBack.castShadow = true;
+        rackGroup.add(rackBack);
+        addRackTeeth(rackGroup);
 
         const motorHousing = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.38, 0.38, 0.55, 32),
-            new THREE.MeshPhongMaterial({ color: 0x555566 })
+            new THREE.CylinderGeometry(0.34, 0.34, 0.54, 32),
+            new THREE.MeshPhongMaterial({ color: 0x444452, shininess: 32 })
         );
         motorHousing.rotation.x = Math.PI / 2;
-        motorHousing.position.set(ARM_PIVOT.x, ARM_PIVOT.y, ARM_PIVOT.z);
+        motorHousing.position.set(1.1, 2.0, 0.12);
         motorHousing.castShadow = true;
         scene.add(motorHousing);
 
-        const shaft = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.08, 0.08, 0.7, 16),
-            new THREE.MeshPhongMaterial({ color: 0x888888 })
+        pinionGroup = createGear(0.31, 0.22, 16);
+        pinionGroup.position.set(0.77, 2.0, 0.34);
+        scene.add(pinionGroup);
+
+        const meshLabel = new THREE.Mesh(
+            new THREE.BoxGeometry(0.08, 3.9, 0.04),
+            new THREE.MeshPhongMaterial({ color: 0x8a8a96, transparent: true, opacity: 0.45 })
         );
-        shaft.rotation.x = Math.PI / 2;
-        shaft.position.set(ARM_PIVOT.x, ARM_PIVOT.y, ARM_PIVOT.z + 0.48);
-        shaft.castShadow = true;
-        scene.add(shaft);
+        meshLabel.position.set(0.72, 2.35, 0.08);
+        scene.add(meshLabel);
 
-        armGroup = new THREE.Group();
-        armGroup.position.set(ARM_PIVOT.x, ARM_PIVOT.y, ARM_PIVOT.z);
-        scene.add(armGroup);
+        tickSprite = createCanvasSprite(720, 190, 3.35, 1.25);
+        tickSprite.position.set(-1.95, 4.4, 0.1);
+        scene.add(tickSprite);
 
-        armMesh = new THREE.Mesh(
-            new THREE.BoxGeometry(0.18, 2.2, 0.18),
-            new THREE.MeshPhongMaterial({
-                color: 0xff6600,
-                emissive: 0x331200
-            })
-        );
-        armMesh.position.set(0, 1.1, 0.12);
-        armMesh.castShadow = true;
-        armGroup.add(armMesh);
+        powerSprite = createCanvasSprite(620, 128, 2.95, 0.82);
+        powerSprite.position.set(-1.95, 3.36, 0.1);
+        scene.add(powerSprite);
 
-        tipSphere = new THREE.Mesh(
-            new THREE.SphereGeometry(0.18, 20, 20),
-            new THREE.MeshPhongMaterial({ color: 0xffcc00, emissive: 0x483600 })
-        );
-        tipSphere.position.set(0, 2.2, 0.12);
-        tipSphere.castShadow = true;
-        armGroup.add(tipSphere);
-
-        tickCounterSprite = createCanvasSprite(768, 256, 3.2, 1.6);
-        tickCounterSprite.position.set(1.4, 2.6, 0);
-        scene.add(tickCounterSprite);
-
-        directionSprite = createCanvasSprite(512, 140, 2.2, 0.65);
-        directionSprite.position.set(1.4, 1.45, 0);
-        scene.add(directionSprite);
-
-        ensureSceneOverlays();
+        ensureSceneOverlay();
         resetVisuals();
+    }
+
+    function updateMechanismTransform() {
+        if (!motor) return;
+
+        const ticks = clampSlideTicks(Number(motor._currentPosition || 0));
+        motor._currentPosition = ticks;
+        const slideInches = ticks / TICKS_PER_INCH;
+        const clampedInches = clamp(slideInches, 0, MAX_VISUAL_TRAVEL_IN);
+        const visualOffset = clampedInches * VISUAL_INCH_SCALE;
+
+        if (carriageGroup) {
+            carriageGroup.position.y = visualOffset;
+        }
+        if (pinionGroup) {
+            pinionGroup.rotation.z = -ticks * (Math.PI * 2 / TICKS_PER_REV);
+        }
+    }
+
+    function updateMotorVisual(name, value) {
+        if (name !== "arm_motor") return;
+        if (motor) {
+            motor._power = getEffectivePower(value);
+        }
+        updatePowerSprite();
+        updateHtmlOverlay();
+    }
+
+    function resetVisuals() {
+        if (motor) {
+            motor._power = 0;
+            motor._currentPosition = 0;
+        }
+        updateMechanismTransform();
+        updateTickSprite();
+        updatePowerSprite();
+        updateHtmlOverlay();
     }
 
     function extractMethodBody(code, name) {
         return (window._simGetMethodBody && window._simGetMethodBody(code, name)) || "";
     }
 
-    function preprocessJavaCode(code) {
-        let processed = code;
-        processed = processed.replace(/\barm\s*\.\s*setPower\s*\(/g, "setArmPower(");
-        processed = processed.replace(/\barm\s*\.\s*getCurrentPosition\s*\(\s*\)/g, "getArmPosition()");
-        processed = processed.replace(/\bgamepad1\s*\.\s*left_stick_y\b/g, "gamepad.left_stick_y");
-        processed = processed.replace(/\btelemetry\s*\.\s*addData\s*\(/g, "addTelemetry(");
-        processed = processed.replace(/\btelemetry\s*\.\s*update\s*\(\s*\)/g, "updateTelemetry()");
-        return processed;
+    function escapeRegExp(text) {
+        return String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+
+    function telemetryCalls(loopBody) {
+        return loopBody.match(/\btelemetry\s*\.\s*addData\s*\([^;]+;?/g) || [];
+    }
+
+    function hasTelemetryCall(loopBody, labelRegex, valueRegex) {
+        return telemetryCalls(loopBody).some(function (call) {
+            return labelRegex.test(call) && (!valueRegex || valueRegex.test(call));
+        });
     }
 
     function setRequirementStatesFromCode(code) {
         const initBody = extractMethodBody(code, "init");
         const loopBody = extractMethodBody(code, "loop");
 
-        const req0 = /\bhardwareMap\s*\.\s*get\(\s*DcMotor\.class\s*,\s*"arm_motor"\s*\)/.test(initBody);
-        const req1 = /\bint\s+[A-Za-z_]\w*(?:\s*=\s*[^;]+)?;/.test(loopBody);
-        const req2 = /\.\s*getCurrentPosition\s*\(\s*\)/.test(loopBody);
-        const req3 = /\btelemetry\s*\.\s*addData\s*\(/.test(loopBody);
-        const req4 = /\btelemetry\s*\.\s*update\s*\(\s*\)/.test(loopBody);
+        const tickVarMatch = loopBody.match(/\bint\s+([A-Za-z_]\w*)\s*=\s*[A-Za-z_]\w*\s*\.\s*getCurrentPosition\s*\(\s*\)\s*;/);
+        const tickVar = tickVarMatch ? tickVarMatch[1] : null;
+        const powerVarMatch = loopBody.match(/\b(?:double|float)\s+([A-Za-z_]\w*)\s*=\s*[A-Za-z_]\w*\s*\.\s*getPower\s*\(\s*\)\s*;/);
+        const powerVar = powerVarMatch ? powerVarMatch[1] : null;
+        const stickVarMatch = loopBody.match(/\b(?:double|float)\s+([A-Za-z_]\w*)\s*=\s*-?\s*gamepad1\s*\.\s*left_stick_y\s*;/);
+        const stickVar = stickVarMatch ? stickVarMatch[1] : null;
+        const setPowerUsesStick =
+            /\.\s*setPower\s*\(\s*-?\s*gamepad1\s*\.\s*left_stick_y\s*\)/.test(loopBody) ||
+            (stickVar && new RegExp("\\.\\s*setPower\\s*\\(\\s*" + escapeRegExp(stickVar) + "\\s*\\)").test(loopBody));
+
+        const tickValueRegex = tickVar
+            ? new RegExp("\\b" + escapeRegExp(tickVar) + "\\b")
+            : /\.\s*getCurrentPosition\s*\(\s*\)/;
+        const powerValueRegex = powerVar
+            ? new RegExp("\\b" + escapeRegExp(powerVar) + "\\b")
+            : /\.\s*getPower\s*\(\s*\)/;
+
+        const req0 = /\bhardwareMap\s*\.\s*get\s*\(\s*DcMotor\s*\.\s*class\s*,\s*"arm_motor"\s*\)/.test(initBody);
+        const req1 = /\.\s*setMode\s*\(\s*DcMotor\s*\.\s*RunMode\s*\.\s*RUN_WITHOUT_ENCODER\s*\)/.test(initBody);
+        const req2 = setPowerUsesStick;
+        const req3 = Boolean(tickVar);
+        const req4 = hasTelemetryCall(loopBody, /["'][^"']*Raw\s*Ticks?[^"']*["']/i, tickValueRegex);
+        const req5 = hasTelemetryCall(loopBody, /["'][^"']*Motor\s*Power[^"']*["']/i, powerValueRegex);
 
         window.setRequirement(0, req0);
         window.setRequirement(1, req1);
         window.setRequirement(2, req2);
         window.setRequirement(3, req3);
         window.setRequirement(4, req4);
+        window.setRequirement(5, req5);
 
-        configureHints(initBody, loopBody);
+        configureHints(code, initBody, loopBody, tickVar, powerVar);
     }
 
-    function configureHints(initBody, loopBody) {
+    function configureHints(code, initBody, loopBody, tickVar, powerVar) {
         if (/\bhardwareMap\s*\.\s*get\s*\(/.test(loopBody)) {
-            window.addHint("Map hardware in init() not loop() — hardwareMap.get() is expensive and should only run once", "error");
+            window.addHint("Map the slide motor in init(), not loop().", "error");
         }
 
-        const hasGetCurrentPosition = /\.\s*getCurrentPosition\s*\(\s*\)/.test(loopBody);
-        if (!hasGetCurrentPosition) {
-            window.addHint("Call arm.getCurrentPosition() in loop() to read the encoder — that is what this lesson is about", "warn");
+        if (!/\.\s*getCurrentPosition\s*\(\s*\)/.test(loopBody)) {
+            window.addHint("Call arm.getCurrentPosition() to read the raw encoder tick count.", "warn");
+        } else if (!tickVar) {
+            window.addHint("Store the encoder reading in an int, for example: int rawTicks = arm.getCurrentPosition();", "warn");
         }
 
-        const intStored = /\bint\s+[A-Za-z_]\w*\s*=\s*[A-Za-z_]\w*\s*\.\s*getCurrentPosition\s*\(\s*\)\s*;/.test(loopBody);
-        if (hasGetCurrentPosition && !intStored) {
-            window.addHint("Store the result in an int variable: int currentPos = arm.getCurrentPosition();", "warn");
+        if (!/\.\s*getPower\s*\(\s*\)/.test(loopBody)) {
+            window.addHint("Use arm.getPower() for the Motor Power telemetry so it reports the motor's current command.", "warn");
         }
 
-        if (!/\btelemetry\s*\.\s*addData\s*\(/.test(loopBody)) {
-            window.addHint("Stream the tick count to the Driver Station using telemetry.addData()", "warn");
+        if (!hasTelemetryCall(loopBody, /["'][^"']*Raw\s*Ticks?[^"']*["']/i)) {
+            window.addHint('Display the tick count with telemetry.addData("Raw Ticks", rawTicks).', "warn");
         }
 
-        if (!/\btelemetry\s*\.\s*update\s*\(\s*\)/.test(loopBody)) {
-            window.addHint("Call telemetry.update() at the end of loop() to flush the data to the screen", "warn");
+        if (!hasTelemetryCall(loopBody, /["'][^"']*Motor\s*Power[^"']*["']/i)) {
+            window.addHint('Display motor power with telemetry.addData("Motor Power", arm.getPower()).', "warn");
+        }
+
+        if (!/\btelemetry\s*\.\s*update\s*\(\s*\)/.test(code)) {
+            window.addHint("telemetry.update() keeps the simulator Driver Station refreshing each loop.", "info");
+        }
+
+        if (!/\.\s*setMode\s*\(\s*DcMotor\s*\.\s*RunMode\s*\.\s*RUN_WITHOUT_ENCODER\s*\)/.test(initBody)) {
+            window.addHint("RUN_WITHOUT_ENCODER still lets you read raw ticks; it just avoids closed-loop speed control.", "info");
         }
 
         if (/\bdouble\s+[A-Za-z_]\w*\s*=\s*[A-Za-z_]\w*\s*\.\s*getCurrentPosition\s*\(\s*\)\s*;/.test(loopBody)) {
-            window.addHint("getCurrentPosition() returns an int — encoder ticks are always whole numbers", "info");
+            window.addHint("getCurrentPosition() returns an int because encoder ticks are whole counts.", "info");
+        }
+
+        if (powerVar && !hasTelemetryCall(loopBody, /["'][^"']*Motor\s*Power[^"']*["']/i, new RegExp("\\b" + escapeRegExp(powerVar) + "\\b"))) {
+            window.addHint("You read arm.getPower(); now send that value to telemetry as Motor Power.", "warn");
         }
     }
 
     window.onSimulatorReady = function () {
-        const starterCode = `@TeleOp(name="Encoder_Monitor")
+        const starterCode = `@TeleOp(name="Encoder_Monitor_Challenge")
 public class EncoderMonitor extends OpMode {
 
-    DcMotor arm;
+    private DcMotor arm;
 
     @Override
     public void init() {
         arm = hardwareMap.get(DcMotor.class, "arm_motor");
-        telemetry.addData("Status", "Initialized");
+        arm.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
     @Override
     public void loop() {
-        double drivePower = -gamepad1.left_stick_y;
-        arm.setPower(drivePower);
+        arm.setPower(-gamepad1.left_stick_y);
 
-        int currentPos = arm.getCurrentPosition();
-
-        telemetry.addData("Raw Ticks", currentPos);
-        telemetry.addData("Motor Power", drivePower);
+        // TODO: Store the current tick count in an int variable
+        // TODO: Display "Raw Ticks" and the tick count with telemetry
+        // TODO: Display "Motor Power" and arm.getPower() with telemetry
         telemetry.update();
     }
 }`;
@@ -505,55 +554,50 @@ public class EncoderMonitor extends OpMode {
         window.setCode(starterCode);
 
         window.setChallenge(
-            "Reading Raw Encoder Ticks",
-            "Map an arm motor, drive it with the left joystick, and stream its raw encoder tick count to the Driver Station using getCurrentPosition().",
+            "Linear Slide Encoder Monitor",
+            "Troubleshoot a rack-driven linear slide by streaming raw encoder ticks and current motor power to the Driver Station while you move it manually.",
             [
-                "Map arm_motor as DcMotor in init()",
-                "Declare an int variable for tick count",
-                "Call getCurrentPosition() on the motor",
-                "Display tick count with telemetry.addData()",
-                "Call telemetry.update()"
+                "Map arm_motor as a DcMotor in init()",
+                "Set RUN_WITHOUT_ENCODER for raw tick monitoring",
+                "Drive the slide manually with left_stick_y",
+                "Store getCurrentPosition() in an int variable",
+                "Display Raw Ticks with telemetry",
+                "Display Motor Power using arm.getPower()"
             ]
         );
 
         window.setHeader(
             "Unit 10.1: Reading Raw Tick Counts",
-            "Drive the arm with the left joystick and monitor live encoder ticks"
+            "Monitor a rack-driven linear slide for skipped teeth"
         );
 
         window.setBadges([
+            { iconClass: "fa-solid fa-grip-lines", label: "Linear Slide", active: true },
             { iconClass: "fa-solid fa-gear", label: "DcMotor", active: true },
+            { iconClass: "fa-solid fa-table-cells", label: "Gear Rack", active: true },
             { iconClass: "fa-solid fa-tachometer-alt", label: "Encoder", active: true },
-            { iconClass: "fa-solid fa-tower-broadcast", label: "Telemetry", active: true },
-            { iconClass: "fa-solid fa-gamepad", label: "Gamepad", active: true }
+            { iconClass: "fa-solid fa-tower-broadcast", label: "Telemetry", active: true }
         ]);
 
         window.setActiveInputs(["left_stick_y"]);
 
         motor = window.hardwareMap.registerMotor("arm_motor");
+        motor._ticksPerRev = TICKS_PER_REV;
         motor._power = 0;
         motor._currentPosition = 0;
-
-        window.setArmPower = function (value) {
-            if (!motor) return;
-            motor._power = clamp(Number(value) || 0, -1, 1);
-            updateMotorVisual("arm_motor", motor._power);
-        };
-
-        window.getArmPosition = function () {
-            return motor ? Math.round(motor._currentPosition) : 0;
-        };
 
         buildScene();
 
         if (animationCallbackId === -1) {
             animationCallbackId = window.addAnimationCallback(function () {
                 if (!motor) return;
-                motor._currentPosition += motor._power * TICKS_PER_FRAME;
-                updateArmTransform();
-                updateTickCounterSprite();
-                updateDirectionSprite();
-                updateHtmlOverlays();
+                const nextTicks = Number(motor._currentPosition || 0) + getEffectivePower(motor._power) * TICKS_PER_FRAME;
+                motor._currentPosition = clampSlideTicks(nextTicks);
+                motor._power = getEffectivePower(motor._power);
+                updateMechanismTransform();
+                updateTickSprite();
+                updatePowerSprite();
+                updateHtmlOverlay();
             });
         }
 
@@ -564,7 +608,7 @@ public class EncoderMonitor extends OpMode {
         const successBanner = document.getElementById("sim-success-banner");
         if (successBanner) {
             successBanner.innerHTML =
-                '<i class="fa-solid fa-circle-check"></i> Challenge Complete! You are reading live encoder ticks from the motor.';
+                '<i class="fa-solid fa-circle-check"></i> Challenge Complete! The Driver Station is showing raw ticks and motor power for the slide.';
         }
 
         resetVisuals();
@@ -572,25 +616,13 @@ public class EncoderMonitor extends OpMode {
 
     window.onRun = function () {
         window.clearHints();
-
-        if (motor) {
-            motor._currentPosition = 0;
-            motor._power = 0;
-        }
-        if (armGroup) {
-            armGroup.rotation.z = 0;
-        }
-        updateTickCounterSprite();
-        updateDirectionSprite();
-        updateHtmlOverlays();
+        resetVisuals();
 
         const code = window.getCode();
         setRequirementStatesFromCode(code);
 
-        const processedCode = preprocessJavaCode(code);
-
         window.transpileAndRun(
-            processedCode,
+            code,
             function (initFn) {
                 try {
                     initFn();
@@ -614,8 +646,8 @@ public class EncoderMonitor extends OpMode {
         if (motor) {
             motor._power = 0;
         }
-        updateDirectionSprite();
-        updateHtmlOverlays();
+        updatePowerSprite();
+        updateHtmlOverlay();
     };
 
     window.onReset = function () {
@@ -624,12 +656,10 @@ public class EncoderMonitor extends OpMode {
         if (motor) {
             motor._currentPosition = 0;
         }
-        if (armGroup) {
-            armGroup.rotation.z = 0;
-        }
-        updateTickCounterSprite();
-        updateDirectionSprite();
-        updateHtmlOverlays();
+        updateMechanismTransform();
+        updateTickSprite();
+        updatePowerSprite();
+        updateHtmlOverlay();
     };
 })();
 </script>

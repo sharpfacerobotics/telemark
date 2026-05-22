@@ -6,6 +6,7 @@ sidebar_position: 2
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit10Simulator from '@site/src/components/Unit10Simulator';
 
 # Lesson 10.2: Calculating Distances based on Ticks Per Revolution Data
 
@@ -94,66 +95,11 @@ public class TicksToDistanceDemo extends OpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** You have a winch motor with a drum diameter of 2.0 inches. Calculate and report the number of motor rotations and the total cable length reeled in (in inches) to the Driver Station.
+Use the simulator below to complete the winch conversion code. Fill in the missing lines so raw encoder ticks become motor rotations and cable length in inches.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-
-@TeleOp(name="Winch_Rotations_Challenge")
-public class WinchRotations extends OpMode {
-
-    private DcMotor winch;
-    private static final double DRUM_DIAMETER_IN = 2.0;
-
-    @Override
-    public void init() {
-        winch = hardwareMap.get(DcMotor.class, "winch");
-        // INSERT CODE HERE: Store the ticks per revolution from the motor type
-    }
-
-    @Override
-    public void loop() {
-        winch.setPower(-gamepad1.left_stick_y);
-
-        // INSERT CODE HERE: Calculate rotations and distance in inches
-        // INSERT CODE HERE: Display both values via telemetry
-    }
-}
-```
-
-<details>
-<summary>Show answer</summary>
-
-```java
-private DcMotor winch;
-private static final double DRUM_DIAMETER_IN = 2.0;
-private double ticksPerRev;
-
-@Override
-public void init() {
-    winch = hardwareMap.get(DcMotor.class, "winch");
-    ticksPerRev = winch.getMotorType().getTicksPerRev();
-}
-
-@Override
-public void loop() {
-    winch.setPower(-gamepad1.left_stick_y);
-
-    double rotations  = winch.getCurrentPosition() / ticksPerRev;
-    double distanceIn = rotations * (Math.PI * DRUM_DIAMETER_IN);
-
-    telemetry.addData("Rotations",      "%.2f", rotations);
-    telemetry.addData("Cable In (in)",  "%.2f", distanceIn);
-}
-```
-
-</details>
+<Unit10Simulator lesson="ticks-to-distance" />
 
 <MarkComplete
   lessonId="unit-10/ticks-to-distance"

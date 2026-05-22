@@ -6,6 +6,7 @@ sidebar_position: 3
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit10Simulator from '@site/src/components/Unit10Simulator';
 
 # Lesson 10.3: Automating Targeted Movement with RUN_TO_POSITION
 
@@ -93,54 +94,11 @@ public class RunToPositionDemo extends LinearOpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** Program an autonomous lift to move to tick position 1200 as soon as the match begins. Wait for it to finish before ending the OpMode.
+Use the simulator below to complete the autonomous lift sequence. Fill in the missing target, mode, and power commands, then start the OpMode and watch the lift move to 1200 ticks.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.hardware.DcMotor;
-
-@Autonomous(name="Auto_Lift_Challenge")
-public class AutoLift extends LinearOpMode {
-
-    @Override
-    public void runOpMode() {
-        DcMotor lift = hardwareMap.get(DcMotor.class, "lift");
-        lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        waitForStart();
-
-        // INSERT CODE HERE: Set target to 1200
-        // INSERT CODE HERE: Switch mode to RUN_TO_POSITION
-        // INSERT CODE HERE: Apply 0.7 power to begin the move
-
-        while (opModeIsActive() && lift.isBusy()) {
-            telemetry.addData("Status",   "Lifting...");
-            telemetry.addData("Position", lift.getCurrentPosition());
-            telemetry.update();
-        }
-
-        lift.setPower(0);
-        telemetry.addData("Status", "Done");
-        telemetry.update();
-    }
-}
-```
-
-<details>
-<summary>Show answer</summary>
-
-```java
-lift.setTargetPosition(1200);
-lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-lift.setPower(0.7);
-```
-
-</details>
+<Unit10Simulator lesson="run-to-position" />
 
 <MarkComplete
   lessonId="unit-10/run-to-position"
