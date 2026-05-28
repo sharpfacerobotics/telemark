@@ -86,7 +86,7 @@
 
     /* ── Left Panel (Editor) ── */
     #sim-left-panel {
-      width: 55%;
+      width: 50%;
       min-width: 320px;
       height: 100%;
       display: flex;
