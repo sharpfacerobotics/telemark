@@ -6,6 +6,7 @@ sidebar_position: 2
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit11Simulator from '@site/src/components/Unit11Simulator';
 
 # Lesson 11.2: Scaling Analog Voltage from Potentiometers using Range.scale
 
@@ -114,57 +115,11 @@ public class PotentiometerDemo extends OpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** You have a potentiometer named `"wrist_pot"` on a wrist mechanism with 180 degrees of travel. Read the current wrist angle and use `telemetry` to display it. Then return `true` from a method called `isSafe()` only if the angle is between 20.0 and 160.0 degrees.
+Use the simulator below to complete the wrist potentiometer safety check. The editor starts with incomplete starter code, so fill in the voltage-to-angle conversion and `isSafe()` logic before testing the wrist movement.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.hardware.AnalogInput;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.util.Range;
-
-public class WristSystem {
-
-    private AnalogInput wristPot;
-    private static final double WRIST_MAX_DEGREES = 180.0;
-
-    public void init(HardwareMap hwMap) {
-        // INSERT CODE HERE: Map the "wrist_pot" AnalogInput
-    }
-
-    public double getWristAngle() {
-        // INSERT CODE HERE: Return the angle in degrees using Range.scale
-        return 0.0;
-    }
-
-    public boolean isSafe() {
-        // INSERT CODE HERE: Return true only if angle is between 20.0 and 160.0
-        return false;
-    }
-}
-```
-
-<details>
-<summary>Show answer</summary>
-
-```java
-public void init(HardwareMap hwMap) {
-    wristPot = hwMap.get(AnalogInput.class, "wrist_pot");
-}
-
-public double getWristAngle() {
-    return Range.scale(wristPot.getVoltage(), 0, wristPot.getMaxVoltage(), 0, WRIST_MAX_DEGREES);
-}
-
-public boolean isSafe() {
-    double angle = getWristAngle();
-    return angle >= 20.0 && angle <= 160.0;
-}
-```
-
-</details>
+<Unit11Simulator lesson="potentiometer" />
 
 <MarkComplete
   lessonId="unit-11/potentiometer"

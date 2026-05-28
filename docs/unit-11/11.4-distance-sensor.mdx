@@ -6,6 +6,7 @@ sidebar_position: 4
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit11Simulator from '@site/src/components/Unit11Simulator';
 
 # Lesson 11.4: Integration of Time-of-Flight Distance Sensors for Obstacle Detection
 
@@ -110,57 +111,11 @@ public class DistanceSensorDemo extends LinearOpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** You need to stop a `"drive"` motor automatically if the robot comes within 12.0 cm of an obstacle detected by a `DistanceSensor` named `"front_range"`. If the reading is valid and within 12.0 cm, cut motor power. Otherwise apply the normal joystick value.
+Use the simulator below to complete the obstacle cutoff routine. The editor starts with incomplete starter code, so fill in the distance read, validity check, and safe motor cutoff before driving toward the obstacle.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-
-@TeleOp(name="Obstacle_Stop_Challenge")
-public class ObstacleStop extends LinearOpMode {
-
-    @Override
-    public void runOpMode() {
-        DcMotor        drive      = hardwareMap.get(DcMotor.class,        "drive");
-        DistanceSensor frontRange = hardwareMap.get(DistanceSensor.class, "front_range");
-
-        waitForStart();
-
-        while (opModeIsActive()) {
-            // INSERT CODE HERE: Get the distance in CM
-            double distCm = // INSERT VALUE HERE
-
-            double power = -gamepad1.left_stick_y;
-
-            // INSERT CODE HERE: If a valid reading is under 12.0 cm, set power to 0
-            
-            drive.setPower(power);
-            telemetry.addData("Distance (cm)", "%.1f", distCm);
-            telemetry.update();
-        }
-    }
-}
-```
-
-<details>
-<summary>Show answer</summary>
-
-```java
-double distCm = frontRange.getDistance(DistanceUnit.CM);
-
-if (distCm < 200.0 && distCm < 12.0) {
-    power = 0.0;
-}
-```
-
-</details>
+<Unit11Simulator lesson="distance-sensor" />
 
 <MarkComplete
   lessonId="unit-11/distance-sensor"

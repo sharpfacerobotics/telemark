@@ -6,6 +6,7 @@ sidebar_position: 5
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit12Simulator from '@site/src/components/Unit12Simulator';
 
 # Lesson 12.5: Challenge — Implementing an IMU-Corrected 90-Degree Autonomous Turn
 
@@ -146,85 +147,11 @@ public class ImuTurnChallenge extends LinearOpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** Complete the autonomous turn sequence below. The robot should turn to 90 degrees using the proportional control pattern, then drive forward at 0.4 power for 1.5 seconds once the turn is confirmed complete. Use the structure provided and fill in only the missing sections.
+Use the simulator below to complete the autonomous IMU turn. The editor starts with incomplete starter code, so fill in proportional turn power, stopping logic, and the forward drive phase before running the path.
 
-```java
-@Autonomous(name="Turn_Then_Drive_Challenge")
-public class TurnThenDrive extends LinearOpMode {
-
-    private DcMotor leftDrive, rightDrive;
-    private IMU     imu;
-
-    private static final double kP        = 0.012;
-    private static final double MAX_POWER = 0.5;
-    private static final double TOLERANCE = 1.5;
-
-    @Override
-    public void runOpMode() {
-        leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
-        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
-        leftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        imu = hardwareMap.get(IMU.class, "imu");
-        // INSERT CODE HERE: Initialize the IMU with logo UP and USB FORWARD
-
-        waitForStart();
-
-        // INSERT CODE HERE: Write the proportional turn loop targeting 90 degrees.
-        // Exit the loop when Math.abs(error) < TOLERANCE.
-        // Apply -power to leftDrive and +power to rightDrive.
-
-        // INSERT CODE HERE: After the turn exits, drive forward at 0.4 power
-        // for 1.5 seconds using a non-blocking timer (getRuntime()).
-        // Then stop both motors.
-    }
-}
-```
-
-<details>
-<summary>Show answer</summary>
-
-```java
-// IMU initialization
-imu.initialize(new IMU.Parameters(new RevHubOrientationOnRobot(
-    RevHubOrientationOnRobot.LogoFacingDirection.UP,
-    RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
-)));
-
-// Proportional turn to 90 degrees
-double targetDegrees = 90.0;
-while (opModeIsActive()) {
-    double currentAngle = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
-    double error = targetDegrees - currentAngle;
-
-    while (error >  180.0) error -= 360.0;
-    while (error < -180.0) error += 360.0;
-
-    if (Math.abs(error) < TOLERANCE) {
-        leftDrive.setPower(0.0);
-        rightDrive.setPower(0.0);
-        break;
-    }
-
-    double power = Range.clip(error * kP, -MAX_POWER, MAX_POWER);
-    leftDrive.setPower(-power);
-    rightDrive.setPower(power);
-}
-
-// Drive forward for 1.5 seconds
-double driveEnd = getRuntime() + 1.5;
-while (opModeIsActive() && getRuntime() < driveEnd) {
-    leftDrive.setPower(0.4);
-    rightDrive.setPower(0.4);
-}
-leftDrive.setPower(0.0);
-rightDrive.setPower(0.0);
-```
-
-</details>
+<Unit12Simulator lesson="imu-turn" />
 
 <MarkComplete
   lessonId="unit-12/imu-turn"

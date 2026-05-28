@@ -6,6 +6,7 @@ sidebar_position: 5
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit11Simulator from '@site/src/components/Unit11Simulator';
 
 # Lesson 11.5: Challenge — Creating an Automated Sensor-Gated Intake System
 
@@ -122,66 +123,11 @@ public class SensorGateDemo extends LinearOpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** Design an intake system that runs the motor only when a game element is within 10.0 cm AND the storage touch sensor named `"limit"` is not pressed. Use a single `if/else` for the gate. Assume `range` and `limit` are already mapped and `limit` is already set to `INPUT` mode.
+Use the simulator below to complete the smart intake gate. The editor starts with incomplete starter code, so fill in the distance read, storage sensor check, and single `if/else` motor gate before collecting elements.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-
-@Autonomous(name="Auto_Intake_Challenge")
-public class AutoIntakeChallenge extends LinearOpMode {
-
-    @Override
-    public void runOpMode() {
-        DcMotor        intake = hardwareMap.get(DcMotor.class,        "intake");
-        DistanceSensor range  = hardwareMap.get(DistanceSensor.class, "intake_range");
-        DigitalChannel limit  = hardwareMap.get(DigitalChannel.class, "limit");
-        limit.setMode(DigitalChannel.Mode.INPUT);
-
-        waitForStart();
-
-        while (opModeIsActive()) {
-            // INSERT CODE HERE: Get distance in CM
-            double dist = // INSERT VALUE HERE
-
-            // INSERT CODE HERE: Read and invert the limit sensor for active-low
-            boolean isFull = // INSERT VALUE HERE
-
-            // INSERT CODE HERE: Run motor at 0.6 if dist < 10.0 AND not full,
-            // else stop motor
-
-            telemetry.addData("Distance", dist);
-            telemetry.addData("Full",     isFull);
-            telemetry.update();
-        }
-    }
-}
-```
-
-<details>
-<summary>Show answer</summary>
-
-```java
-double dist = range.getDistance(DistanceUnit.CM);
-
-boolean isFull = !limit.getState();
-
-if (dist < 10.0 && !isFull) {
-    intake.setPower(0.6);
-} else {
-    intake.setPower(0.0);
-}
-```
-
-</details>
+<Unit11Simulator lesson="sensor-gated-intake" />
 
 <MarkComplete
   lessonId="unit-11/sensor-gated-intake"

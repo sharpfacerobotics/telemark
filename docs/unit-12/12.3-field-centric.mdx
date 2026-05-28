@@ -6,6 +6,7 @@ sidebar_position: 3
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit12Simulator from '@site/src/components/Unit12Simulator';
 
 # Lesson 12.3: Normalizing Angular Values for Field-Centric Driving
 
@@ -135,41 +136,11 @@ public class FieldCentricDemo extends OpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** A driver wants to test their field-centric math without a full mecanum drivetrain. Write a method called `getFieldRelativeStrafe(double rawStrafe, double rawForward, double headingRadians)` that returns only the corrected strafe component as a `double`. This isolates the vector rotation calculation so it can be unit-tested independently.
+Use the simulator below to complete the field-relative strafe helper. The editor starts with incomplete starter code, so fill in the vector-rotation math and compare the live output against the test cases.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-
-public class FieldCentricMath {
-
-    // INSERT CODE HERE: Write the getFieldRelativeStrafe method.
-    // It should compute the corrected polar angle from rawStrafe and rawForward,
-    // subtract headingRadians, normalize the result,
-    // and return Math.cos(correctedAngle) * magnitude.
-
-}
-```
-
-<details>
-<summary>Show answer</summary>
-
-```java
-public static double getFieldRelativeStrafe(
-        double rawStrafe, double rawForward, double headingRadians) {
-
-    double joystickAngle  = Math.atan2(rawForward, rawStrafe);
-    double magnitude      = Math.hypot(rawStrafe, rawForward);
-    double correctedAngle = AngleUnit.normalizeRadians(joystickAngle - headingRadians);
-
-    return Math.cos(correctedAngle) * magnitude;
-}
-```
-
-</details>
+<Unit12Simulator lesson="field-centric" />
 
 <MarkComplete
   lessonId="unit-12/field-centric"

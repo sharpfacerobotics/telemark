@@ -6,6 +6,7 @@ sidebar_position: 4
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit12Simulator from '@site/src/components/Unit12Simulator';
 
 # Lesson 12.4: Monitoring Pitch and Roll for Robot Tip Detection
 
@@ -129,46 +130,11 @@ public class TipDetectionDemo extends OpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** Write a helper method called `isTipping()` for a mechanism class. It should return `true` if either the pitch or the roll of the robot exceeds 15 degrees in magnitude. Assume `imu` is a class member that has already been initialized.
+Use the simulator below to complete the tip-detection helper. The editor starts with incomplete starter code, so fill in the pitch/roll reads and either-axis safety condition before tilting the robot.
 
-```java
-package org.firstinspires.ftc.teamcode.mechanisms;
-
-import com.qualcomm.robotcore.hardware.IMU;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
-
-public class SafetyMonitor {
-
-    private IMU imu;
-    private static final double TIP_LIMIT = 15.0;
-
-    public SafetyMonitor(IMU imu) {
-        this.imu = imu;
-    }
-
-    // INSERT CODE HERE: Write the isTipping() method.
-    // It should read pitch and roll in DEGREES and return true if either
-    // exceeds TIP_LIMIT in absolute value.
-
-}
-```
-
-<details>
-<summary>Show answer</summary>
-
-```java
-public boolean isTipping() {
-    YawPitchRollAngles angles = imu.getRobotYawPitchRollAngles();
-    double pitch = angles.getPitch(AngleUnit.DEGREES);
-    double roll  = angles.getRoll(AngleUnit.DEGREES);
-    return Math.abs(pitch) > TIP_LIMIT || Math.abs(roll) > TIP_LIMIT;
-}
-```
-
-</details>
+<Unit12Simulator lesson="pitch-roll" />
 
 <MarkComplete
   lessonId="unit-12/pitch-roll"

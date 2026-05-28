@@ -6,6 +6,7 @@ sidebar_position: 2
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit12Simulator from '@site/src/components/Unit12Simulator';
 
 # Lesson 12.2: Extracting Real-time Yaw Data using the AngleUnit Class
 
@@ -98,74 +99,11 @@ public class YawDataDemo extends OpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** Create a TeleOp that reads the robot's current heading in degrees and displays it on the Driver Station. Also display whether the robot is currently pointed within 10 degrees of its starting heading (a `boolean` called `isAligned`). Assume the Hub is mounted flat with logo up and USB ports facing forward.
+Use the simulator below to complete the heading display and alignment check. The editor starts with incomplete starter code, so fill in IMU initialization, yaw extraction, `isAligned`, and telemetry output before rotating the robot.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.IMU;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-
-@TeleOp(name="Heading_Display_Challenge")
-public class HeadingDisplay extends OpMode {
-
-    private IMU imu;
-
-    @Override
-    public void init() {
-        imu = hardwareMap.get(IMU.class, "imu");
-
-        // INSERT CODE HERE: Initialize the IMU with logo UP and USB FORWARD
-
-        telemetry.addData("IMU", "Ready");
-    }
-
-    @Override
-    public void loop() {
-        // INSERT CODE HERE: Read current yaw in degrees
-
-        // INSERT CODE HERE: Compute isAligned -- true if Math.abs(yaw) < 10.0
-
-        // INSERT CODE HERE: Display both values via telemetry
-    }
-}
-```
-
-<details>
-<summary>Show answer</summary>
-
-```java
-@Override
-public void init() {
-    imu = hardwareMap.get(IMU.class, "imu");
-
-    RevHubOrientationOnRobot orientation = new RevHubOrientationOnRobot(
-        RevHubOrientationOnRobot.LogoFacingDirection.UP,
-        RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
-    );
-    imu.initialize(new IMU.Parameters(orientation));
-
-    telemetry.addData("IMU", "Ready");
-}
-
-@Override
-public void loop() {
-    double yaw = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
-
-    boolean isAligned = Math.abs(yaw) < 10.0;
-
-    telemetry.addData("Heading (deg)", "%.2f", yaw);
-    telemetry.addData("Aligned",       isAligned);
-    telemetry.update();
-}
-```
-
-</details>
+<Unit12Simulator lesson="yaw-data" />
 
 <MarkComplete
   lessonId="unit-12/yaw-data"

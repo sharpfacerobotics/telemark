@@ -6,6 +6,7 @@ sidebar_position: 3
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit11Simulator from '@site/src/components/Unit11Simulator';
 
 # Lesson 11.3: Sampling Alliance Colors with the REV Color Sensor
 
@@ -97,54 +98,11 @@ public class ColorSensorDemo extends OpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** Write a method called `detectAlliance()` that returns a `String`. If the red channel is greater than the blue channel, return `"RED"`. If the blue channel is greater than the red channel, return `"BLUE"`. Otherwise return `"UNKNOWN"`. Assume `colorSensor` is already mapped as a class member.
+Use the simulator below to complete the alliance color detector. The editor starts with incomplete starter code, so fill in the color-channel reads and comparison logic before sampling the tiles.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.ColorSensor;
-
-@TeleOp(name="Alliance_Detect_Challenge")
-public class AllianceDetect extends OpMode {
-
-    private ColorSensor colorSensor;
-
-    @Override
-    public void init() {
-        colorSensor = hardwareMap.get(ColorSensor.class, "sensor");
-    }
-
-    // INSERT CODE HERE: Write the detectAlliance() method that returns a String
-    // "RED" if red > blue, "BLUE" if blue > red, "UNKNOWN" otherwise
-
-    @Override
-    public void loop() {
-        telemetry.addData("Alliance", detectAlliance());
-        telemetry.update();
-    }
-}
-```
-
-<details>
-<summary>Show answer</summary>
-
-```java
-public String detectAlliance() {
-    if (colorSensor.red() > colorSensor.blue()) {
-        return "RED";
-    } else if (colorSensor.blue() > colorSensor.red()) {
-        return "BLUE";
-    } else {
-        return "UNKNOWN";
-    }
-}
-```
-
-</details>
+<Unit11Simulator lesson="color-sensor" />
 
 <MarkComplete
   lessonId="unit-11/color-sensor"

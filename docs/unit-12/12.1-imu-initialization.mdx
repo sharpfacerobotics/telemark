@@ -6,6 +6,7 @@ sidebar_position: 1
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit12Simulator from '@site/src/components/Unit12Simulator';
 
 # Lesson 12.1: Initializing the REV Hub Gyro and Setting Robot Orientation
 
@@ -99,54 +100,11 @@ public class ImuInitDemo extends LinearOpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** Your Control Hub is mounted vertically on the side of the robot. The REV logo faces to the right side of the robot, and the USB ports face upward. Write the initialization block that correctly configures the IMU for this mounting position.
+Use the simulator below to complete the vertical Control Hub IMU configuration. The editor starts with incomplete starter code, so fill in the orientation object and initialization call before checking the 3D hub view.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.IMU;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-
-@TeleOp(name="Vertical_IMU_Challenge")
-public class VerticalImuChallenge extends LinearOpMode {
-
-    private IMU imu;
-
-    @Override
-    public void runOpMode() {
-        imu = hardwareMap.get(IMU.class, "imu");
-
-        // INSERT CODE HERE: Create a RevHubOrientationOnRobot with
-        // LogoFacingDirection.RIGHT and UsbFacingDirection.UP
-
-        // INSERT CODE HERE: Call imu.initialize() with an IMU.Parameters
-        // wrapping the orientation object above
-
-        telemetry.addData("IMU", "Configured for vertical mount");
-        telemetry.update();
-
-        waitForStart();
-    }
-}
-```
-
-<details>
-<summary>Show answer</summary>
-
-```java
-RevHubOrientationOnRobot orientation = new RevHubOrientationOnRobot(
-    RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
-    RevHubOrientationOnRobot.UsbFacingDirection.UP
-);
-
-imu.initialize(new IMU.Parameters(orientation));
-```
-
-</details>
+<Unit12Simulator lesson="imu-initialization" />
 
 <MarkComplete
   lessonId="unit-12/imu-initialization"

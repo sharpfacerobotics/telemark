@@ -6,6 +6,7 @@ sidebar_position: 1
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit11Simulator from '@site/src/components/Unit11Simulator';
 
 # Lesson 11.1: Reading Touch Sensor Binary States via DigitalChannel
 
@@ -94,63 +95,11 @@ public class TouchSensorDemo extends LinearOpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
 
-**Robot Scenario:** You are programming a lift mechanism. The lift should allow upward movement freely, but the motor must be set to zero power the moment the bottom touch sensor named `"limit"` is triggered and the driver commands downward movement.
+Use the simulator below to complete the lift touch-sensor safety routine. The editor starts with incomplete starter code, so fill in the missing sensor read and downward-motion lockout before running the OpMode.
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
-
-@TeleOp(name="Safety_Lift_Challenge")
-public class SafetyLift extends LinearOpMode {
-
-    @Override
-    public void runOpMode() {
-        DcMotor        lift  = hardwareMap.get(DcMotor.class,     "lift");
-        DigitalChannel limit = hardwareMap.get(DigitalChannel.class, "limit");
-
-        // INSERT CODE HERE: Set limit to INPUT mode
-        lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        waitForStart();
-
-        while (opModeIsActive()) {
-            double power = -gamepad1.left_stick_y;
-
-            // INSERT CODE HERE: Read limit and invert for active-low logic
-            boolean pressed = // INSERT VALUE HERE
-
-            // INSERT CODE HERE: If pressed and power is negative (downward), set power to 0
-            
-            lift.setPower(power);
-            telemetry.addData("Limit Pressed", pressed);
-            telemetry.addData("Power",         power);
-            telemetry.update();
-        }
-    }
-}
-```
-
-<details>
-<summary>Show answer</summary>
-
-```java
-limit.setMode(DigitalChannel.Mode.INPUT);
-
-// Inside the while loop:
-boolean pressed = !limit.getState();
-
-if (pressed && power < 0) {
-    power = 0.0;
-}
-```
-
-</details>
+<Unit11Simulator lesson="touch-sensor" />
 
 <MarkComplete
   lessonId="unit-11/touch-sensor"
