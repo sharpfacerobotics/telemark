@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Telemark Simulator Chooser</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #07070f;
+      --panel: #0d0d1e;
+      --panel-2: #121230;
+      --border: rgba(0, 191, 255, 0.16);
+      --border-strong: rgba(0, 191, 255, 0.36);
+      --cyan: #00bfff;
+      --green: #39ff14;
+      --text: #e8f4ff;
+      --muted: rgba(232, 244, 255, 0.56);
+      --dim: rgba(232, 244, 255, 0.34);
+    }
+
+    * {
+      box-sizing: border-box;
+      scrollbar-width: thin;
+      scrollbar-color: #3a5264 #0a0a14;
+    }
+
+    *::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    *::-webkit-scrollbar-track {
+      background: #0a0a14;
+    }
+
+    *::-webkit-scrollbar-thumb {
+      background: #3a5264;
+      border-radius: 3px;
+    }
+
+    *::-webkit-scrollbar-thumb:hover {
+      background: #4f738b;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      background:
+        linear-gradient(rgba(0, 191, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 191, 255, 0.04) 1px, transparent 1px),
+        radial-gradient(circle at 15% 10%, rgba(0, 191, 255, 0.13), transparent 26rem),
+        radial-gradient(circle at 86% 8%, rgba(57, 255, 20, 0.08), transparent 22rem),
+        var(--bg);
+      background-size: 40px 40px, 40px 40px, auto, auto, auto;
+      color: var(--text);
+      font-family: "Exo 2", system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    .app {
+      height: 100%;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-width: 0;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(7, 7, 15, 0.9);
+      backdrop-filter: blur(10px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .brand-icon {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--border-strong);
+      color: var(--cyan);
+      background: rgba(0, 191, 255, 0.06);
+      border-radius: 4px;
+      flex: 0 0 auto;
+    }
+
+    .brand-title {
+      min-width: 0;
+    }
+
+    .brand-title h1 {
+      margin: 0;
+      color: var(--text);
+      font-family: "Rajdhani", sans-serif;
+      font-size: clamp(18px, 2.5vw, 24px);
+      line-height: 1;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .brand-title p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--green);
+      font-family: "Share Tech Mono", monospace;
+      font-size: 12px;
+      text-transform: uppercase;
+      flex: 0 0 auto;
+    }
+
+    .main {
+      min-height: 0;
+      overflow: auto;
+      padding: 14px;
+    }
+
+    .view-header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 0 12px;
+    }
+
+    .view-title {
+      min-width: 0;
+    }
+
+    .eyebrow {
+      margin: 0 0 5px;
+      color: var(--cyan);
+      font-family: "Share Tech Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .view-title h2 {
+      margin: 0;
+      color: var(--text);
+      font-family: "Rajdhani", sans-serif;
+      font-size: clamp(24px, 4vw, 38px);
+      line-height: 1;
+    }
+
+    .view-title p {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+      max-width: 760px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(150px, 1fr));
+      gap: 10px;
+    }
+
+    .card {
+      min-height: 150px;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 8px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      background: rgba(13, 13, 30, 0.92);
+      color: inherit;
+      text-align: left;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.16s, border-color 0.16s, box-shadow 0.16s, transform 0.16s;
+      border-radius: 4px;
+    }
+
+    .card:hover,
+    .card:focus-visible {
+      outline: none;
+      background: var(--panel-2);
+      border-color: var(--border-strong);
+      box-shadow: 0 0 22px rgba(0, 191, 255, 0.15);
+      transform: translateY(-1px);
+      text-decoration: none;
+    }
+
+    .unit-num,
+    .challenge-id {
+      color: var(--green);
+      font-family: "Share Tech Mono", monospace;
+      font-size: 12px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .card h3 {
+      margin: 0;
+      color: var(--text);
+      font-family: "Rajdhani", sans-serif;
+      font-size: 19px;
+      line-height: 1.05;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .meta {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+      color: var(--dim);
+      font-family: "Share Tech Mono", monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+    }
+
+    .meta span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 6px;
+      border: 1px solid rgba(232, 244, 255, 0.1);
+      background: rgba(255, 255, 255, 0.025);
+      border-radius: 3px;
+    }
+
+    .action-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--cyan);
+      font-family: "Share Tech Mono", monospace;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--border-strong);
+      background: rgba(0, 191, 255, 0.06);
+      color: var(--cyan);
+      padding: 10px 13px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: "Share Tech Mono", monospace;
+      font-size: 12px;
+      text-transform: uppercase;
+      transition: background 0.16s, border-color 0.16s;
+    }
+
+    .back-btn:hover {
+      background: rgba(0, 191, 255, 0.12);
+      border-color: rgba(57, 255, 20, 0.36);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 1050px) {
+      .grid {
+        grid-template-columns: repeat(4, minmax(145px, 1fr));
+      }
+    }
+
+    @media (max-width: 820px) {
+      body {
+        overflow: auto;
+      }
+
+      .app {
+        min-height: 100%;
+        height: auto;
+      }
+
+      .grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .status {
+        display: none;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .topbar,
+      .view-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 420px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon"><i class="fa-solid fa-display" aria-hidden="true"></i></div>
+        <div class="brand-title">
+          <h1>Telemark Simulator</h1>
+          <p>Choose a unit, then launch a simulator challenge.</p>
+        </div>
+      </div>
+      <div class="status"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> 70 current simulator challenges</div>
+    </header>
+
+    <main class="main">
+      <section id="unit-view">
+        <div class="view-header">
+          <div class="view-title">
+            <p class="eyebrow">// unit.select</p>
+            <h2>Simulator Units</h2>
+            <p>Cards open inside this navigator. Units with dedicated challenge simulators show a second card grid before launching.</p>
+          </div>
+        </div>
+        <div class="grid" id="unit-grid"></div>
+      </section>
+
+      <section id="challenge-view" class="hidden">
+        <div class="view-header">
+          <div class="view-title">
+            <p class="eyebrow" id="challenge-eyebrow">// challenge.select</p>
+            <h2 id="challenge-title">Unit Challenges</h2>
+            <p id="challenge-copy">Choose an individual simulator challenge.</p>
+          </div>
+          <button type="button" class="back-btn" id="back-btn">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Units
+          </button>
+        </div>
+        <div class="grid" id="challenge-grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const units = [
+      { unit: 1, title: "Environment Setup", desc: "Install tools and verify the FTC SDK build.", type: "setup", href: "../docs/unit-01/prerequisites", challenges: [] },
+      { unit: 2, title: "OpMode Structure", desc: "Annotations, init(), loop(), start(), and stop().", type: "shared", href: "unit2.html", challenges: [] },
+      { unit: 3, title: "Java Variables", desc: "String, double, int, boolean, and declarations.", type: "shared", href: "unit3.html", challenges: [] },
+      { unit: 4, title: "Gamepad Input", desc: "Buttons, joysticks, triggers, and input curves.", type: "shared", href: "unit4.html", challenges: [] },
+      { unit: 5, title: "Control Flow", desc: "if, else-if, else, comparisons, and logic.", type: "shared", href: "unit5.html", challenges: [] },
+      { unit: 6, title: "Loops and Iteration", desc: "for loops, timing, arrays, and nonblocking code.", type: "shared", href: "unit6.html", challenges: [] },
+      { unit: 7, title: "Hardware Mapping", desc: "hardwareMap.get(), device names, and mapping.", type: "shared", href: "unit7.html", challenges: [] },
+      {
+        unit: 8,
+        title: "DC Motor Control",
+        desc: "Power, direction, braking, encoders, and safety.",
+        type: "multi",
+        challenges: [
+          ["8.1", "Intake Motor", "Run an intake motor from trigger input.", "unit8.1.html"],
+          ["8.2", "Mecanum Directions", "Reverse the correct motors for mecanum drive.", "unit8.2.html"],
+          ["8.3", "BRAKE vs FLOAT", "Configure ZeroPowerBehavior for a lift motor.", "unit8.3.html"],
+          ["8.4", "Emergency Stop", "Cut motor power instantly with a button.", "unit8.4.html"],
+          ["8.5", "Lift Limit Switch", "Protect slide motion with a touch sensor.", "unit8.5.html"]
+        ]
+      },
+      {
+        unit: 9,
+        title: "Servo Control",
+        desc: "Positions, scale ranges, mirrored motion, and CRServos.",
+        type: "multi",
+        challenges: [
+          ["9.1", "Gate Servo", "Open and close a servo with buttons.", "unit9.1.html"],
+          ["9.2", "Scale Range", "Limit servo motion to safe bounds.", "unit9.2.html"],
+          ["9.3", "Double Gate", "Mirror paired servo movement.", "unit9.3.html"],
+          ["9.4", "CRServo Spinner", "Run a continuous rotation servo.", "unit9.4.html"],
+          ["9.5", "Synchronized Servos", "Offset paired servos for better alignment.", "unit9.5.html"]
+        ]
+      },
+      {
+        unit: 10,
+        title: "Encoders and Precision",
+        desc: "Ticks, distance conversion, run modes, and exact movement.",
+        type: "multi",
+        challenges: [
+          ["10.1", "Raw Tick Display", "Show live encoder ticks and motor power.", "unit10.1.html"],
+          ["10.2", "Winch Calculator", "Convert rotations into cable length.", "unit10.2.html"],
+          ["10.3", "Autonomous Lift", "Move a lift to a target encoder value.", "unit10.3.html"],
+          ["10.4", "Encoder Array", "Configure multiple motors with a loop.", "unit10.4.html"],
+          ["10.5", "Precise Slider", "Move a slider exactly 500 ticks.", "unit10.5.html"]
+        ]
+      },
+      {
+        unit: 11,
+        title: "Sensors",
+        desc: "Touch, analog, color, distance, and sensor-gated logic.",
+        type: "multi",
+        challenges: [
+          ["11.1", "Lift Touch Sensor", "Stop movement when the limit switch triggers.", "unit11.1.html"],
+          ["11.2", "Wrist Potentiometer", "Read analog angle and apply a safety check.", "unit11.2.html"],
+          ["11.3", "Alliance Detection", "Classify color sensor values.", "unit11.3.html"],
+          ["11.4", "Distance Cutoff", "Stop near an obstacle using range data.", "unit11.4.html"],
+          ["11.5", "Smart Intake", "Gate intake power with multiple sensors.", "unit11.5.html"]
+        ]
+      },
+      {
+        unit: 12,
+        title: "IMU and Rotation",
+        desc: "Heading, pitch, roll, field-centric math, and turns.",
+        type: "multi",
+        challenges: [
+          ["12.1", "IMU Configuration", "Configure hub mounting orientation.", "unit12.1.html"],
+          ["12.2", "Heading Display", "Read and evaluate robot heading.", "unit12.2.html"],
+          ["12.3", "Field Strafe Math", "Calculate field-relative strafe.", "unit12.3.html"],
+          ["12.4", "Tipping Detection", "Detect unsafe pitch or roll.", "unit12.4.html"],
+          ["12.5", "Autonomous Turn", "Use proportional control to turn.", "unit12.5.html"]
+        ]
+      },
+      {
+        unit: 13,
+        title: "OOP and Inheritance",
+        desc: "Classes, inheritance, overriding, constants, and composition.",
+        type: "multi",
+        challenges: [
+          ["13.1", "IntakeMechanism", "Encapsulate an intake mechanism class.", "unit13.1.html"],
+          ["13.2", "GrabberMechanism", "Extend a base servo mechanism.", "unit13.2.html"],
+          ["13.3", "SafetySlide", "Override behavior to enforce limits.", "unit13.3.html"],
+          ["13.4", "HardwareNames", "Centralize device names as constants.", "unit13.4.html"],
+          ["13.5", "Robot Composition", "Compose subsystems into MyRobot.", "unit13.5.html"]
+        ]
+      },
+      {
+        unit: 14,
+        title: "Computer Vision",
+        desc: "VisionPortal, AprilTags, pose data, zones, and processing.",
+        type: "multi",
+        challenges: [
+          ["14.1", "Camera Init", "Initialize and manage webcam streaming.", "unit14.1.html"],
+          ["14.2", "scanForTag", "Search AprilTag detections safely.", "unit14.2.html"],
+          ["14.3", "getTagDistance", "Return pose distance or a sentinel value.", "unit14.3.html"],
+          ["14.4", "Zone Definitions", "Place spike mark detection zones.", "unit14.4.html"],
+          ["14.5", "processFrame", "Compare saturation to locate a spike mark.", "unit14.5.html"]
+        ]
+      },
+      {
+        unit: 15,
+        title: "Advanced Integration",
+        desc: "Limelight, Pedro Pathing, Beziers, fusion, and state machines.",
+        type: "multi",
+        challenges: [
+          ["15.1", "Limelight Steering", "Auto-lock onto a vision target.", "unit15.1.html"],
+          ["15.2", "Pedro Lifecycle", "Initialize and update a path follower.", "unit15.2.html"],
+          ["15.3", "PathChain Bezier", "Build multi-segment Bezier paths.", "unit15.3.html"],
+          ["15.4", "Pose Correction", "Fuse vision pose into pathing.", "unit15.4.html"],
+          ["15.5", "State Machine", "Run a complete timed autonomous routine.", "unit15.5.html"]
+        ]
+      }
+    ];
+
+    const unitView = document.getElementById("unit-view");
+    const challengeView = document.getElementById("challenge-view");
+    const unitGrid = document.getElementById("unit-grid");
+    const challengeGrid = document.getElementById("challenge-grid");
+    const challengeTitle = document.getElementById("challenge-title");
+    const challengeCopy = document.getElementById("challenge-copy");
+    const challengeEyebrow = document.getElementById("challenge-eyebrow");
+    const backBtn = document.getElementById("back-btn");
+
+    function pad(value) {
+      return String(value).padStart(2, "0");
+    }
+
+    function launch(href) {
+      window.location.href = href;
+    }
+
+    function makeUnitCard(unit) {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "card";
+      const label = unit.type === "multi" ? `${unit.challenges.length} simulators` : unit.type === "shared" ? "unit simulator" : "setup";
+      const action = unit.type === "multi" ? "View challenges" : unit.type === "shared" ? "Launch unit sim" : "Open setup";
+      const icon = unit.type === "multi" ? "fa-table-cells" : unit.type === "shared" ? "fa-play" : "fa-book-open";
+
+      card.innerHTML = `
+        <span class="unit-num">Unit ${pad(unit.unit)}</span>
+        <h3>${unit.title}</h3>
+        <p>${unit.desc}</p>
+        <span class="meta">
+          <span><i class="fa-solid ${icon}" aria-hidden="true"></i>${label}</span>
+        </span>
+        <span class="action-row">${action}<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+      `;
+
+      card.addEventListener("click", () => {
+        if (unit.type === "multi") {
+          showChallenges(unit);
+        } else {
+          launch(unit.href);
+        }
+      });
+
+      return card;
+    }
+
+    function makeChallengeCard(challenge) {
+      const [id, title, desc, href] = challenge;
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "card";
+      card.innerHTML = `
+        <span class="challenge-id">${id}</span>
+        <h3>${title}</h3>
+        <p>${desc}</p>
+        <span class="meta">
+          <span><i class="fa-solid fa-cube" aria-hidden="true"></i>challenge simulator</span>
+        </span>
+        <span class="action-row">Launch simulator<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+      `;
+      card.addEventListener("click", () => launch(href));
+      return card;
+    }
+
+    function renderUnits() {
+      unitGrid.innerHTML = "";
+      units.forEach((unit) => unitGrid.appendChild(makeUnitCard(unit)));
+    }
+
+    function showChallenges(unit) {
+      challengeGrid.innerHTML = "";
+      challengeTitle.textContent = `Unit ${unit.unit}: ${unit.title}`;
+      challengeCopy.textContent = "Choose one challenge simulator. The selected file opens directly, without returning to this navigator.";
+      challengeEyebrow.textContent = `// unit.${unit.unit}.challenges`;
+      unit.challenges.forEach((challenge) => challengeGrid.appendChild(makeChallengeCard(challenge)));
+      unitView.classList.add("hidden");
+      challengeView.classList.remove("hidden");
+      document.querySelector(".main").scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    backBtn.addEventListener("click", () => {
+      challengeView.classList.add("hidden");
+      unitView.classList.remove("hidden");
+      document.querySelector(".main").scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    renderUnits();
+  </script>
+</body>
+</html>
