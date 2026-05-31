@@ -1,15 +1,29 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import Link from '@docusaurus/Link';
 import Layout from '@theme/Layout';
 import pageStyles from './index.module.css';
 
 export default function SimulatorPage(): React.JSX.Element {
+  const simulatorRef = useRef<HTMLDivElement>(null);
+
+  const openFullscreen = () => {
+    if (document.fullscreenElement === simulatorRef.current) {
+      document.exitFullscreen();
+      return;
+    }
+    simulatorRef.current?.requestFullscreen();
+  };
+
   return (
     <Layout title="Simulator — Telemark" noFooter>
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       <link
         href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700&display=swap"
+        rel="stylesheet"
+      />
+      <link
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
         rel="stylesheet"
       />
 
@@ -29,10 +43,20 @@ export default function SimulatorPage(): React.JSX.Element {
             curriculum whenever you want more guided practice.
           </p>
 
-          <div className={pageStyles.simulatorWrapper}>
+          <div className={pageStyles.simulatorWrapper} ref={simulatorRef}>
+            <button
+              type="button"
+              className={pageStyles.simulatorFullscreen}
+              onClick={openFullscreen}
+              aria-label="Open simulator fullscreen"
+            >
+              <span>Fullscreen</span>
+              <i className="fa-solid fa-expand" aria-hidden="true" />
+            </button>
             <iframe
               src="/telemark/simulator/navigator.html"
               allowFullScreen
+              allow="fullscreen"
               title="Telemark Simulator"
               scrolling="yes"
             />

@@ -234,6 +234,16 @@ function FeaturesSection(): React.JSX.Element {
 }
 
 function SimulatorSection(): React.JSX.Element {
+  const simulatorRef = useRef<HTMLDivElement>(null);
+
+  const openFullscreen = () => {
+    if (document.fullscreenElement === simulatorRef.current) {
+      document.exitFullscreen();
+      return;
+    }
+    simulatorRef.current?.requestFullscreen();
+  };
+
   return (
     <section className={styles.section}>
       <p className={styles.sectionLabel}>// simulator.live[]</p>
@@ -241,10 +251,20 @@ function SimulatorSection(): React.JSX.Element {
       <p className={styles.sectionDesc}>
         Open the simulator in the browser and experiment with robot behavior while you work through the lessons.
       </p>
-      <div className={styles.simulatorWrapper}>
+      <div className={styles.simulatorWrapper} ref={simulatorRef}>
+        <button
+          type="button"
+          className={styles.simulatorFullscreen}
+          onClick={openFullscreen}
+          aria-label="Open simulator fullscreen"
+        >
+          <span>Fullscreen</span>
+          <i className="fa-solid fa-expand" aria-hidden="true" />
+        </button>
         <iframe
           src="/telemark/simulator/navigator.html"
           allowFullScreen
+          allow="fullscreen"
           title="Telemark Simulator"
           scrolling="yes"
         />
@@ -295,6 +315,10 @@ export default function Home(): React.JSX.Element {
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       <link
         href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700&display=swap"
+        rel="stylesheet"
+      />
+      <link
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
         rel="stylesheet"
       />
 
