@@ -159,11 +159,11 @@ public class LimelightFusionDemo extends LinearOpMode {
 
 ## Simulator Challenge
 
-<Unit15Simulator lesson="limelight-fusion" />
+Write a standalone method `correctPoseFromLimelight()` for a mechanism class that holds both a `Follower` and a `Limelight3A` as member variables. The method should: get the latest Limelight result, return immediately if the result is null or invalid or if `getBotpose()` is null, otherwise convert the position from meters to inches, extract the yaw in radians, and call `follower.setPose()` with the corrected values.
 
 Open the simulator in fullscreen before you start so the editor, telemetry, controls, and visualizer are easy to read. Complete the missing starter-code lines in the simulator editor, press **Init** and **Start**, then use telemetry, visual feedback, and any checks or hints to debug before opening the answer.
 
-**Robot Scenario:** Write a standalone method `correctPoseFromLimelight()` for a mechanism class that holds both a `Follower` and a `Limelight3A` as member variables. The method should: get the latest Limelight result, return immediately if the result is null or invalid or if `getBotpose()` is null, otherwise convert the position from meters to inches, extract the yaw in radians, and call `follower.setPose()` with the corrected values.
+<Unit15Simulator lesson="limelight-fusion" />
 
 ```java
 package org.firstinspires.ftc.teamcode;
