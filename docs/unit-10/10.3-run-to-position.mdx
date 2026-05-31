@@ -7,6 +7,7 @@ sidebar_position: 3
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import Unit10Simulator from '@site/src/components/Unit10Simulator';
+import {RunToPositionDiagram} from '@site/src/components/DocDiagrams';
 
 # Lesson 10.3: Automating Targeted Movement with RUN_TO_POSITION
 
@@ -16,7 +17,7 @@ import Unit10Simulator from '@site/src/components/Unit10Simulator';
 
 A common beginner approach to encoder-based movement looks like this: set a target, run the motor, and write a `while` loop that keeps checking `getCurrentPosition()` until it gets close enough, then set power to zero. This works, but it has a real problem -- by the time your code reads the position, evaluates the condition, and sends the stop command, the motor has already traveled past the target. At high speeds this overshoot can be significant.
 
-`RUN_TO_POSITION` solves this by moving the stopping logic off of your code and onto the Expansion Hub's processor itself. The Hub runs a PID controller at a much higher frequency than your `loop()` method ever could, so it can decelerate the motor smoothly and stop it precisely at the target tick without any overshoot management on your end.
+`RUN_TO_POSITION` improves this by moving the stopping logic off of your code and onto the Hub's motor-control layer. The Hub updates its control loop faster than your OpMode loop, so it can react more smoothly than a hand-written "poll position, then stop" loop. It is still not magic: overshoot and settling error can happen if the mechanism is heavy, underpowered, loose, poorly geared, or commanded with too much power.
 
 ---
 
@@ -30,7 +31,17 @@ This mode requires three commands in a specific sequence -- getting them out of 
 
 **Step 3: Apply power.** Call `setPower()` with a non-zero value. In this mode, power acts as a speed limit rather than a voltage command -- the Hub will not exceed that fraction of full speed as it drives toward the target. The motor will not move at all if power is still at zero after the mode switch.
 
-Once the motor reaches the target, the Hub continues to apply holding current to resist any external force pushing the shaft away from the target position.
+Once the motor reaches the target, the Hub may apply holding current to resist external force pushing the shaft away from the target position. How well it holds depends on the motor, gearing, load, battery state, and mechanical friction.
+
+<RunToPositionDiagram />
+
+:::info Official reference
+For the exact enum names and SDK method signatures, compare your code against the FTC SDK Javadocs: [DcMotor.RunMode](https://javadoc.io/doc/org.firstinspires.ftc/RobotCore/latest/com/qualcomm/robotcore/hardware/DcMotor.RunMode.html).
+:::
+
+:::tip Mentor note: if RUN_TO_POSITION never moves
+Check the order first. The target should be set before `RUN_TO_POSITION`, then power must be nonzero. Also confirm the encoder cable is plugged in and the target sign matches the direction the motor can physically move.
+:::
 
 ---
 

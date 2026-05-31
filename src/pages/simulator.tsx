@@ -55,15 +55,6 @@ export default function SimulatorPage(): React.JSX.Element {
           </div>
 
           <div className={pageStyles.simulatorWrapper} ref={simulatorRef}>
-            <button
-              type="button"
-              className={pageStyles.simulatorFullscreen}
-              onClick={openFullscreen}
-              aria-label="Open simulator fullscreen"
-            >
-              <span>Fullscreen</span>
-              <i className="fa-solid fa-expand" aria-hidden="true" />
-            </button>
             <iframe
               src="/telemark/simulator/navigator.html"
               allowFullScreen

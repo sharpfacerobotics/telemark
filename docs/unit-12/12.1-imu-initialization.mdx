@@ -7,6 +7,7 @@ sidebar_position: 1
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import Unit12Simulator from '@site/src/components/Unit12Simulator';
+import {ImuAxesDiagram} from '@site/src/components/DocDiagrams';
 
 # Lesson 12.1: Initializing the REV Hub Gyro and Setting Robot Orientation
 
@@ -30,6 +31,17 @@ Starting with FTC SDK version 8.1, physical mounting is declared using the `RevH
 Together, these two values completely specify the Hub's orientation in three-dimensional space. You then wrap this orientation object inside an `IMU.Parameters` object and pass it into `imu.initialize()`. This chain is not optional. Calling `initialize()` without parameters, or skipping the call entirely, leaves the IMU unconfigured and will cause all subsequent angle reads to return incorrect data.
 
 Valid direction values for both enums are: `UP`, `DOWN`, `FORWARD`, `BACKWARD`, `LEFT`, and `RIGHT`. "Forward" is defined as the direction the robot drives toward during normal operation.
+
+<ImuAxesDiagram />
+
+:::info Official references
+- SDK classes and signatures: [FTC RobotCore Javadocs](https://javadoc.io/doc/org.firstinspires.ftc/RobotCore/latest/index.html)
+- Hardware mounting context: [REV DUO Control System](https://docs.revrobotics.com/duo-control)
+:::
+
+:::tip Mentor note: IMU values that look "rotated"
+If yaw changes when you tilt the robot, the Hub orientation is probably declared wrong. Put the robot on blocks, rotate it by hand, and verify yaw, pitch, and roll one axis at a time before tuning autonomous turns.
+:::
 
 ---
 

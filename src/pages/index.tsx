@@ -262,15 +262,6 @@ function SimulatorSection(): React.JSX.Element {
         </button>
       </div>
       <div className={styles.simulatorWrapper} ref={simulatorRef}>
-        <button
-          type="button"
-          className={styles.simulatorFullscreen}
-          onClick={openFullscreen}
-          aria-label="Open simulator fullscreen"
-        >
-          <span>Fullscreen</span>
-          <i className="fa-solid fa-expand" aria-hidden="true" />
-        </button>
         <iframe
           src="/telemark/simulator/navigator.html"
           allowFullScreen

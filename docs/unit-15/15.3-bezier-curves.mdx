@@ -7,6 +7,7 @@ sidebar_position: 3
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import Unit15Simulator from '@site/src/components/Unit15Simulator';
+import {BezierComparisonDiagram} from '@site/src/components/DocDiagrams';
 
 # Lesson 15.3: Implementing Path Following with Bézier Curves
 
@@ -17,6 +18,8 @@ import Unit15Simulator from '@site/src/components/Unit15Simulator';
 A robot executing a stop-turn-drive pattern decelerates to zero, rotates in place, then accelerates again. This sequence is mechanically straightforward to program but it has two costs. First, it is slow. The deceleration, rotation, and re-acceleration together consume time that could be spent scoring. Second, each stop-and-turn introduces a fresh opportunity for accumulated positioning error because the robot must halt all momentum before the next step can begin with a clean state.
 
 A robot following a smooth Bézier curve never stops. It maintains momentum through the entire trajectory, shedding speed only in proportion to the sharpness of the curve at each point. For a robot covering the full diagonal of the field between two scoring positions, a curved path is consistently faster than the equivalent set of straight-line segments with turns.
+
+<BezierComparisonDiagram />
 
 ---
 
@@ -31,6 +34,14 @@ The most common forms are:
 - **Cubic (4 points)** -- two intermediate control points that can define an S-curve or a sharper bend.
 
 In Pedro Pathing, all curves are constructed using the `BezierCurve` class. You pass `Point` objects to the constructor: the first is the start, the last is the end, and any points in between are control points that shape the curvature.
+
+:::info Official reference
+Pedro's API and tuning guidance can change between releases. Check the current docs before copying import paths or builder calls into a team robot project: [Pedro Pathing Docs](https://pedropathing.com/docs/pathing).
+:::
+
+:::tip Common robot failure: beautiful path, ugly robot motion
+If the plotted curve looks right but the robot cuts corners or oscillates, inspect localization first. Wrong wheel offsets, loose odometry pods, or skipped `follower.update()` calls will ruin even a perfect curve.
+:::
 
 ---
 

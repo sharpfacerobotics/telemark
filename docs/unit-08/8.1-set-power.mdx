@@ -27,6 +27,15 @@ Important behaviors to understand:
 - **The method does not directly control velocity**. It controls the PWM duty cycle (effectively the voltage fraction). Actual speed depends on battery voltage, load, and the motor's run mode.
 - **The command is held** until another `setPower()` call overrides it. If you never call `setPower(0)`, the motor keeps running after your code finishes that loop cycle.
 
+:::info Official references
+- SDK API for motor methods: [FTC RobotCore Javadocs](https://javadoc.io/doc/org.firstinspires.ftc/RobotCore/latest/index.html)
+- REV hardware and control-system context: [REV DUO Control System](https://docs.revrobotics.com/duo-control)
+:::
+
+:::tip Common robot failure: motors hum but do not move
+That is often a stalled mechanism, not a code problem. Stop testing at high power, lift the robot or remove the load, check gear mesh and hard stops, then re-test at low power while watching current draw if your tooling shows it.
+:::
+
 ---
 
 ## In TeleOp (OpMode)

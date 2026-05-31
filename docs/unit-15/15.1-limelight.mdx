@@ -26,6 +26,11 @@ The Limelight can store up to ten vision pipelines simultaneously, numbered 0 th
 
 From Java code, you activate a pipeline by calling `limelight.pipelineSwitch(int index)` with the slot number of the pipeline you want. Calling this method in `init()` or in a state transition -- never repeatedly in every loop iteration -- ensures the Limelight is running the correct pipeline without the overhead of reloading it constantly. If the Limelight is already on the requested pipeline, the call is a no-op.
 
+:::info Official references
+- Limelight FTC programming guide: [FTC Java and Blockly Programming Guide](https://docs.limelightvision.io/docs/docs-limelight/apis/ftc-programming)
+- FTC SDK hardware API: [Limelight3A Javadocs](https://javadoc.io/doc/org.firstinspires.ftc/Hardware/latest/com/qualcomm/hardware/limelightvision/Limelight3A.html)
+:::
+
 ---
 
 ## Reading Results: LLResult and Validation
@@ -36,6 +41,10 @@ The primary method for retrieving data is `limelight.getLatestResult()`, which r
 - `result.isValid()` -- even a non-null result may not contain usable data if no target is within the pipeline's field of view or if the pipeline produced an error.
 
 Both checks must pass before accessing fields like `getTx()`, `getTy()`, or `getTa()`.
+
+:::tip Common robot failure: valid results disappear on the field
+Look for lighting changes, wrong pipeline slots, target exposure problems, and camera mounting shifts. Save snapshots from the actual field and tune against those images instead of only tuning in the shop.
+:::
 
 The three primary target fields are:
 

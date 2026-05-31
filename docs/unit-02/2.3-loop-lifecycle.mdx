@@ -7,6 +7,7 @@ sidebar_position: 3
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import Unit2Simulator from '@site/src/components/Unit2Simulator';
+import {LifecycleDiagram} from '@site/src/components/DocDiagrams';
 
 # Lesson 2.3: Running Real-Time Robot Logic Inside loop()
 
@@ -23,6 +24,16 @@ The `loop()` method controls the robot's performance during the match. Because i
 In an `OpMode`, the `loop()` method is executed repeatedly after the driver presses the "Play" button and until they press "Stop". It usually follows a **sensing → thinking → acting** cycle: it reads the latest values from the Gamepads or sensors, calculates the necessary power adjustments, and commands the Control Hub's motor controllers to update voltage outputs.
 
 Since `loop()` is non-blocking, it is ideal for TeleOp where driver inputs are changing in real-time.
+
+<LifecycleDiagram />
+
+:::info Official reference
+Use the FTC SDK Javadocs when you want to confirm the exact method names and inheritance chain for OpModes: [FTC RobotCore Javadocs](https://javadoc.io/doc/org.firstinspires.ftc/RobotCore/latest/index.html).
+:::
+
+:::tip Mentor note: debugging lifecycle bugs
+If telemetry says the OpMode is "Initialized" but robot controls do nothing, ask which lifecycle method owns the code. Hardware mapping belongs in `init()`, live driver logic belongs in `loop()`, and one-time cleanup belongs in `stop()`.
+:::
 
 :::warning Gamepad input only works in TeleOp (OpMode)
 Never read gamepad values in an Autonomous program. The values will always be zero, and your robot will not behave as expected.

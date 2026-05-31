@@ -34,6 +34,10 @@ The most straightforward way to create a `VisionPortal` is through the static fa
 
 A `VisionPortal` is a container. You can attach one or more processor objects to it. Each processor receives every frame captured by the camera and performs its own analysis independently. The portal routes frames to all attached processors automatically.
 
+:::info Official reference
+Use the FTC SDK Javadocs to confirm current VisionPortal, AprilTagProcessor, and hardware-map APIs: [FTC RobotCore Javadocs](https://javadoc.io/doc/org.firstinspires.ftc/RobotCore/latest/index.html).
+:::
+
 ---
 
 ## Resource Management: Stopping the Stream
@@ -41,6 +45,10 @@ A `VisionPortal` is a container. You can attach one or more processor objects to
 A running camera stream consumes a meaningful portion of the Control Hub's CPU budget. Frame capture, color space conversion, and the processing pipelines running on top all compete with the motor control and sensor polling loops that the robot depends on for accurate movement. Running the stream during the driving phase of autonomous -- after the vision decision has already been made -- wastes resources the drivetrain PID controllers could use.
 
 The correct practice is to call `visionPortal.stopStreaming()` once the vision decision is complete and before any driving begins. This releases the camera resources while keeping the portal object alive for later use if needed. The portal can be resumed with `resumeStreaming()` if a later autonomous step requires vision again.
+
+:::tip Mentor note: camera bugs are usually lifecycle bugs
+If the Driver Station preview is black, check the configured webcam name, USB connection, and whether the stream was stopped before `waitForStart()`. If autonomous drives inconsistently while streaming, stop the stream after the vision decision and compare CPU load behavior.
+:::
 
 ---
 

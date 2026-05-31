@@ -7,6 +7,7 @@ sidebar_position: 2
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import Unit15Simulator from '@site/src/components/Unit15Simulator';
+import {PathFollowingDiagram} from '@site/src/components/DocDiagrams';
 
 # Lesson 15.2: Interfacing with Pedro Pathing for Follower Control
 
@@ -29,6 +30,16 @@ The central object in Pedro Pathing is the `Follower`. It manages the odometry l
 - **Status polling** -- `isBusy()` returns `true` while the Follower is actively tracking a path. `update()` must be called every loop iteration to process the latest odometry readings and recompute motor outputs.
 
 The `update()` call is not optional and not occasional. It is a contract. Every iteration of your main loop must call `follower.update()`. If `update()` is not called for even a single cycle, the Follower's position estimate drifts, the path tracking correction falls behind, and the robot will deviate from the intended trajectory. Placing `follower.update()` as the first statement inside your main loop, before any other logic, ensures it is never skipped.
+
+<PathFollowingDiagram />
+
+:::info Official reference
+Pedro changes quickly, so use the official docs for current installation, tuning, and API details: [Pedro Pathing Docs](https://pedropathing.com/docs/pathing).
+:::
+
+:::tip Mentor note: path following failures are often mechanical
+Before changing constants, check that localization wheels spin freely, offsets are measured correctly, drive motor directions match the tuning guide, and `follower.update()` is called every active loop.
+:::
 
 ---
 
