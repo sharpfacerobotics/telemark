@@ -251,6 +251,16 @@ function SimulatorSection(): React.JSX.Element {
       <p className={styles.sectionDesc}>
         Open the simulator in the browser and experiment with robot behavior while you work through the lessons.
       </p>
+      <div className={styles.simulatorToolbar}>
+        <button
+          type="button"
+          className={styles.simulatorToolbarButton}
+          onClick={openFullscreen}
+        >
+          <i className="fa-solid fa-expand" aria-hidden="true" />
+          Fullscreen Simulator
+        </button>
+      </div>
       <div className={styles.simulatorWrapper} ref={simulatorRef}>
         <button
           type="button"

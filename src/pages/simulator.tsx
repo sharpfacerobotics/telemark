@@ -43,6 +43,17 @@ export default function SimulatorPage(): React.JSX.Element {
             curriculum whenever you want more guided practice.
           </p>
 
+          <div className={pageStyles.simulatorToolbar}>
+            <button
+              type="button"
+              className={pageStyles.simulatorToolbarButton}
+              onClick={openFullscreen}
+            >
+              <i className="fa-solid fa-expand" aria-hidden="true" />
+              Fullscreen Simulator
+            </button>
+          </div>
+
           <div className={pageStyles.simulatorWrapper} ref={simulatorRef}>
             <button
               type="button"
