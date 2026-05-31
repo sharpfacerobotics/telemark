@@ -6,6 +6,7 @@ sidebar_position: 5
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit14Simulator from '@site/src/components/Unit14Simulator';
 
 # Lesson 14.5: Challenge: Multi-Zone Vision Processing for Autonomous Scoring Selection
 
@@ -193,7 +194,9 @@ public class SpikeSelectionAuto extends LinearOpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
+
+<Unit14Simulator lesson="multi-zone" />
 
 **Robot Scenario:** Complete the `processFrame()` method below for a two-zone processor. It should compare the average saturation of a `LEFT_ZONE` and a `RIGHT_ZONE` and assign `detectedLocation` to `SpikeLocation.LEFT` if the left zone's saturation is higher, or `SpikeLocation.RIGHT` otherwise. The zone definitions and the `SpikeLocation` enum are already provided.
 

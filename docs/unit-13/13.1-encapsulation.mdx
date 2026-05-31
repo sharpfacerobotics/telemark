@@ -6,6 +6,7 @@ sidebar_position: 1
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit13Simulator from '@site/src/components/Unit13Simulator';
 
 # Lesson 13.1: Encapsulating Component Logic into Mechanism Classes
 
@@ -152,7 +153,9 @@ public class LiftTeleOp extends OpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
+
+<Unit13Simulator lesson="encapsulation" />
 
 **Robot Scenario:** Create an `IntakeMechanism` class that encapsulates a `CRServo` named `"intake_servo"`. It should expose three public methods: `collect()` (runs the servo at 0.8), `eject()` (runs the servo at -0.8), and `stop()` (sets power to 0). The servo must be mapped inside an `init(HardwareMap hwMap)` method.
 

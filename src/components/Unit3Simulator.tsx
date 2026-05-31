@@ -185,6 +185,7 @@ export default function Unit3Simulator({lesson}: Unit3SimulatorProps): React.JSX
     showMotorVisual: String(config.showMotorVisual),
   });
   const simulatorSrc = `${useBaseUrl('/simulators/unit3.html')}?${params.toString()}`;
+  const simulatorTitle = 'Telemark Unit 3 Simulator';
 
   return (
     <>
@@ -193,10 +194,10 @@ export default function Unit3Simulator({lesson}: Unit3SimulatorProps): React.JSX
         width="100%"
         height="900px"
         style={{border: 'none'}}
-        title="Unit 3 simulator"
+        title={simulatorTitle}
       />
 
-      <Admonition type="info" title="Unit 3 simulator">
+      <Admonition type="info" title={simulatorTitle}>
         <div>Tracks `String`, `double`, `boolean`, and `int` variables as you edit.</div>
         <div>Supports telemetry, `gamepad1`, simple `if` blocks, and basic `setPower()` math.</div>
         <div>Does not simulate full hardware behavior or complex Java control flow.</div>

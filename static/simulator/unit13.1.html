@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FTC Simulator - Unit 13 Challenge 1</title>
+<title>Telemark Unit 13.1 Simulator</title>
 <style>
   #sim-right-panel .u131-panel {
     flex: 0 1 auto;
@@ -173,7 +173,12 @@
 window.onSimulatorReady = function () {
   "use strict";
 
-  const starterCode = `// IntakeMechanism class - encapsulates the intake CRServo
+  const starterCode = `import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+// IntakeMechanism class - encapsulates the intake CRServo
 class IntakeMechanism {
     private CRServo intake_servo;
 
@@ -237,6 +242,7 @@ public class IntakeOOP extends OpMode {
   let rollerMaterial;
   let servoDevice;
   let animationRegistered = false;
+  let intakeBehavior = { collect: 0.8, eject: -0.8, stop: 0 };
 
   function el(id) {
     return document.getElementById(id);
@@ -250,8 +256,8 @@ public class IntakeOOP extends OpMode {
 
   setCode(starterCode);
   setChallenge(
-    "IntakeMechanism Class Encapsulation",
-    "Build an IntakeMechanism class that hides the CRServo behind collect(), eject(), and stop() methods.",
+    "Telemark Unit 13.1 Simulator",
+    "Class encapsulation for an intake subsystem.",
     [
       "Declare class IntakeMechanism",
       "Use a private CRServo intake_servo field",
@@ -287,10 +293,19 @@ public class IntakeOOP extends OpMode {
   window.callIntakeEject = callIntakeEject;
   window.callIntakeStop = callIntakeStop;
 
-  window.onRun = function () {
+  window.onInit = function () {
+    compileMechanismBehavior();
+    runStudentInit();
     validateCode();
+    updatePanel();
+  };
+
+  window.onStart = function () {
+    compileMechanismBehavior();
     startTeleOpLoop();
   };
+
+  window.onRun = window.onInit;
 
   window.onStop = function () {
     callIntakeStop();
@@ -521,15 +536,18 @@ public class IntakeOOP extends OpMode {
   }
 
   function callIntakeCollect() {
-    if (servoDevice && typeof servoDevice.setPower === "function") servoDevice.setPower(0.8);
+    state.method = "collect";
+    if (servoDevice && typeof servoDevice.setPower === "function") servoDevice.setPower(intakeBehavior.collect);
   }
 
   function callIntakeEject() {
-    if (servoDevice && typeof servoDevice.setPower === "function") servoDevice.setPower(-0.8);
+    state.method = "eject";
+    if (servoDevice && typeof servoDevice.setPower === "function") servoDevice.setPower(intakeBehavior.eject);
   }
 
   function callIntakeStop() {
-    if (servoDevice && typeof servoDevice.setPower === "function") servoDevice.setPower(0);
+    state.method = "stop";
+    if (servoDevice && typeof servoDevice.setPower === "function") servoDevice.setPower(intakeBehavior.stop);
   }
 
   function updatePanel() {
@@ -558,9 +576,47 @@ public class IntakeOOP extends OpMode {
     return { icon: "fa-pause", label: "IDLE", color: "#cbd5e1" };
   }
 
+  function compileMechanismBehavior() {
+    const code = typeof getCode === "function" ? getCode() : starterCode;
+    const classBody = extractClassBody(code, "IntakeMechanism");
+    intakeBehavior = {
+      collect: extractSetPower(classBody, "collect", 0.8),
+      eject: extractSetPower(classBody, "eject", -0.8),
+      stop: extractSetPower(classBody, "stop", 0)
+    };
+  }
+
+  function extractSetPower(classBody, methodName, fallback) {
+    const body = extractMethodBody(classBody || "", methodName);
+    const match = /setPower\s*\(\s*([-+]?\d+(?:\.\d+)?)\s*\)/.exec(body);
+    return match ? Number(match[1]) : fallback;
+  }
+
+  function runStudentInit() {
+    const code = typeof getCode === "function" ? getCode() : starterCode;
+    const initBody = extractMethodBody(extractOpModeBody(code), "init");
+    if (!initBody) return;
+    const js = initBody
+      .replace(/\bintake\s*\.\s*init\s*\(\s*hardwareMap\s*\)/g, "callIntakeInit()")
+      .replace(/\btelemetry\s*\.\s*addData\s*\(/g, "addTelemetry(")
+      .replace(/\btelemetry\s*\.\s*update\s*\(\s*\)/g, "updateTelemetry()");
+    try {
+      const initFn = new Function("hardwareMap", "callIntakeInit", "addTelemetry", "updateTelemetry", '"use strict";\n' + js);
+      clearTelemetry();
+      initFn(hardwareMap, callIntakeInit, addTelemetry, updateTelemetry);
+      updateTelemetry();
+    } catch (err) {
+      showStudentError("init() runtime error: " + err.message);
+    }
+  }
+
+  function callIntakeInit() {
+    state.method = "initialized";
+  }
+
   function startTeleOpLoop() {
     const code = typeof getCode === "function" ? getCode() : starterCode;
-    const loopBody = extractMethodBody(code, "loop");
+    const loopBody = extractMethodBody(extractOpModeBody(code), "loop");
     if (!loopBody) {
       showStudentError("loop() was not found.");
       return;
@@ -607,7 +663,7 @@ public class IntakeOOP extends OpMode {
   }
 
   function transpileLoop(body) {
-    return body
+    let js = body
       .replace(/\bgamepad1\s*\.\s*a\b/g, "gamepad.a")
       .replace(/\bgamepad1\s*\.\s*b\b/g, "gamepad.b")
       .replace(/\bgamepad1\s*\.\s*y\b/g, "gamepad.y")
@@ -616,12 +672,14 @@ public class IntakeOOP extends OpMode {
       .replace(/\bintake\s*\.\s*stop\s*\(\s*\)/g, "callIntakeStop()")
       .replace(/\btelemetry\s*\.\s*addData\s*\(/g, "addTelemetry(")
       .replace(/\btelemetry\s*\.\s*update\s*\(\s*\)/g, "updateTelemetry()");
+    if (typeof _simTranspile === "function") js = _simTranspile(js);
+    return js;
   }
 
   function validateCode() {
     const code = typeof getCode === "function" ? getCode() : starterCode;
     const classBody = extractClassBody(code, "IntakeMechanism");
-    const loopBody = extractMethodBody(code, "loop");
+    const loopBody = extractMethodBody(extractOpModeBody(code), "loop");
     const checks = [
       /class\s+IntakeMechanism\b/.test(code),
       /private\s+CRServo\s+intake_servo\s*;/.test(code),
@@ -717,6 +775,11 @@ public class IntakeOOP extends OpMode {
       }
     }
     return "";
+  }
+
+  function extractOpModeBody(code) {
+    const match = /\bclass\s+([A-Za-z_$][\w$]*)\s+extends\s+OpMode\b/.exec(code);
+    return match ? extractClassBody(code, match[1]) : extractClassBody(code, "IntakeOOP");
   }
 
   function showStudentError(message) {

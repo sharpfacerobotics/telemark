@@ -1,6 +1,7 @@
 import React from 'react';
 import Admonition from '@theme/Admonition';
 import useBaseUrl from '@docusaurus/useBaseUrl';
+import SimulatorFrame from './SimulatorFrame';
 
 type LessonKey =
   | 'imu-initialization'
@@ -17,25 +18,32 @@ const LESSON_PATH: Record<LessonKey, string> = {
   'imu-turn': '/simulator/unit12.5.html',
 };
 
+const LESSON_TITLE: Record<LessonKey, string> = {
+  'imu-initialization': 'Telemark Unit 12.1 Simulator',
+  'yaw-data': 'Telemark Unit 12.2 Simulator',
+  'field-centric': 'Telemark Unit 12.3 Simulator',
+  'pitch-roll': 'Telemark Unit 12.4 Simulator',
+  'imu-turn': 'Telemark Unit 12.5 Simulator',
+};
+
 type Unit12SimulatorProps = {
   lesson: LessonKey;
 };
 
 export default function Unit12Simulator({lesson}: Unit12SimulatorProps): React.JSX.Element {
   const simulatorSrc = useBaseUrl(LESSON_PATH[lesson]);
+  const simulatorTitle = LESSON_TITLE[lesson];
 
   return (
     <>
-      <div className="simulator-wrapper unit12-simulator-wrapper">
-        <iframe
-          src={simulatorSrc}
-          className="telemark-simulator unit12-telemark-simulator"
-          title="Unit 12 simulator"
-          loading="lazy"
-        />
-      </div>
+      <SimulatorFrame
+        src={simulatorSrc}
+        wrapperClassName="simulator-wrapper unit12-simulator-wrapper"
+        iframeClassName="telemark-simulator unit12-telemark-simulator"
+        title={simulatorTitle}
+      />
 
-      <Admonition type="info" title="Unit 12 simulator">
+      <Admonition type="info" title={simulatorTitle}>
         <div>Loads the lesson-specific Telemark IMU challenge with incomplete starter code for students to complete.</div>
         <div>Includes a large 3D viewport, heading feedback, telemetry checks, and validation for each IMU concept.</div>
       </Admonition>

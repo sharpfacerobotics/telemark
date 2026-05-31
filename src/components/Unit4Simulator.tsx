@@ -162,6 +162,7 @@ export default function Unit4Simulator({lesson}: Unit4SimulatorProps): React.JSX
     showMotorVisual: String(config.showMotorVisual),
   });
   const simulatorSrc = `${useBaseUrl('/simulators/unit4.html')}?${params.toString()}`;
+  const simulatorTitle = 'Telemark Unit 4 Simulator';
 
   return (
     <>
@@ -170,10 +171,10 @@ export default function Unit4Simulator({lesson}: Unit4SimulatorProps): React.JSX
         width="100%"
         height="1050px"
         style={{border: 'none'}}
-        title="Unit 4 simulator"
+        title={simulatorTitle}
       />
 
-      <Admonition type="info" title="Unit 4 simulator">
+      <Admonition type="info" title={simulatorTitle}>
         <div>Supports buttons, joysticks, triggers, bumpers, and D-pad input.</div>
         <div>Shows live input values, basic telemetry, deadzones, and curve visualization when relevant.</div>
         <div>Best for simple control logic, variable math, and single-method practice code.</div>

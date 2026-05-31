@@ -6,6 +6,7 @@ sidebar_position: 4
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit15Simulator from '@site/src/components/Unit15Simulator';
 
 # Lesson 15.4: Global Field Localization with AprilTag and Limelight Fusion
 
@@ -156,7 +157,9 @@ public class LimelightFusionDemo extends LinearOpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
+
+<Unit15Simulator lesson="limelight-fusion" />
 
 **Robot Scenario:** Write a standalone method `correctPoseFromLimelight()` for a mechanism class that holds both a `Follower` and a `Limelight3A` as member variables. The method should: get the latest Limelight result, return immediately if the result is null or invalid or if `getBotpose()` is null, otherwise convert the position from meters to inches, extract the yaw in radians, and call `follower.setPose()` with the corrected values.
 

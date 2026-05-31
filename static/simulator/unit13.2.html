@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FTC Simulator - Unit 13 Challenge 2</title>
+<title>Telemark Unit 13.2 Simulator</title>
 <style>
   #sim-right-panel .u132-panel {
     flex: 0 1 auto;
@@ -203,7 +203,12 @@
 window.onSimulatorReady = function () {
   "use strict";
 
-  const starterCode = `// Parent class - provides base servo functionality
+  const starterCode = `import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
+
+// Parent class - provides base servo functionality
 class BaseServoMechanism {
     protected Servo servo;
 
@@ -276,6 +281,7 @@ public class GrabberOOP extends OpMode {
   let orbMaterial;
   let servoDevice;
   let animationRegistered = false;
+  let grabberBehavior = { open: 0.1, close: 0.9 };
 
   function el(id) {
     return document.getElementById(id);
@@ -289,8 +295,8 @@ public class GrabberOOP extends OpMode {
 
   setCode(starterCode);
   setChallenge(
-    "Inheritance - GrabberMechanism Extends BaseServoMechanism",
-    "Build a reusable servo parent class and a grabber child class that delegates open() and close() through setPosition().",
+    "Telemark Unit 13.2 Simulator",
+    "Inheritance with a reusable servo parent class.",
     [
       "Declare class BaseServoMechanism",
       "Use a protected Servo servo field",
@@ -329,17 +335,27 @@ public class GrabberOOP extends OpMode {
   window.setServoPosition = setServoPosition;
   window.getServoPosition = getServoPosition;
 
-  window.onRun = function () {
+  window.onInit = function () {
+    compileGrabberBehavior();
+    runStudentInit();
     validateCode();
+    updatePanel();
+  };
+
+  window.onStart = function () {
+    compileGrabberBehavior();
     startTeleOpLoop();
   };
+
+  window.onRun = window.onInit;
 
   window.onStop = function () {
     updatePanel();
   };
 
   window.onReset = function () {
-    setServoPosition("grabber", 0.1);
+    compileGrabberBehavior();
+    setServoPosition("grabber", grabberBehavior.open);
     state.lastMethod = "grabber.open()";
     state.chainTimer = 0;
     state.pulseTimer = 0;
@@ -571,12 +587,12 @@ public class GrabberOOP extends OpMode {
 
   function callGrabberOpen() {
     state.lastMethod = "grabber.open()";
-    setServoPosition("grabber", 0.1);
+    setServoPosition("grabber", grabberBehavior.open);
   }
 
   function callGrabberClose() {
     state.lastMethod = "grabber.close()";
-    setServoPosition("grabber", 0.9);
+    setServoPosition("grabber", grabberBehavior.close);
   }
 
   function updateGrabberVisual(name, value) {
@@ -608,9 +624,9 @@ public class GrabberOOP extends OpMode {
 
     if (origin) {
       if (state.targetPosition >= 0.8) {
-        origin.innerHTML = 'GrabberMechanism.close() <i class="fa-solid fa-arrow-right"></i> BaseServoMechanism.setPosition(0.9)';
+        origin.innerHTML = 'GrabberMechanism.close() <i class="fa-solid fa-arrow-right"></i> BaseServoMechanism.setPosition(' + grabberBehavior.close.toFixed(2) + ')';
       } else {
-        origin.innerHTML = 'GrabberMechanism.open() <i class="fa-solid fa-arrow-right"></i> BaseServoMechanism.setPosition(0.1)';
+        origin.innerHTML = 'GrabberMechanism.open() <i class="fa-solid fa-arrow-right"></i> BaseServoMechanism.setPosition(' + grabberBehavior.open.toFixed(2) + ')';
       }
     }
 
@@ -622,7 +638,7 @@ public class GrabberOOP extends OpMode {
 
   function startTeleOpLoop() {
     const code = typeof getCode === "function" ? getCode() : starterCode;
-    const loopBody = extractMethodBody(code, "loop");
+    const loopBody = extractMethodBody(extractOpModeBody(code), "loop");
     if (!loopBody) {
       showStudentError("loop() was not found.");
       return;
@@ -659,8 +675,8 @@ public class GrabberOOP extends OpMode {
           getServoPosition
         );
         updateTelemetry();
-        validateCode();
-      } catch (err) {
+      validateCode();
+    } catch (err) {
         showStudentError("loop() runtime error: " + err.message);
         if (typeof stopExecution === "function") stopExecution();
       }
@@ -671,7 +687,7 @@ public class GrabberOOP extends OpMode {
   }
 
   function transpileLoop(body) {
-    return body
+    let js = body
       .replace(/\bgamepad1\s*\.\s*a\b/g, "gamepad.a")
       .replace(/\bgamepad1\s*\.\s*b\b/g, "gamepad.b")
       .replace(/\bgrabber\s*\.\s*open\s*\(\s*\)/g, "callGrabberOpen()")
@@ -680,13 +696,68 @@ public class GrabberOOP extends OpMode {
       .replace(/\bgrabber\s*\.\s*servo\s*\.\s*getPosition\s*\(\s*\)/g, 'getServoPosition("grabber")')
       .replace(/\btelemetry\s*\.\s*addData\s*\(/g, "addTelemetry(")
       .replace(/\btelemetry\s*\.\s*update\s*\(\s*\)/g, "updateTelemetry()");
+    if (typeof _simTranspile === "function") js = _simTranspile(js);
+    return js;
+  }
+
+  function compileGrabberBehavior() {
+    const code = typeof getCode === "function" ? getCode() : starterCode;
+    const childBody = extractClassBody(code, "GrabberMechanism");
+    const constants = extractDoubleConstants(childBody);
+    grabberBehavior = {
+      open: extractSetPositionValue(childBody, "open", constants, 0.1),
+      close: extractSetPositionValue(childBody, "close", constants, 0.9)
+    };
+  }
+
+  function extractDoubleConstants(scope) {
+    const constants = {};
+    const re = /\b(?:public\s+)?(?:static\s+)?(?:final\s+)?double\s+([A-Z_][A-Z0-9_]*)\s*=\s*([-+]?\d+(?:\.\d+)?)\s*;/g;
+    let match;
+    while ((match = re.exec(scope || ""))) {
+      constants[match[1]] = Number(match[2]);
+    }
+    return constants;
+  }
+
+  function extractSetPositionValue(classBody, methodName, constants, fallback) {
+    const body = extractMethodBody(classBody || "", methodName);
+    const match = /\b(?:setPosition|servo\s*\.\s*setPosition)\s*\(\s*([A-Za-z_][\w]*|[-+]?\d+(?:\.\d+)?)\s*\)/.exec(body);
+    if (!match) return fallback;
+    const token = match[1];
+    if (/[-+]?\d/.test(token)) return Number(token);
+    return Object.prototype.hasOwnProperty.call(constants, token) ? constants[token] : fallback;
+  }
+
+  function runStudentInit() {
+    const code = typeof getCode === "function" ? getCode() : starterCode;
+    const initBody = extractMethodBody(extractOpModeBody(code), "init");
+    if (!initBody) return;
+    let js = initBody
+      .replace(/\bgrabber\s*\.\s*init\s*\(\s*hardwareMap\s*,\s*"grabber"\s*\)/g, "callGrabberInit()")
+      .replace(/\btelemetry\s*\.\s*addData\s*\(/g, "addTelemetry(")
+      .replace(/\btelemetry\s*\.\s*update\s*\(\s*\)/g, "updateTelemetry()");
+    if (typeof _simTranspile === "function") js = _simTranspile(js);
+    try {
+      const initFn = new Function("hardwareMap", "callGrabberInit", "addTelemetry", "updateTelemetry", '"use strict";\n' + js);
+      clearTelemetry();
+      initFn(hardwareMap, callGrabberInit, addTelemetry, updateTelemetry);
+      updateTelemetry();
+    } catch (err) {
+      showStudentError("init() runtime error: " + err.message);
+    }
+  }
+
+  function callGrabberInit() {
+    state.lastMethod = "grabber.init(hardwareMap, \"grabber\")";
   }
 
   function validateCode() {
     const code = typeof getCode === "function" ? getCode() : starterCode;
     const baseBody = extractClassBody(code, "BaseServoMechanism");
     const childBody = extractClassBody(code, "GrabberMechanism");
-    const loopBody = extractMethodBody(code, "loop");
+    const opBody = extractOpModeBody(code);
+    const loopBody = extractMethodBody(opBody, "loop");
     const checks = [
       /class\s+BaseServoMechanism\b/.test(code),
       /protected\s+Servo\s+servo\s*;/.test(baseBody),
@@ -787,6 +858,11 @@ public class GrabberOOP extends OpMode {
       }
     }
     return "";
+  }
+
+  function extractOpModeBody(code) {
+    const match = /\bclass\s+([A-Za-z_$][\w$]*)\s+extends\s+OpMode\b/.exec(code);
+    return match ? extractClassBody(code, match[1]) : extractClassBody(code, "GrabberOOP");
   }
 
   function showStudentError(message) {

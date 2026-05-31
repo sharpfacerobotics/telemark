@@ -6,6 +6,7 @@ sidebar_position: 4
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit13Simulator from '@site/src/components/Unit13Simulator';
 
 # Lesson 13.4: Managing Shared Constants with the static Keyword
 
@@ -104,7 +105,9 @@ if (Math.abs(input) < RobotConfig.DEADZONE_THRESHOLD) {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
+
+<Unit13Simulator lesson="static-constants" />
 
 **Robot Scenario:** Your team has a claw servo, a wrist motor, and a range sensor all with specific configuration names and tunable constants. Create a `HardwareNames` configuration class that stores these values as `public static final` constants so that every OpMode on the robot can reference them from a single location.
 

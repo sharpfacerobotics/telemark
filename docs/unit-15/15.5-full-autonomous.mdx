@@ -6,6 +6,7 @@ sidebar_position: 5
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit15Simulator from '@site/src/components/Unit15Simulator';
 
 # Lesson 15.5: Challenge: Designing a Full Autonomous Sequence using Bézier Pathing and Vision
 
@@ -270,7 +271,9 @@ public class FullAutonomousChallenge extends LinearOpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
+
+<Unit15Simulator lesson="full-autonomous" />
 
 **Robot Scenario:** Complete the state machine transition logic below. The routine has two states: `DRIVE_TO_TARGET` and `DELIVER`. When the robot finishes driving (`!follower.isBusy()`), it should transition to `DELIVER` and open the claw. When the claw has been open for 0.5 seconds (use `getRuntime()` and a timer variable), transition to `DONE`. Assume `follower`, `claw`, `CLAW_OPEN`, and `CLAW_CLOSED` are class-level variables already configured.
 

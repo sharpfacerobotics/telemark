@@ -6,6 +6,7 @@ sidebar_position: 3
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit14Simulator from '@site/src/components/Unit14Simulator';
 
 # Lesson 14.3: Extracting Detection IDs and Pose Data for Navigation
 
@@ -156,7 +157,9 @@ public class PoseNavigationDemo extends LinearOpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
+
+<Unit14Simulator lesson="pose-data" />
 
 **Robot Scenario:** Write a method `getTagDistance(int targetId)` that searches the current detection list for a tag with the given ID, and returns its forward distance (`y`) in inches if found. If the tag is not currently visible or its metadata is null, the method should return `-1.0` as a sentinel value indicating no valid reading. Assume `aprilTagProcessor` is a class member.
 

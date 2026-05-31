@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-<title>Telemark Unit 10.5 Precise Autonomous Slider</title>
+<title>Telemark Unit 10.5 Simulator</title>
 
 <script src="simulator_base.js"></script>
 
@@ -304,6 +304,7 @@ const sim = {
     active:false,
     running:false,
     waiting:false,
+    startRequested:false,
     started:false,
     motionInterval:null,
 
@@ -598,28 +599,14 @@ function createPanel(){
             Waiting for start...
         </div>
 
-        <button id="start-btn">
-            START
-        </button>
+        <div style="font-size:0.88rem;color:#d1d5db;margin-top:8px;">
+            Press Start in the bottom Driver Station controls.
+        </div>
     `;
 
     sceneContainer.appendChild(
         overlay
     );
-
-    document
-        .getElementById("start-btn")
-        .addEventListener("click",()=>{
-
-            overlay.classList.remove(
-                "visible"
-            );
-
-            if(startResolver){
-                startResolver();
-                startResolver = null;
-            }
-        });
 
     updatePanel();
 }
@@ -1451,6 +1438,9 @@ async function runCode(code){
             resolve=>{
                 startResolver =
                     resolve;
+                if(sim.startRequested){
+                    releaseDriverStationStart(false);
+                }
             }
         );
 
@@ -1533,8 +1523,8 @@ window.onSimulatorReady = function(){
     requestAnimationFrame(hideGamepadCard);
 
     setHeader(
-        "Unit 10.5: Precise Autonomous Slider",
-        "Wait for start, then move a game element with RUN_TO_POSITION"
+        "Telemark Unit 10.5 Simulator",
+        "Precise Autonomous Slider · RUN_TO_POSITION"
     );
 
     createPanel();
@@ -1544,7 +1534,29 @@ window.onSimulatorReady = function(){
     buildScene();
 };
 
-window.onRun = async function(){
+function releaseDriverStationStart(markRequested){
+
+    if(markRequested !== false){
+        sim.startRequested = true;
+    }
+
+    if(overlay){
+        overlay.classList.remove(
+            "visible"
+        );
+    }
+
+    sim.waiting = false;
+
+    if(startResolver){
+        const resolve =
+            startResolver;
+        startResolver = null;
+        resolve();
+    }
+}
+
+window.onInit = async function(){
 
     if(sim.running) return;
 
@@ -1552,6 +1564,7 @@ window.onRun = async function(){
     sim.active = false;
     sim.started = false;
     sim.waiting = false;
+    sim.startRequested = false;
 
     setWarning(null);
     pushSliderTelemetry("Initialized");
@@ -1570,14 +1583,19 @@ window.onRun = async function(){
     }catch(err){
         console.error(err);
     }
-};
+	};
 
-window.onStop = function(){
+window.onStart = function(){
+    releaseDriverStationStart(true);
+};
+	
+	window.onStop = function(){
 
     sim.running = false;
     sim.active = false;
     sim.busy = false;
     sim.waiting = false;
+    sim.startRequested = false;
     sim.started = false;
 
     clearInterval(
@@ -1590,9 +1608,9 @@ window.onStop = function(){
     );
 
     if(startResolver){
-        startResolver();
-        startResolver = null;
+        releaseDriverStationStart(false);
     }
+    sim.startRequested = false;
 
     pushSliderTelemetry("Stopped");
     updatePanel();
@@ -1612,6 +1630,7 @@ window.onReset = function(){
 
     sim.encoderReset = false;
     sim.waiting = false;
+    sim.startRequested = false;
     sim.started = false;
 
     sim.step = 0;

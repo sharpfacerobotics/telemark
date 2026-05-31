@@ -60,13 +60,23 @@
     /* ── Scrollbar Styling ── */
     * {
       scrollbar-width: thin;
-      scrollbar-color: #444 #1e1e1e;
+      scrollbar-color: #ff6600 #08080c;
       box-sizing: border-box;
     }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #1e1e1e; }
-    ::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: #666; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track {
+      background: #08080c;
+      border-radius: 999px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #ff6600, #c94f00);
+      border: 2px solid #08080c;
+      border-radius: 999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, #ff8533, #ff6600);
+    }
+    ::-webkit-scrollbar-corner { background: #08080c; }
 
     /* ── Full Page Layout ── */
     html, body {
@@ -1088,7 +1098,7 @@
       className: "sim-btn-run",
       id: "sim-btn-run",
     });
-    btnRun.innerHTML = "&#9654; Run";
+    btnRun.innerHTML = "Init";
     const btnStop = el("button", {
       className: "sim-btn-stop",
       id: "sim-btn-stop",
@@ -1109,7 +1119,7 @@
       className: "sim-telemetry-panel",
       id: "sim-telemetry-log",
     });
-    telPanel.innerHTML = `<span style="color:#666">Press Run to start...</span>`;
+    telPanel.innerHTML = `<span style="color:#666">Press Init to initialize...</span>`;
     bottomBar.appendChild(telPanel);
 
     const hintContainer = el("div", { id: "sim-hint-container" });
@@ -1141,6 +1151,7 @@
     });
     resetBtn.innerHTML = '<i class="fa-solid fa-rotate-left"></i> Reset';
     resetBtn.addEventListener("click", function () {
+      handleStop();
       if (typeof window.onReset === "function") window.onReset();
     });
     sceneContainer.appendChild(resetBtn);
@@ -2160,11 +2171,13 @@
   // SECTION 7: RUN/STOP CONTROLS & RUNTIME
   // ========================================================================
 
+  let initialized = false;
   let running = false;
   let loopInterval = null;
+  let pendingLoopFn = null;
   let timerInterval = null;
   let runtimeStart = 0;
-  let stopRequested = false;
+  let stopRequested = true;
 
   window.getRuntime = function () {
     return (Date.now() - runtimeStart) / 1000;
@@ -2190,7 +2203,8 @@
 
     if (btnRun) {
       btnRun.addEventListener("click", function () {
-        handleRun();
+        if (!initialized) handleInit();
+        else handleStart();
       });
     }
     if (btnStop) {
@@ -2200,26 +2214,23 @@
     }
   }
 
-  function handleRun() {
-    if (running) return;
-    running = true;
-    stopRequested = false;
-    runtimeStart = Date.now();
-
-    const dsState = document.getElementById("sim-ds-state");
+  function setPrimaryButton(label, disabled) {
     const btnRun = document.getElementById("sim-btn-run");
-    const telLog = document.getElementById("sim-telemetry-log");
+    if (!btnRun) return;
+    btnRun.textContent = label;
+    btnRun.disabled = !!disabled;
+  }
 
-    if (dsState) {
-      dsState.textContent = "RUNNING";
-      dsState.style.color = "var(--good)";
-    }
-    if (btnRun) btnRun.disabled = true;
-    if (telLog) telLog.innerHTML = "";
+  function setDriverStationState(label, color) {
+    const dsState = document.getElementById("sim-ds-state");
+    if (!dsState) return;
+    dsState.textContent = label;
+    dsState.style.color = color;
+  }
 
-    // Clear pending telemetry
-    window.clearTelemetry();
-
+  function startTimer() {
+    runtimeStart = Date.now();
+    if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(function () {
       const timerVal = document.getElementById("sim-timer-val");
       if (timerVal) {
@@ -2229,16 +2240,65 @@
         ).toFixed(2);
       }
     }, 50);
+  }
 
-    // Call the challenge's onRun callback
-    if (typeof window.onRun === "function") {
+  function startPendingLoop() {
+    if (!pendingLoopFn) return;
+    const fn = pendingLoopFn;
+    pendingLoopFn = null;
+    window._simStartLoop(fn);
+  }
+
+  function handleInit() {
+    if (initialized || running) return;
+    initialized = true;
+    running = false;
+    stopRequested = false;
+    pendingLoopFn = null;
+
+    const telLog = document.getElementById("sim-telemetry-log");
+
+    if (telLog) telLog.innerHTML = "";
+    setDriverStationState("INIT", "var(--active)");
+    setPrimaryButton("Start", false);
+
+    // Clear pending telemetry
+    window.clearTelemetry();
+
+    // Call the challenge's explicit init callback. Existing challenge files
+    // that still define onRun are treated as init for backward compatibility.
+    if (typeof window.onInit === "function") {
+      window.onInit();
+    } else if (typeof window.onRun === "function") {
       window.onRun();
     }
   }
 
+  function handleStart() {
+    if (!initialized || running) return;
+    running = true;
+    stopRequested = false;
+
+    setDriverStationState("RUNNING", "var(--good)");
+    setPrimaryButton("Start", true);
+    startTimer();
+    startPendingLoop();
+
+    if (typeof window.onStart === "function") {
+      window.onStart();
+    }
+  }
+
+  function handleRun() {
+    if (!initialized) handleInit();
+    if (initialized && !running) handleStart();
+  }
+
   function handleStop() {
+    initialized = false;
     running = false;
     stopRequested = true;
+    pendingLoopFn = null;
 
     if (loopInterval) {
       clearInterval(loopInterval);
@@ -2257,7 +2317,10 @@
       dsState.textContent = "STOPPED";
       dsState.style.color = "var(--danger)";
     }
-    if (btnRun) btnRun.disabled = false;
+    if (btnRun) {
+      btnRun.disabled = false;
+      btnRun.textContent = "Init";
+    }
     if (timerVal) timerVal.textContent = "0.00";
 
     // Call the challenge's onStop callback
@@ -2268,9 +2331,14 @@
 
   // Expose for transpiler
   window._simHandleRun = handleRun;
+  window._simHandleInit = handleInit;
+  window._simHandleStart = handleStart;
   window._simHandleStop = handleStop;
   window._simIsRunning = function () {
     return running;
+  };
+  window._simIsInitialized = function () {
+    return initialized;
   };
 
   // ========================================================================
@@ -2622,20 +2690,9 @@
             loopHandler(wrappedLoop);
           }
 
-          // Start the 20Hz loop interval
-          if (loopInterval) clearInterval(loopInterval);
-          
-          // Store the wrapped loop function for the interval
-          const intervalLoop = wrappedLoop;
-          loopInterval = setInterval(function () {
-            if (!running) return;
-            try {
-              intervalLoop();
-            } catch (e) {
-              showTelemetryError("loop() runtime error: " + e.message);
-              window.stopExecution();
-            }
-          }, 50);
+          // Start after the Driver Station Start button. If this was called
+          // during Init, _simStartLoop stores the loop until Start is pressed.
+          window._simStartLoop(wrappedLoop);
         } catch (e) {
           showTelemetryError("loop() compile error: " + e.message);
           return;
@@ -2669,6 +2726,11 @@
    */
   window._simStartLoop = function (fn) {
     if (loopInterval) clearInterval(loopInterval);
+    loopInterval = null;
+    if (!running) {
+      pendingLoopFn = fn;
+      return null;
+    }
     loopInterval = setInterval(fn, 50);
     return loopInterval;
   };

@@ -163,6 +163,51 @@ code {
 }
 
 /* ---- SIMULATOR IFRAME ---- */
+.simulator-fullscreen-shell {
+  margin: 1.5rem 0;
+}
+
+.simulator-fullscreen-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.55rem;
+}
+
+.simulator-fullscreen-button {
+  border: 1px solid #00BFFF66;
+  border-radius: 8px;
+  background: #0a0a0f;
+  color: #e8f8ff;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 0.5rem 0.75rem;
+}
+
+.simulator-fullscreen-button:hover {
+  border-color: #00BFFF;
+  color: #ffffff;
+}
+
+.simulator-fullscreen-shell:fullscreen {
+  background: #0a0a0f;
+  padding: 0.75rem;
+}
+
+.simulator-fullscreen-shell:fullscreen .simulator-fullscreen-toolbar {
+  margin-bottom: 0.75rem;
+}
+
+.simulator-fullscreen-shell:fullscreen .simulator-wrapper {
+  height: calc(100vh - 4rem);
+  margin: 0;
+  aspect-ratio: auto;
+}
+
+.simulator-fullscreen-shell:fullscreen .telemark-simulator {
+  height: 100%;
+  max-height: none;
+}
+
 .telemark-simulator {
   aspect-ratio: auto;
   max-width: 100%;

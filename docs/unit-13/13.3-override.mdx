@@ -6,6 +6,7 @@ sidebar_position: 3
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit13Simulator from '@site/src/components/Unit13Simulator';
 
 # Lesson 13.3: Overriding Behavior with @Override for Custom Implementations
 
@@ -135,7 +136,9 @@ public abstract class BaseShooter {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
+
+<Unit13Simulator lesson="override" />
 
 **Robot Scenario:** A `GenericSlide` class has a `move(double power)` method that passes power directly to a motor. Write a `SafetySlide` child class that overrides `move()` to enforce a maximum power of 0.5 regardless of what value is passed in. Use `Math.min()` and `Math.abs()` with `Math.signum()` to scale the input while preserving direction.
 

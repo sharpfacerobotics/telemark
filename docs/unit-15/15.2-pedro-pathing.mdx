@@ -6,6 +6,7 @@ sidebar_position: 2
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit15Simulator from '@site/src/components/Unit15Simulator';
 
 # Lesson 15.2: Interfacing with Pedro Pathing for Follower Control
 
@@ -123,7 +124,9 @@ public class PedroIntroDemo extends LinearOpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
+
+<Unit15Simulator lesson="pedro-pathing" />
 
 **Robot Scenario:** Write the initialization and status-check logic for an autonomous program that uses Pedro Pathing. The robot starts at position (8, 60) with a heading of 0 radians. After `waitForStart()`, initialize the Follower, set the starting pose, and write a loop that calls `follower.update()` and reports the robot's current X, Y, and heading to telemetry while the Follower is busy. Do not worry about building a path yet -- just demonstrate the correct Follower lifecycle.
 

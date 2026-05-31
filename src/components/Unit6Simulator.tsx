@@ -1,6 +1,7 @@
 import React from 'react';
 import Admonition from '@theme/Admonition';
 import useBaseUrl from '@docusaurus/useBaseUrl';
+import SimulatorFrame from './SimulatorFrame';
 
 type LessonKey =
   | 'opmode-active'
@@ -204,18 +205,19 @@ export default function Unit6Simulator({lesson}: Unit6SimulatorProps): React.JSX
     mode: config.mode,
   });
   const simulatorSrc = `${useBaseUrl('/simulator/unit6.html')}?${params.toString()}`;
+  const simulatorTitle = 'Telemark Unit 6 Simulator';
 
   return (
     <>
-      <iframe
+      <SimulatorFrame
         src={simulatorSrc}
         width="100%"
         height="1100px"
-        style={{border: 'none'}}
-        title="Unit 6 simulator"
+        iframeStyle={{border: 'none'}}
+        title={simulatorTitle}
       />
 
-      <Admonition type="info" title="Unit 6 simulator">
+      <Admonition type="info" title={simulatorTitle}>
         <div>Supports OpMode and LinearOpMode practice with lesson-specific starter code.</div>
         <div>Includes loop stepping, runtime tracking, lifecycle controls, and live gamepad input.</div>
         <div>Best for practicing loop structure, timers, and safe control flow patterns.</div>

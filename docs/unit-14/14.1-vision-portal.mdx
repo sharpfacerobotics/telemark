@@ -6,6 +6,7 @@ sidebar_position: 1
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit14Simulator from '@site/src/components/Unit14Simulator';
 
 # Lesson 14.1: Configuring VisionPortal and Opening Webcam Streams
 
@@ -117,7 +118,9 @@ public class VisionPortalDemo extends LinearOpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
+
+<Unit14Simulator lesson="vision-portal" />
 
 **Robot Scenario:** Write the initialization block for an autonomous OpMode that opens a webcam named `"front_cam"`, attaches a default `AprilTagProcessor` to it, and stops streaming the moment the match begins. The camera should be active and visible to the drive team during the `waitForStart()` phase only.
 

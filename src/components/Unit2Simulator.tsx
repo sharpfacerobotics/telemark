@@ -141,6 +141,7 @@ export default function Unit2Simulator({lesson}: Unit2SimulatorProps): React.JSX
     code: LESSON_STARTER_CODE[lesson],
   });
   const simulatorSrc = `${useBaseUrl('/simulators/unit2.html')}?${params.toString()}`;
+  const simulatorTitle = 'Telemark Unit 2 Simulator';
 
   return (
     <>
@@ -149,10 +150,10 @@ export default function Unit2Simulator({lesson}: Unit2SimulatorProps): React.JSX
         width="100%"
         height="700px"
         style={{border: 'none'}}
-        title="Unit 2 simulator"
+        title={simulatorTitle}
       />
 
-      <Admonition type="info" title="Unit 2 simulator">
+      <Admonition type="info" title={simulatorTitle}>
         <div>Supports `init()`, `init_loop()`, `start()`, `loop()`, and `stop()`.</div>
         <div>Reads `@TeleOp`, `@Autonomous`, `@Disabled`, telemetry, and `gamepad1`.</div>
         <div>Handles local variables, simple math, `resetRuntime()`, and `getRuntime()`.</div>

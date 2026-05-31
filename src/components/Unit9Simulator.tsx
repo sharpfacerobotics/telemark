@@ -1,6 +1,7 @@
 import React from 'react';
 import Admonition from '@theme/Admonition';
 import useBaseUrl from '@docusaurus/useBaseUrl';
+import SimulatorFrame from './SimulatorFrame';
 
 type LessonKey =
   | 'set-position'
@@ -17,25 +18,32 @@ const LESSON_PATH: Record<LessonKey, string> = {
   'dual-servo-challenge': '/simulator/unit9.5.html',
 };
 
+const LESSON_TITLE: Record<LessonKey, string> = {
+  'set-position': 'Telemark Unit 9.1 Simulator',
+  'scale-range': 'Telemark Unit 9.2 Simulator',
+  'servo-direction': 'Telemark Unit 9.3 Simulator',
+  'cr-servo': 'Telemark Unit 9.4 Simulator',
+  'dual-servo-challenge': 'Telemark Unit 9.5 Simulator',
+};
+
 type Unit9SimulatorProps = {
   lesson: LessonKey;
 };
 
 export default function Unit9Simulator({lesson}: Unit9SimulatorProps): React.JSX.Element {
   const simulatorSrc = useBaseUrl(LESSON_PATH[lesson]);
+  const simulatorTitle = LESSON_TITLE[lesson];
 
   return (
     <>
-      <div className="simulator-wrapper unit9-simulator-wrapper">
-        <iframe
-          src={simulatorSrc}
-          className="telemark-simulator unit9-telemark-simulator"
-          title="Unit 9 simulator"
-          loading="lazy"
-        />
-      </div>
+      <SimulatorFrame
+        src={simulatorSrc}
+        wrapperClassName="simulator-wrapper unit9-simulator-wrapper"
+        iframeClassName="telemark-simulator unit9-telemark-simulator"
+        title={simulatorTitle}
+      />
 
-      <Admonition type="info" title="Unit 9 simulator">
+      <Admonition type="info" title={simulatorTitle}>
         <div>Loads the lesson-specific Telemark servo challenge with starter code for students to complete.</div>
         <div>Includes live mechanism feedback, telemetry checks, and gamepad input for each servo-control concept.</div>
       </Admonition>

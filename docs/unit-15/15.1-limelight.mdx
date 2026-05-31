@@ -6,6 +6,7 @@ sidebar_position: 1
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit15Simulator from '@site/src/components/Unit15Simulator';
 
 # Lesson 15.1: Tuning Vision Pipelines on the Limelight 3A Interface
 
@@ -137,7 +138,9 @@ public class LimelightDemo extends OpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
+
+<Unit15Simulator lesson="limelight" />
 
 **Robot Scenario:** The drive team wants the robot to automatically steer toward a blue game piece using Limelight pipeline slot 1. If the target's `Tx` is greater than 3.0 degrees to the right, rotate the drivetrain right at 0.2 power. If `Tx` is less than -3.0 degrees (to the left), rotate left at 0.2 power. If the target is within the 3-degree dead band or not visible, stop rotating. Assume `leftDrive` and `rightDrive` are already mapped and reversed correctly.
 

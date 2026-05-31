@@ -1,6 +1,7 @@
 import React from 'react';
 import Admonition from '@theme/Admonition';
 import useBaseUrl from '@docusaurus/useBaseUrl';
+import SimulatorFrame from './SimulatorFrame';
 
 type LessonKey =
   | 'hardware-map-object'
@@ -179,18 +180,19 @@ export default function Unit7Simulator({lesson}: Unit7SimulatorProps): React.JSX
     code: LESSON_CODE[lesson],
   });
   const simulatorSrc = `${useBaseUrl('/simulator/unit7.html')}?${params.toString()}`;
+  const simulatorTitle = 'Telemark Unit 7 Simulator';
 
   return (
     <>
-      <iframe
+      <SimulatorFrame
         src={simulatorSrc}
         width="100%"
         height="1080px"
-        style={{border: 'none'}}
-        title="Unit 7 simulator"
+        iframeStyle={{border: 'none'}}
+        title={simulatorTitle}
       />
 
-      <Admonition type="info" title="Unit 7 simulator">
+      <Admonition type="info" title={simulatorTitle}>
         <div>Supports hardware mapping practice with live config inspection and lesson-specific starter code.</div>
         <div>Shows mapping errors, type mismatches, direction settings, and missing initialization hints.</div>
         <div>Best for practicing `hardwareMap.get()`, device classes, naming consistency, and mapping structure.</div>

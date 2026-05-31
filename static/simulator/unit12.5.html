@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FTC Simulator - Unit 12 Challenge 5</title>
+<title>Telemark Unit 12.5 Simulator</title>
 <style>
   #sim-right-panel .u125-panel {
     flex: 0 1 auto;
@@ -234,6 +234,7 @@ public class AutoTurn90 extends LinearOpMode {
     turnPower: 0,
     phase: "WAITING",
     active: false,
+    startRequested: false,
     token: 0,
     reachedTarget: false,
     droveForward: false,
@@ -289,6 +290,10 @@ public class AutoTurn90 extends LinearOpMode {
       "Robot reaches 90 degrees within tolerance"
     ]
   );
+  setHeader(
+    "Telemark Unit 12.5 Simulator",
+    "Autonomous Turn to Heading with Proportional Control"
+  );
   setBadges([
     { iconClass: "fa-solid fa-compass", label: "IMU", active: true },
     { iconClass: "fa-solid fa-rotate", label: "Autonomous", active: true },
@@ -325,17 +330,24 @@ public class AutoTurn90 extends LinearOpMode {
   window.updateMotorPower = updateMotorPower;
   window.updateHeadingVisual = updateHeadingVisual;
 
-  window.onRun = function () {
+  window.onInit = function () {
     resetRuntime(false);
     state.active = true;
+    state.startRequested = false;
     state.phase = "WAITING";
     runStudentCode();
   };
 
+  window.onStart = function () {
+    releaseAutonomousStart(true);
+  };
+
   window.onStop = function () {
     state.active = false;
+    state.startRequested = false;
     if (state.phase !== "COMPLETE") state.phase = "STOPPED";
     state.token++;
+    releaseAutonomousStart(false);
     setAllMotors(0);
     updateUI();
   };
@@ -658,6 +670,7 @@ public class AutoTurn90 extends LinearOpMode {
   function resetRuntime(updateOnly) {
     state.token++;
     state.active = false;
+    state.startRequested = false;
     state.heading = 0;
     state.turnPower = 0;
     state.phase = "WAITING";
@@ -761,8 +774,21 @@ public class AutoTurn90 extends LinearOpMode {
     state.phase = "WAITING";
     addTelemetry("Status", "Waiting for start");
     updateTelemetry();
-    await sleep(140);
+    await new Promise(function (resolve) {
+      state._resolveStart = function () {
+        state._resolveStart = null;
+        resolve();
+      };
+      if (state.startRequested) releaseAutonomousStart(false);
+    });
     if (state.active) state.phase = "PHASE 1: TURNING";
+  }
+
+  function releaseAutonomousStart(markRequested) {
+    if (markRequested !== false) state.startRequested = true;
+    if (typeof state._resolveStart === "function") {
+      state._resolveStart();
+    }
   }
 
   function transpileLinearBody(body) {
@@ -780,7 +806,7 @@ public class AutoTurn90 extends LinearOpMode {
     js = js.replace(/\bMath\s*\.\s*toRadians\s*\(/g, "toRadians(");
     js = js.replace(/\btelemetry\s*\.\s*addData\s*\(/g, "addTelemetry(");
     js = js.replace(/\btelemetry\s*\.\s*update\s*\(\s*\)/g, "updateTelemetry()");
-    js = js.replace(/\bwaitForStart\s*\(\s*\)\s*;/g, "await waitForStart();");
+    js = js.replace(/\bwaitForStart\s*\(\s*\)\s*;/g, "await waitForStart(); if (!opModeIsActive()) return;");
     js = js.replace(/\bsleep\s*\(/g, "await sleep(");
     js = addAwaitToLoops(js);
     return js;

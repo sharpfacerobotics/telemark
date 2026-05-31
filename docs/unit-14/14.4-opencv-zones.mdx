@@ -6,6 +6,7 @@ sidebar_position: 4
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit14Simulator from '@site/src/components/Unit14Simulator';
 
 # Lesson 14.4: Defining Vision Windows with OpenCV Rect Boundaries
 
@@ -136,7 +137,9 @@ public class SpikeMarkProcessor implements VisionProcessor {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
+
+<Unit14Simulator lesson="opencv-zones" />
 
 **Robot Scenario:** Your camera is a 640x480 stream. Define three `Rect` zone objects for detecting a team scoring element at the three possible spike mark positions. The zones should be approximately 60 pixels wide and 60 pixels tall. Position the left zone starting at x=60, the center zone starting at x=290, and the right zone starting at x=510. All three should have their top edge at y=350.
 

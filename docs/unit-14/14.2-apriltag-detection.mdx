@@ -6,6 +6,7 @@ sidebar_position: 2
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit14Simulator from '@site/src/components/Unit14Simulator';
 
 # Lesson 14.2: Detecting Field Locations using AprilTagProcessor
 
@@ -122,7 +123,9 @@ public class AprilTagDetectionDemo extends LinearOpMode {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
+
+<Unit14Simulator lesson="apriltag-detection" />
 
 **Robot Scenario:** Write a method called `scanForTag(int targetId)` that returns `true` if a tag with the specified ID is currently visible and has valid metadata. The method should iterate over the current detection list and return `false` if the target ID is not found. Assume `aprilTagProcessor` is a class member that has already been initialized.
 

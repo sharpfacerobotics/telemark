@@ -232,6 +232,7 @@ export default function Unit5Simulator({lesson}: Unit5SimulatorProps): React.JSX
     showColorSensor: String(config.showColorSensor),
   });
   const simulatorSrc = `${useBaseUrl('/simulators/unit5.html')}?${params.toString()}`;
+  const simulatorTitle = 'Telemark Unit 5 Simulator';
 
   return (
     <>
@@ -240,10 +241,10 @@ export default function Unit5Simulator({lesson}: Unit5SimulatorProps): React.JSX
         width="100%"
         height="1180px"
         style={{border: 'none'}}
-        title="Unit 5 simulator"
+        title={simulatorTitle}
       />
 
-      <Admonition type="info" title="Unit 5 simulator">
+      <Admonition type="info" title={simulatorTitle}>
         <div>Supports gamepad-driven `if`, `else if`, and `else` logic with live branch visualization.</div>
         <div>Includes truth-table and condition-inspector views, plus mock distance and color sensor inputs when needed.</div>
         <div>Best for practicing decision logic, thresholds, and simple actuator commands.</div>

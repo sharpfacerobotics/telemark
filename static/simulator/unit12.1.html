@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Unit 12 - Challenge 1 - IMU Mounting Configuration</title>
+<title>Telemark Unit 12.1 Simulator</title>
 
 <script src="simulator_base.js"></script>
 
@@ -403,6 +403,11 @@ setChallenge(
     ]
 );
 
+setHeader(
+    "Telemark Unit 12.1 Simulator",
+    "IMU Mounting Configuration"
+);
+
 setBadges([
     { iconClass: "fa-solid fa-compass", label: "IMU", active: true },
     { iconClass: "fa-solid fa-display", label: "Telemetry", active: true }
@@ -720,14 +725,17 @@ function transpile(javaCode) {
 
 let running = false;
 let loopInterval = null;
+let preparedLoop = null;
 
-window.onRun = () => {
+window.onInit = () => {
 
     try {
 
         if (loopInterval) {
             clearInterval(loopInterval);
+            loopInterval = null;
         }
+        preparedLoop = null;
 
         const code =
             window.getCode
@@ -742,17 +750,8 @@ window.onRun = () => {
             init();
         }
 
-        running = true;
-
-        loopInterval = setInterval(() => {
-
-            if (!running) return;
-
-            if (typeof loop === "function") {
-                loop();
-            }
-
-        }, 50);
+        running = false;
+        preparedLoop = typeof loop === "function" ? loop : null;
 
     } catch (err) {
 
@@ -764,6 +763,23 @@ window.onRun = () => {
             );
         }
     }
+};
+
+window.onStart = () => {
+
+    if (!preparedLoop) return;
+    running = true;
+
+    if (loopInterval) {
+        clearInterval(loopInterval);
+    }
+        loopInterval = setInterval(() => {
+
+            if (!running) return;
+
+            preparedLoop();
+
+        }, 50);
 };
 
 window.onStop = () => {

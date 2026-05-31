@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Telmark Unit 10.3 Autonomous Lift To Position</title>
+    <title>Telemark Unit 10.3 Simulator</title>
 
     <script src="simulator_base.js"></script>
 
@@ -293,6 +293,7 @@ public class AutoLift extends LinearOpMode {
         active: false,
         running: false,
         waitingForStart: false,
+        startRequested: false,
         started: false,
 
         currentTicks: 0,
@@ -513,26 +514,12 @@ public class AutoLift extends LinearOpMode {
                 Waiting for start...
             </div>
 
-            <button id="lift-start-btn">
-                START
-            </button>
+            <div style="font-size:0.88rem;color:#d1d5db;margin-top:8px;">
+                Press Start in the bottom Driver Station controls.
+            </div>
         `;
 
         sceneContainer.appendChild(overlay);
-
-        document
-            .getElementById("lift-start-btn")
-            .addEventListener("click", () => {
-
-                overlay.classList.remove("visible");
-
-                sim.waitingForStart = false;
-
-                if (startResolver) {
-                    startResolver();
-                    startResolver = null;
-                }
-            });
 
         updatePanel();
     }
@@ -993,6 +980,7 @@ public class AutoLift extends LinearOpMode {
 
         await new Promise(resolve => {
             startResolver = resolve;
+            if (sim.startRequested) releaseDriverStationStart(false);
         });
 
         sim.waitingForStart = false;
@@ -1082,6 +1070,11 @@ public class AutoLift extends LinearOpMode {
             requirements
         );
 
+        setHeader(
+            "Telemark Unit 10.3 Simulator",
+            "Autonomous Lift to Position · RUN_TO_POSITION"
+        );
+
         setBadges([
             {
                 iconClass: "fa-solid fa-gear",
@@ -1113,13 +1106,25 @@ public class AutoLift extends LinearOpMode {
         updatePanel();
     };
 
-    window.onRun = async function () {
+    function releaseDriverStationStart(markRequested) {
+        if (markRequested !== false) sim.startRequested = true;
+        if (overlay) overlay.classList.remove("visible");
+        sim.waitingForStart = false;
+        if (startResolver) {
+            const resolve = startResolver;
+            startResolver = null;
+            resolve();
+        }
+    }
+
+    window.onInit = async function () {
 
         if (sim.running) return;
 
         sim.running = true;
         sim.active = false;
         sim.started = false;
+        sim.startRequested = false;
 
         setWarning(null);
         pushLiftTelemetry("Initialized");
@@ -1144,12 +1149,17 @@ public class AutoLift extends LinearOpMode {
         }
     };
 
+    window.onStart = function () {
+        releaseDriverStationStart(true);
+    };
+
     window.onStop = function () {
 
         sim.active = false;
         sim.running = false;
         sim.busy = false;
         sim.waitingForStart = false;
+        sim.startRequested = false;
 
         clearInterval(sim.movementInterval);
         sim.movementInterval = null;
@@ -1157,9 +1167,9 @@ public class AutoLift extends LinearOpMode {
         overlay.classList.remove("visible");
 
         if (startResolver) {
-            startResolver();
-            startResolver = null;
+            releaseDriverStationStart(false);
         }
+        sim.startRequested = false;
 
         updatePanel();
         updateLiftVisual();
@@ -1180,6 +1190,7 @@ public class AutoLift extends LinearOpMode {
         sim.encoderReset = false;
         sim.started = false;
         sim.waitingForStart = false;
+        sim.startRequested = false;
 
         sim.requirements =
             [false, false, false, false, false, false, false];

@@ -6,6 +6,7 @@ sidebar_position: 2
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import Unit13Simulator from '@site/src/components/Unit13Simulator';
 
 # Lesson 13.2: Extending Parent Classes for Modular Hardware Subsystems
 
@@ -137,7 +138,9 @@ public void loop() {
 
 ---
 
-## Template Challenge
+## Simulator Challenge
+
+<Unit13Simulator lesson="inheritance" />
 
 **Robot Scenario:** You have a `BaseServoMechanism` parent class that maps a `Servo` and provides a `setPosition(double pos)` method. Write a `GrabberMechanism` child class that extends it and adds two constants, `OPEN_POS = 0.1` and `CLOSED_POS = 0.9`, along with `open()` and `close()` methods that call `setPosition()`.
 

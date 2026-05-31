@@ -1,6 +1,7 @@
 import React from 'react';
 import Admonition from '@theme/Admonition';
 import useBaseUrl from '@docusaurus/useBaseUrl';
+import SimulatorFrame from './SimulatorFrame';
 
 type LessonKey =
   | 'touch-sensor'
@@ -17,25 +18,32 @@ const LESSON_PATH: Record<LessonKey, string> = {
   'sensor-gated-intake': '/simulator/unit11.5.html',
 };
 
+const LESSON_TITLE: Record<LessonKey, string> = {
+  'touch-sensor': 'Telemark Unit 11.1 Simulator',
+  'potentiometer': 'Telemark Unit 11.2 Simulator',
+  'color-sensor': 'Telemark Unit 11.3 Simulator',
+  'distance-sensor': 'Telemark Unit 11.4 Simulator',
+  'sensor-gated-intake': 'Telemark Unit 11.5 Simulator',
+};
+
 type Unit11SimulatorProps = {
   lesson: LessonKey;
 };
 
 export default function Unit11Simulator({lesson}: Unit11SimulatorProps): React.JSX.Element {
   const simulatorSrc = useBaseUrl(LESSON_PATH[lesson]);
+  const simulatorTitle = LESSON_TITLE[lesson];
 
   return (
     <>
-      <div className="simulator-wrapper unit11-simulator-wrapper">
-        <iframe
-          src={simulatorSrc}
-          className="telemark-simulator unit11-telemark-simulator"
-          title="Unit 11 simulator"
-          loading="lazy"
-        />
-      </div>
+      <SimulatorFrame
+        src={simulatorSrc}
+        wrapperClassName="simulator-wrapper unit11-simulator-wrapper"
+        iframeClassName="telemark-simulator unit11-telemark-simulator"
+        title={simulatorTitle}
+      />
 
-      <Admonition type="info" title="Unit 11 simulator">
+      <Admonition type="info" title={simulatorTitle}>
         <div>Loads the lesson-specific Telemark sensor challenge with incomplete starter code for students to finish.</div>
         <div>Includes live 3D mechanism feedback, telemetry checks, and sensor-state validation for each lesson concept.</div>
       </Admonition>
