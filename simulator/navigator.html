@@ -296,6 +296,70 @@
       display: none;
     }
 
+    #sim-view {
+      height: 100%;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    #sim-view.hidden {
+      display: none;
+    }
+
+    .sim-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-bottom: 0;
+      background: rgba(7, 7, 15, 0.9);
+      min-width: 0;
+    }
+
+    .sim-title {
+      min-width: 0;
+    }
+
+    .sim-title strong {
+      display: block;
+      color: var(--text);
+      font-family: "Rajdhani", sans-serif;
+      font-size: 18px;
+      line-height: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sim-title span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sim-frame-wrap {
+      min-height: 0;
+      border: 1px solid var(--border);
+      background: #07070f;
+      overflow: hidden;
+    }
+
+    #sim-frame {
+      width: 100%;
+      height: 100%;
+      min-height: 520px;
+      display: block;
+      border: 0;
+      background: #07070f;
+    }
+
     @media (max-width: 1050px) {
       .grid {
         grid-template-columns: repeat(4, minmax(145px, 1fr));
@@ -377,6 +441,21 @@
           </button>
         </div>
         <div class="grid" id="challenge-grid"></div>
+      </section>
+
+      <section id="sim-view" class="hidden">
+        <div class="sim-toolbar">
+          <button type="button" class="back-btn" id="sim-back-btn">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to chooser
+          </button>
+          <div class="sim-title">
+            <strong id="sim-title">Simulator</strong>
+            <span id="sim-subtitle">Running inside the preview panel</span>
+          </div>
+        </div>
+        <div class="sim-frame-wrap">
+          <iframe id="sim-frame" title="Selected Telemark simulator" scrolling="yes" allowfullscreen allow="fullscreen"></iframe>
+        </div>
       </section>
     </main>
   </div>
@@ -504,13 +583,31 @@
     const challengeCopy = document.getElementById("challenge-copy");
     const challengeEyebrow = document.getElementById("challenge-eyebrow");
     const backBtn = document.getElementById("back-btn");
+    const simView = document.getElementById("sim-view");
+    const simBackBtn = document.getElementById("sim-back-btn");
+    const simFrame = document.getElementById("sim-frame");
+    const simTitle = document.getElementById("sim-title");
+    const simSubtitle = document.getElementById("sim-subtitle");
+    let lastChooserView = "unit";
 
     function pad(value) {
       return String(value).padStart(2, "0");
     }
 
-    function launch(href) {
-      window.location.href = href;
+    function launch(href, title, subtitle) {
+      if (href.startsWith("../docs/")) {
+        window.top.location.href = href;
+        return;
+      }
+
+      lastChooserView = challengeView.classList.contains("hidden") ? "unit" : "challenge";
+      simFrame.src = href;
+      simTitle.textContent = title || "Telemark Simulator";
+      simSubtitle.textContent = subtitle || "Use the Back button to return to this chooser.";
+      unitView.classList.add("hidden");
+      challengeView.classList.add("hidden");
+      simView.classList.remove("hidden");
+      document.querySelector(".main").scrollTo({ top: 0, behavior: "smooth" });
     }
 
     function makeUnitCard(unit) {
@@ -535,7 +632,7 @@
         if (unit.type === "multi") {
           showChallenges(unit);
         } else {
-          launch(unit.href);
+          launch(unit.href, `Unit ${unit.unit}: ${unit.title}`, unit.type === "shared" ? "Shared unit simulator" : "Opening the setup lesson");
         }
       });
 
@@ -556,7 +653,7 @@
         </span>
         <span class="action-row">Launch simulator<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
       `;
-      card.addEventListener("click", () => launch(href));
+      card.addEventListener("click", () => launch(href, `${id}: ${title}`, desc));
       return card;
     }
 
@@ -568,7 +665,7 @@
     function showChallenges(unit) {
       challengeGrid.innerHTML = "";
       challengeTitle.textContent = `Unit ${unit.unit}: ${unit.title}`;
-      challengeCopy.textContent = "Choose one challenge simulator. The selected file opens directly, without returning to this navigator.";
+      challengeCopy.textContent = "Choose one challenge simulator. It opens inside this preview with a Back button to return here.";
       challengeEyebrow.textContent = `// unit.${unit.unit}.challenges`;
       unit.challenges.forEach((challenge) => challengeGrid.appendChild(makeChallengeCard(challenge)));
       unitView.classList.add("hidden");
@@ -579,6 +676,17 @@
     backBtn.addEventListener("click", () => {
       challengeView.classList.add("hidden");
       unitView.classList.remove("hidden");
+      document.querySelector(".main").scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    simBackBtn.addEventListener("click", () => {
+      simFrame.src = "about:blank";
+      simView.classList.add("hidden");
+      if (lastChooserView === "challenge") {
+        challengeView.classList.remove("hidden");
+      } else {
+        unitView.classList.remove("hidden");
+      }
       document.querySelector(".main").scrollTo({ top: 0, behavior: "smooth" });
     });
 
