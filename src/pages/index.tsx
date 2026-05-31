@@ -243,10 +243,10 @@ function SimulatorSection(): React.JSX.Element {
       </p>
       <div className={styles.simulatorWrapper}>
         <iframe
-          src="/telemark/simulator/index.html"
+          src="/telemark/simulator/navigator.html"
           allowFullScreen
           title="Telemark Simulator"
-          scrolling="no"
+          scrolling="yes"
         />
       </div>
     </section>
