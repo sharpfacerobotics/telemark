@@ -211,9 +211,10 @@ public class ZoneDefinitions extends OpMode {
 
     // Spike mark detection zones - 640x480 camera frame
     // (0,0) is top-left, y increases downward
-    static final Rect LEFT_ZONE   = new Rect(60,  350, 60, 60);
-    static final Rect CENTER_ZONE = new Rect(290, 350, 60, 60);
-    static final Rect RIGHT_ZONE  = new Rect(510, 350, 60, 60);
+    // TODO: Move these starter zones onto the spike marks
+    static final Rect LEFT_ZONE   = new Rect(45,  250, 60, 60);
+    static final Rect CENTER_ZONE = new Rect(260, 250, 60, 60);
+    static final Rect RIGHT_ZONE  = new Rect(475, 250, 60, 60);
 
     @Override
     public void init() {

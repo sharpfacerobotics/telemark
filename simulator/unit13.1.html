@@ -180,22 +180,22 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 // IntakeMechanism class - encapsulates the intake CRServo
 class IntakeMechanism {
-    private CRServo intake_servo;
+    // TODO: Declare a private CRServo named intake_servo
 
     public void init(HardwareMap hwMap) {
-        intake_servo = hwMap.get(CRServo.class, "intake_servo");
+        // TODO: Map "intake_servo" from hwMap
     }
 
     public void collect() {
-        intake_servo.setPower(0.8);
+        // TODO: Set intake power to 0.8
     }
 
     public void eject() {
-        intake_servo.setPower(-0.8);
+        // TODO: Set intake power to -0.8
     }
 
     public void stop() {
-        intake_servo.setPower(0.0);
+        // TODO: Set intake power to 0.0
     }
 }
 

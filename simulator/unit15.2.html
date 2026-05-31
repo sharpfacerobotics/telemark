@@ -201,7 +201,7 @@ public class PedroLifecycle extends LinearOpMode {
         follower = new Follower(hardwareMap);
 
         // Set the starting pose: x=8, y=60, heading=0 radians
-        follower.setStartingPose(new Pose(8, 60, 0));
+        // TODO: Set the follower's starting pose to x=8, y=60, heading=0
 
         telemetry.addData("Status",  "Follower Ready");
         telemetry.addData("Start X", 8);
@@ -213,12 +213,9 @@ public class PedroLifecycle extends LinearOpMode {
         // Update loop - runs while follower is busy following a path
         // Since no path is set, isBusy() is false and loop exits immediately
         while (opModeIsActive() && follower.isBusy()) {
-            follower.update();
+            // TODO: Update the follower each loop
 
-            Pose currentPose = follower.getPose();
-            telemetry.addData("X",       currentPose.getX());
-            telemetry.addData("Y",       currentPose.getY());
-            telemetry.addData("Heading", currentPose.getHeading());
+            // TODO: Get the current pose and display X, Y, and Heading
             telemetry.update();
         }
 

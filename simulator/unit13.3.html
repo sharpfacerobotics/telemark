@@ -644,8 +644,8 @@ class SafetySlide extends GenericSlide {
 
     @Override
     public void move(double power) {
-        double safePower = Math.min(0.5, Math.abs(power)) * Math.signum(power);
-        motor.setPower(safePower);
+        // TODO: Clamp power to a maximum magnitude of 0.5
+        // TODO: Send the clamped safePower to the motor
     }
 }
 

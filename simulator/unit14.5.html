@@ -220,14 +220,11 @@ public class ProcessFrame extends OpMode {
 
     // Called every frame by the vision processor
     void processFrame(Mat frame) {
-        double leftSat  = getAverageSaturation(frame, LEFT_ZONE);
-        double rightSat = getAverageSaturation(frame, RIGHT_ZONE);
+        // TODO: Read saturation from LEFT_ZONE into leftSat
+        // TODO: Read saturation from RIGHT_ZONE into rightSat
 
-        if (leftSat > rightSat) {
-            detectedLocation = SpikeLocation.LEFT;
-        } else {
-            detectedLocation = SpikeLocation.RIGHT;
-        }
+        // TODO: If leftSat > rightSat, set detectedLocation to SpikeLocation.LEFT
+        // TODO: Otherwise set detectedLocation to SpikeLocation.RIGHT
     }
 
     // Helper - returns average HSV saturation of a zone (provided by framework)

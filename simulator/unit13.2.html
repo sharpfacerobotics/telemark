@@ -223,15 +223,15 @@ class BaseServoMechanism {
 
 // Child class - extends parent with grabber-specific behavior
 class GrabberMechanism extends BaseServoMechanism {
-    public static final double OPEN_POS   = 0.1;
-    public static final double CLOSED_POS = 0.9;
+    // TODO: Add the open-position constant
+    // TODO: Add the closed-position constant
 
     public void open() {
-        setPosition(OPEN_POS);
+        // TODO: Move to the open constant
     }
 
     public void close() {
-        setPosition(CLOSED_POS);
+        // TODO: Move to the closed constant
     }
 }
 

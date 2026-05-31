@@ -380,19 +380,8 @@ public class PathChainBezier extends LinearOpMode {
 
         // Build the two-segment PathChain
         scoringRoutine = follower.pathBuilder()
-            .addPath(
-                new Path(new BezierLine(
-                    new Point(0,  0,  Point.CARTESIAN),
-                    new Point(60, 0,  Point.CARTESIAN)
-                ))
-            )
-            .addPath(
-                new Path(new BezierCurve(
-                    new Point(60, 0,  Point.CARTESIAN),
-                    new Point(80, 30, Point.CARTESIAN),
-                    new Point(60, 60, Point.CARTESIAN)
-                ))
-            )
+            // TODO: Add the straight first segment
+            // TODO: Add the curved second segment through the control point
             .build();
 
         telemetry.addData("Status",   "Path Built");
