@@ -225,13 +225,12 @@ public class AprilTagInit extends LinearOpMode {
     public void runOpMode() {
 
         // Initialize AprilTag processor with default settings
-        aprilTagProcessor = AprilTagProcessor.easyCreateWithDefaults();
+        // TODO: Create the AprilTag processor with the default helper
 
         // Build the vision portal with the webcam and processor
-        visionPortal = new VisionPortal.Builder()
-            .setCamera(hardwareMap.get(WebcamName.class, "front_cam"))
-            .addProcessor(aprilTagProcessor)
-            .build();
+        // TODO: Use the portal builder
+        // TODO: Set the camera to the configured webcam
+        // TODO: Attach the processor and finish the portal
 
         telemetry.addData("Status",  "Camera Initializing...");
         telemetry.update();
@@ -240,7 +239,7 @@ public class AprilTagInit extends LinearOpMode {
         waitForStart();
 
         // Stop streaming to free CPU for autonomous processing
-        visionPortal.stopStreaming();
+        // TODO: Stop streaming after the match starts
 
         telemetry.addData("Status",  "Streaming Stopped");
         telemetry.addData("Camera",  "front_cam");

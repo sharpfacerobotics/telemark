@@ -226,24 +226,23 @@ public class PoseCorrection extends OpMode {
         LLResult result = limelight.getLatestResult();
 
         // Guard clause 1: null result
-        if (result == null) return;
+        // TODO: Return if result is null
 
         // Guard clause 2: invalid result
-        if (!result.isValid()) return;
+        // TODO: Return if result is not valid
 
         // Guard clause 3: null botpose
-        double[] botpose = result.getBotpose();
-        if (botpose == null) return;
+        // TODO: Read result.getBotpose() into a double[] named botpose
+        // TODO: Return if botpose is null
 
         // Guard clause 4: incomplete botpose array
-        if (botpose.length < 6) return;
+        // TODO: Return if botpose has fewer than 6 values
 
         // Convert meters to inches and degrees to radians
-        double x   = botpose[0] * 39.3701;
-        double y   = botpose[1] * 39.3701;
-        double yaw = Math.toRadians(botpose[5]);
+        // TODO: Convert botpose x and y from meters to inches
+        // TODO: Convert botpose yaw from degrees to radians
 
-        follower.setPose(new Pose(x, y, yaw));
+        // TODO: Apply the corrected pose to the follower
     }
 
     @Override

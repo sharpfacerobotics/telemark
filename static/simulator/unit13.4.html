@@ -427,13 +427,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 // Configuration class - single source of truth for all hardware names and constants
 class HardwareNames {
-    public static final String CLAW_SERVO    = "claw_servo";
-    public static final String WRIST_MOTOR   = "wrist_motor";
-    public static final String RANGE_SENSOR  = "range_sensor";
-
-    public static final double CLAW_OPEN       = 0.1;
-    public static final double CLAW_CLOSED     = 0.9;
-    public static final double WRIST_MAX_POWER = 0.5;
+    // TODO: Add name constants for the claw, wrist, and range sensor
+    // TODO: Add numeric constants for claw positions and wrist power
 }
 
 // OpMode referencing HardwareNames constants
@@ -446,19 +441,17 @@ public class HardwareNamesOp extends OpMode {
 
     @Override
     public void init() {
-        claw  = hardwareMap.get(Servo.class,          HardwareNames.CLAW_SERVO);
-        wrist = hardwareMap.get(DcMotor.class,        HardwareNames.WRIST_MOTOR);
-        range = hardwareMap.get(DistanceSensor.class, HardwareNames.RANGE_SENSOR);
+        // TODO: Map claw using the config constant
+        // TODO: Map wrist using the config constant
+        // TODO: Map range using the config constant
 
-        claw.setPosition(HardwareNames.CLAW_OPEN);
+        // TODO: Move the claw to the configured open position
         telemetry.addData("Status", "Initialized");
     }
 
     @Override
     public void loop() {
-        telemetry.addData("Claw Open",    HardwareNames.CLAW_OPEN);
-        telemetry.addData("Claw Closed",  HardwareNames.CLAW_CLOSED);
-        telemetry.addData("Max Power",    HardwareNames.WRIST_MAX_POWER);
+        // TODO: Display the constants with telemetry
         telemetry.update();
     }
 }`;

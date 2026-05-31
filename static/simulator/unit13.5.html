@@ -245,15 +245,15 @@ class ClawMechanism {
     private Servo claw;
 
     public void init(HardwareMap hwMap) {
-        claw = hwMap.get(Servo.class, "claw");
+        // TODO: Map the "claw" servo
     }
 
     public void open() {
-        claw.setPosition(0.1);
+        // TODO: Set the claw open position
     }
 
     public void close() {
-        claw.setPosition(0.9);
+        // TODO: Set the claw closed position
     }
 
     public void stop() {
@@ -266,16 +266,16 @@ class WristMechanism {
     private DcMotor wrist;
 
     public void init(HardwareMap hwMap) {
-        wrist = hwMap.get(DcMotor.class, "wrist");
-        wrist.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        // TODO: Map the "wrist" motor
+        // TODO: Set zero power behavior to BRAKE
     }
 
     public void move(double power) {
-        wrist.setPower(power);
+        // TODO: Send power to the wrist motor
     }
 
     public void stop() {
-        wrist.setPower(0.0);
+        // TODO: Stop the wrist motor
     }
 }
 
@@ -285,13 +285,11 @@ class MyRobot {
     public WristMechanism wrist = new WristMechanism();
 
     public void init(HardwareMap hwMap) {
-        claw.init(hwMap);
-        wrist.init(hwMap);
+        // TODO: Initialize claw and wrist
     }
 
     public void stopAll() {
-        claw.stop();
-        wrist.stop();
+        // TODO: Stop claw and wrist through one cleanup method
     }
 }
 

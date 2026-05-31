@@ -198,40 +198,25 @@ public class LimelightAutoLock extends OpMode {
         rightDrive = hardwareMap.get(DcMotor.class,     "rightDrive");
         limelight  = hardwareMap.get(Limelight3A.class, "limelight");
 
-        limelight.pipelineSwitch(1);
+        // TODO: Switch to Limelight pipeline 1
 
         telemetry.addData("Status", "Initialized");
     }
 
     @Override
     public void loop() {
-        LLResult result = limelight.getLatestResult();
+        // Manual search mode: use the joystick until your auto-lock code takes over
+        double turn = gamepad1.left_stick_x * 0.45;
+        leftDrive.setPower(turn);
+        rightDrive.setPower(-turn);
 
-        if (result != null && result.isValid()) {
-            double tx = result.getTx();
+        // TODO: Get the latest Limelight result
+        // TODO: If the result is valid, read Tx
+        // TODO: Rotate right when Tx > 3.0, left when Tx < -3.0
+        // TODO: Stop both motors when locked or when no target is visible
 
-            if (tx > 3.0) {
-                leftDrive.setPower( 0.2);
-                rightDrive.setPower(-0.2);
-                telemetry.addData("AutoLock", "Rotating Right");
-            } else if (tx < -3.0) {
-                leftDrive.setPower(-0.2);
-                rightDrive.setPower( 0.2);
-                telemetry.addData("AutoLock", "Rotating Left");
-            } else {
-                leftDrive.setPower(0);
-                rightDrive.setPower(0);
-                telemetry.addData("AutoLock", "Locked");
-            }
-
-            telemetry.addData("Tx", tx);
-        } else {
-            double turn = gamepad1.left_stick_x * 0.45;
-            leftDrive.setPower(turn);
-            rightDrive.setPower(-turn);
-            telemetry.addData("AutoLock", "Searching with joystick");
-            telemetry.addData("Tx",       "No AprilTag");
-        }
+        telemetry.addData("AutoLock", "Searching with joystick");
+        telemetry.addData("Tx",       "Add Limelight code");
 
         telemetry.update();
     }

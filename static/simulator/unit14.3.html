@@ -262,11 +262,8 @@ public class GetTagDistance extends OpMode {
     }
 
     double getTagDistance(int targetId) {
-        for (AprilTagDetection detection : aprilTagProcessor.getDetections()) {
-            if (detection.id == targetId && detection.metadata != null) {
-                return detection.ftcPose.y;
-            }
-        }
+        // TODO: Loop through the current detection list
+        // TODO: If id matches targetId and metadata is valid, return the forward distance
         return -1.0;
     }
 

@@ -278,7 +278,7 @@ public class StateMachine extends LinearOpMode {
             )
             .build();
 
-        claw.setPosition(CLAW_CLOSED);
+        // TODO: Close the claw before start
 
         telemetry.addData("Status", "Ready");
         telemetry.update();
@@ -295,16 +295,12 @@ public class StateMachine extends LinearOpMode {
             switch (currentState) {
                 case DRIVE_TO_TARGET:
                     if (!follower.isBusy()) {
-                        claw.setPosition(CLAW_OPEN);
-                        deliverTimer = getRuntime();
-                        currentState = State.DELIVER;
+                        // TODO: Open the claw, store deliverTimer, and switch to DELIVER
                     }
                     break;
 
                 case DELIVER:
-                    if (getRuntime() - deliverTimer >= 0.5) {
-                        currentState = State.DONE;
-                    }
+                    // TODO: After 0.5 seconds, switch to DONE
                     break;
 
                 case DONE:

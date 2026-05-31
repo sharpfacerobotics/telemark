@@ -286,11 +286,8 @@ public class ScanForTag extends OpMode {
     }
 
     boolean scanForTag(int targetId) {
-        for (AprilTagDetection detection : aprilTagProcessor.getDetections()) {
-            if (detection.id == targetId && detection.metadata != null) {
-                return true;
-            }
-        }
+        // TODO: Loop through the current detection list
+        // TODO: Return true only when id matches targetId AND metadata is not null
         return false;
     }
 

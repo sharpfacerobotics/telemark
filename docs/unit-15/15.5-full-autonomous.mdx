@@ -275,6 +275,8 @@ public class FullAutonomousChallenge extends LinearOpMode {
 
 <Unit15Simulator lesson="full-autonomous" />
 
+Open the simulator in fullscreen before you start so the editor, telemetry, controls, and visualizer are easy to read. Complete the missing starter-code lines in the simulator editor, press **Init** and **Start**, then use telemetry, visual feedback, and any checks or hints to debug before opening the answer.
+
 **Robot Scenario:** Complete the state machine transition logic below. The routine has two states: `DRIVE_TO_TARGET` and `DELIVER`. When the robot finishes driving (`!follower.isBusy()`), it should transition to `DELIVER` and open the claw. When the claw has been open for 0.5 seconds (use `getRuntime()` and a timer variable), transition to `DONE`. Assume `follower`, `claw`, `CLAW_OPEN`, and `CLAW_CLOSED` are class-level variables already configured.
 
 ```java
