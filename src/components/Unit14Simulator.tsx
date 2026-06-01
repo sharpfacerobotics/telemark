@@ -45,7 +45,7 @@ export default function Unit14Simulator({lesson}: Unit14SimulatorProps): React.J
 
       <Admonition type="info" title={simulatorTitle}>
         <div>Loads the lesson-specific Telemark computer vision challenge with incomplete starter code for students to complete.</div>
-        <div>Use the simulator first, then use the scaffold below for reference, planning, or notebook work.</div>
+        <div>The simulator editor contains the starter code; use the answer below only after trying the challenge.</div>
       </Admonition>
 
       <style>{`

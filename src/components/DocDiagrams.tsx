@@ -130,9 +130,9 @@ export function PathFollowingDiagram(): React.JSX.Element {
 export function BezierComparisonDiagram(): React.JSX.Element {
   return (
     <figure className={styles.diagram}>
-      <figcaption className={styles.title}>Straight Segments vs Bezier Path</figcaption>
+      <figcaption className={styles.title}>Sharp Waypoints vs Bezier Path</figcaption>
       <div className={styles.svgWrap}>
-        <svg className={styles.svg} viewBox="0 0 760 300" role="img" aria-label="Stop turn drive path compared to a Bezier curve">
+        <svg className={styles.svg} viewBox="0 0 760 320" role="img" aria-label="Stop turn drive path and Bezier curve sharing the same start and end while avoiding obstacles">
           <defs>
             <marker id="cyanArrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
               <path d="M0,0 L0,6 L9,3 z" fill="#00bfff" />
@@ -141,15 +141,35 @@ export function BezierComparisonDiagram(): React.JSX.Element {
               <path d="M0,0 L0,6 L9,3 z" fill="#39ff14" />
             </marker>
           </defs>
-          <rect x="30" y="48" width="700" height="204" rx="12" fill="#0d0d1e" stroke="rgba(0,191,255,0.24)" />
-          <path d="M90 195 L260 195 L260 92 L455 92 L455 160 L650 160" fill="none" stroke="#00bfff" strokeWidth="5" strokeDasharray="10 8" markerEnd="url(#cyanArrow)" />
-          <path d="M90 212 C210 120 325 235 455 116 S590 128 650 92" fill="none" stroke="#39ff14" strokeWidth="6" markerEnd="url(#greenArrow)" />
-          <circle cx="90" cy="195" r="9" fill="#e8f4ff" />
-          <circle cx="650" cy="160" r="9" fill="#e8f4ff" />
-          <text x="78" y="232" fill="#e8f4ff" fontSize="16" fontFamily="Rajdhani, sans-serif">Start</text>
-          <text x="625" y="187" fill="#e8f4ff" fontSize="16" fontFamily="Rajdhani, sans-serif">Score</text>
-          <text x="86" y="75" fill="#00bfff" fontSize="18" fontFamily="Rajdhani, sans-serif">Stop-turn-drive: simple, but slow at corners</text>
-          <text x="86" y="270" fill="#39ff14" fontSize="18" fontFamily="Rajdhani, sans-serif">Bezier path: smoother target geometry for the follower</text>
+          <rect x="30" y="48" width="700" height="224" rx="12" fill="#0d0d1e" stroke="rgba(0,191,255,0.24)" />
+
+          <rect x="278" y="172" width="88" height="64" rx="8" fill="rgba(249,115,22,0.22)" stroke="#f97316" strokeWidth="2" />
+          <rect x="472" y="220" width="92" height="44" rx="8" fill="rgba(249,115,22,0.18)" stroke="#f97316" strokeWidth="2" />
+          <text x="284" y="166" fill="#fbbf24" fontSize="14" fontFamily="Rajdhani, sans-serif">field obstacle</text>
+          <text x="478" y="214" fill="#fbbf24" fontSize="14" fontFamily="Rajdhani, sans-serif">traffic zone</text>
+
+          <path
+            d="M100 225 L230 225 L230 92 L425 92 L425 132 L610 132 L650 82"
+            fill="none"
+            stroke="#00bfff"
+            strokeWidth="5"
+            strokeDasharray="10 8"
+            markerEnd="url(#cyanArrow)"
+          />
+          <path
+            d="M100 225 C185 224 212 100 304 92 S410 84 425 132 S563 154 650 82"
+            fill="none"
+            stroke="#39ff14"
+            strokeWidth="6"
+            markerEnd="url(#greenArrow)"
+          />
+
+          <circle cx="100" cy="225" r="9" fill="#e8f4ff" />
+          <circle cx="650" cy="82" r="9" fill="#e8f4ff" />
+          <text x="78" y="252" fill="#e8f4ff" fontSize="16" fontFamily="Rajdhani, sans-serif">Start</text>
+          <text x="626" y="64" fill="#e8f4ff" fontSize="16" fontFamily="Rajdhani, sans-serif">Score</text>
+          <text x="86" y="75" fill="#00bfff" fontSize="18" fontFamily="Rajdhani, sans-serif">Waypoint route: same anchors, hard stops at corners</text>
+          <text x="86" y="295" fill="#39ff14" fontSize="18" fontFamily="Rajdhani, sans-serif">Bezier route: same anchors, smooth obstacle-aware curvature</text>
         </svg>
       </div>
     </figure>

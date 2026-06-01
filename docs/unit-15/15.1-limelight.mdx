@@ -149,59 +149,11 @@ public class LimelightDemo extends OpMode {
 
 ## Simulator Challenge
 
-The drive team wants the robot to automatically steer toward a blue game piece using Limelight pipeline slot 1. If the target's `Tx` is greater than 3.0 degrees to the right, rotate the drivetrain right at 0.2 power. If `Tx` is less than -3.0 degrees (to the left), rotate left at 0.2 power. If the target is within the 3-degree dead band or not visible, stop rotating. Assume `leftDrive` and `rightDrive` are already mapped and reversed correctly.
+The drive team wants the robot to automatically steer toward a target using Limelight pipeline slot 1. Keep the starter code's joystick search mode when no valid target is visible. Once a valid target is visible, if `Tx` is greater than 3.0 degrees to the right, rotate the drivetrain right at 0.2 power. If `Tx` is less than -3.0 degrees to the left, rotate left at 0.2 power. If the target is within the 3-degree dead band, stop both motors.
 
 Open the simulator in fullscreen before you start so the editor, telemetry, controls, and visualizer are easy to read. Complete the missing starter-code lines in the simulator editor, press **Init** and **Start**, then use telemetry, visual feedback, and any checks or hints to debug before opening the answer.
 
 <Unit15Simulator lesson="limelight" />
-
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.robotcore.hardware.DcMotor;
-
-@TeleOp(name="Limelight_Steer_Challenge")
-public class LimelightSteerChallenge extends OpMode {
-
-    private Limelight3A limelight;
-    private DcMotor     leftDrive, rightDrive;
-
-    @Override
-    public void init() {
-        limelight  = hardwareMap.get(Limelight3A.class, "limelight");
-        leftDrive  = hardwareMap.get(DcMotor.class,     "left_drive");
-        rightDrive = hardwareMap.get(DcMotor.class,     "right_drive");
-        rightDrive.setDirection(DcMotor.Direction.REVERSE);
-
-        // INSERT CODE HERE: Switch to pipeline slot 1 and start the Limelight
-    }
-
-    @Override
-    public void loop() {
-        // INSERT CODE HERE: Get the latest result
-
-        // INSERT CODE HERE: Validate result is non-null and isValid()
-        // If valid:
-        //   - Get Tx
-        //   - If Tx > 3.0, rotate right (left +0.2, right -0.2)
-        //   - Else if Tx < -3.0, rotate left (left -0.2, right +0.2)
-        //   - Else, stop both motors
-        // If not valid:
-        //   - Stop both motors
-
-        telemetry.update();
-    }
-
-    @Override
-    public void stop() {
-        limelight.stop();
-    }
-}
-```
 
 <details>
 <summary>Show answer</summary>
@@ -209,7 +161,6 @@ public class LimelightSteerChallenge extends OpMode {
 ```java
 // In init():
 limelight.pipelineSwitch(1);
-limelight.start();
 
 // In loop():
 LLResult result = limelight.getLatestResult();
@@ -232,9 +183,7 @@ if (result != null && result.isValid()) {
     }
     telemetry.addData("Tx (deg)", "%.2f", tx);
 } else {
-    leftDrive.setPower(0.0);
-    rightDrive.setPower(0.0);
-    telemetry.addData("Limelight", "No target");
+    telemetry.addData("AutoLock", "Searching with joystick");
 }
 ```
 

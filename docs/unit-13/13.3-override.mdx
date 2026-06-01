@@ -144,47 +144,13 @@ Open the simulator in fullscreen before you start so the editor, telemetry, cont
 
 <Unit13Simulator lesson="override" />
 
-```java
-package org.firstinspires.ftc.teamcode.mechanisms;
-
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-
-// Parent class -- do not modify
-public class GenericSlide {
-    protected DcMotor motor;
-
-    public void init(HardwareMap hwMap, String name) {
-        motor = hwMap.get(DcMotor.class, name);
-    }
-
-    public void move(double power) {
-        motor.setPower(power);
-    }
-}
-```
-
-```java
-package org.firstinspires.ftc.teamcode.mechanisms;
-
-public class SafetySlide extends GenericSlide {
-
-    private static final double MAX_POWER = 0.5;
-
-    // INSERT CODE HERE: Override move() so that the absolute value of power
-    // is capped at MAX_POWER while preserving the original direction.
-    // Hint: scale the input as Math.min(Math.abs(power), MAX_POWER) * Math.signum(power)
-
-}
-```
-
 <details>
 <summary>Show answer</summary>
 
 ```java
 @Override
 public void move(double power) {
-    double safePower = Math.min(Math.abs(power), MAX_POWER) * Math.signum(power);
+    double safePower = Math.min(0.5, Math.abs(power)) * Math.signum(power);
     motor.setPower(safePower);
 }
 ```

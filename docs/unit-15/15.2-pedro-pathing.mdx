@@ -137,7 +137,7 @@ public class PedroIntroDemo extends LinearOpMode {
 
 ## Simulator Challenge
 
-Write the initialization and status-check logic for an autonomous program that uses Pedro Pathing. The robot starts at position (8, 60) with a heading of 0 radians. After `waitForStart()`, initialize the Follower, set the starting pose, and write a loop that calls `follower.update()` and reports the robot's current X, Y, and heading to telemetry while the Follower is busy. Do not worry about building a path yet -- just demonstrate the correct Follower lifecycle.
+Write the initialization and status-check logic for an autonomous program that uses Pedro Pathing. Before `waitForStart()`, create the `Follower` and set the robot's starting pose to (8, 60) with a heading of 0 radians. After start, write a loop that calls `follower.update()` and reports the robot's current X, Y, and heading to telemetry while the Follower is busy. Do not worry about building a path yet -- just demonstrate the correct Follower lifecycle.
 
 :::note
 This is an autonomous program. No gamepad input is used.
@@ -146,39 +146,6 @@ This is an autonomous program. No gamepad input is used.
 Open the simulator in fullscreen before you start so the editor, telemetry, controls, and visualizer are easy to read. Complete the missing starter-code lines in the simulator editor, press **Init** and **Start**, then use telemetry, visual feedback, and any checks or hints to debug before opening the answer.
 
 <Unit15Simulator lesson="pedro-pathing" />
-
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.pedropathing.follower.Follower;
-import com.pedropathing.localization.Pose;
-
-@Autonomous(name="Follower_Lifecycle_Challenge")
-public class FollowerLifecycleChallenge extends LinearOpMode {
-
-    private Follower follower;
-
-    @Override
-    public void runOpMode() {
-        // INSERT CODE HERE: Initialize the Follower with hardwareMap
-
-        // INSERT CODE HERE: Set starting pose to (8, 60, 0)
-
-        waitForStart();
-
-        // INSERT CODE HERE: Write the main loop that calls update() and
-        // reports X, Y, and heading while follower.isBusy() is true.
-        // (For this challenge there is no path, so the loop will exit immediately
-        //  since isBusy() starts false -- the structure is what matters.)
-
-        telemetry.addData("Status", "Follower ready");
-        telemetry.update();
-        sleep(500);
-    }
-}
-```
 
 <details>
 <summary>Show answer</summary>

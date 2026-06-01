@@ -165,36 +165,12 @@ Open the simulator in fullscreen before you start so the editor, telemetry, cont
 
 <Unit14Simulator lesson="pose-data" />
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-import java.util.List;
-
-public class TagNavigator {
-
-    private AprilTagProcessor aprilTagProcessor;
-
-    public TagNavigator(AprilTagProcessor processor) {
-        this.aprilTagProcessor = processor;
-    }
-
-    // INSERT CODE HERE: Write getTagDistance(int targetId).
-    // Return detection.ftcPose.y if the tag is found with valid metadata.
-    // Return -1.0 if the tag is not visible.
-
-}
-```
-
 <details>
 <summary>Show answer</summary>
 
 ```java
-public double getTagDistance(int targetId) {
-    List<AprilTagDetection> detections = aprilTagProcessor.getDetections();
-
-    for (AprilTagDetection detection : detections) {
+double getTagDistance(int targetId) {
+    for (AprilTagDetection detection : aprilTagProcessor.getDetections()) {
         if (detection.id == targetId && detection.metadata != null) {
             return detection.ftcPose.y;
         }

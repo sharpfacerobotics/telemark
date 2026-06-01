@@ -273,36 +273,11 @@ public class FullAutonomousChallenge extends LinearOpMode {
 
 ## Simulator Challenge
 
-Complete the state machine transition logic below. The routine has two states: `DRIVE_TO_TARGET` and `DELIVER`. When the robot finishes driving (`!follower.isBusy()`), it should transition to `DELIVER` and open the claw. When the claw has been open for 0.5 seconds (use `getRuntime()` and a timer variable), transition to `DONE`. Assume `follower`, `claw`, `CLAW_OPEN`, and `CLAW_CLOSED` are class-level variables already configured.
+Complete the simulator's state machine transition logic. The routine starts in `State.DRIVE_TO_TARGET`, transitions to `State.DELIVER` when the robot finishes driving (`!follower.isBusy()`), opens the claw, and records `deliverTimer = getRuntime()`. Once `getRuntime() - deliverTimer >= 0.5`, transition to `State.DONE`.
 
 Open the simulator in fullscreen before you start so the editor, telemetry, controls, and visualizer are easy to read. Complete the missing starter-code lines in the simulator editor, press **Init** and **Start**, then use telemetry, visual feedback, and any checks or hints to debug before opening the answer.
 
 <Unit15Simulator lesson="full-autonomous" />
-
-```java
-enum AutoState { DRIVE_TO_TARGET, DELIVER, DONE }
-AutoState state    = AutoState.DRIVE_TO_TARGET;
-double    clawTimer = 0;
-
-// Called inside: while (opModeIsActive()) { follower.update(); ... }
-
-switch (state) {
-    case DRIVE_TO_TARGET:
-        // INSERT CODE HERE: If the follower is no longer busy,
-        // open the claw, record the timer, and transition to DELIVER
-
-        break;
-
-    case DELIVER:
-        // INSERT CODE HERE: If 0.5 seconds have elapsed since clawTimer was set,
-        // transition to DONE
-
-        break;
-
-    case DONE:
-        break;
-}
-```
 
 <details>
 <summary>Show answer</summary>
@@ -311,14 +286,14 @@ switch (state) {
 case DRIVE_TO_TARGET:
     if (!follower.isBusy()) {
         claw.setPosition(CLAW_OPEN);
-        clawTimer = getRuntime() + 0.5;
-        state = AutoState.DELIVER;
+        deliverTimer = getRuntime();
+        currentState = State.DELIVER;
     }
     break;
 
 case DELIVER:
-    if (getRuntime() > clawTimer) {
-        state = AutoState.DONE;
+    if (getRuntime() - deliverTimer >= 0.5) {
+        currentState = State.DONE;
     }
     break;
 ```

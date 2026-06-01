@@ -107,43 +107,51 @@ if (Math.abs(input) < RobotConfig.DEADZONE_THRESHOLD) {
 
 ## Simulator Challenge
 
-Your team has a claw servo, a wrist motor, and a range sensor all with specific configuration names and tunable constants. Create a `HardwareNames` configuration class that stores these values as `public static final` constants so that every OpMode on the robot can reference them from a single location.
+Your team has a claw servo, a wrist motor, and a range sensor all with specific configuration names and tunable constants. Complete the simulator's `HardwareNames` configuration class, then use those constants in the OpMode to map hardware, set the claw's open position, and display the configuration values with telemetry.
 
 Requirements:
 - Servo configuration name: `"claw_servo"` stored as `CLAW_SERVO`
 - Motor configuration name: `"wrist_motor"` stored as `WRIST_MOTOR`
-- Sensor configuration name: `"front_range"` stored as `FRONT_RANGE`
-- Maximum wrist speed constant: `0.6` stored as `WRIST_MAX_SPEED`
-- Claw closed position: `0.9` stored as `CLAW_CLOSED`
+- Sensor configuration name: `"range_sensor"` stored as `RANGE_SENSOR`
+- Maximum wrist power constant: `0.5` stored as `WRIST_MAX_POWER`
 - Claw open position: `0.1` stored as `CLAW_OPEN`
+- Claw closed position: `0.9` stored as `CLAW_CLOSED`
 
 Open the simulator in fullscreen before you start so the editor, telemetry, controls, and visualizer are easy to read. Complete the missing starter-code lines in the simulator editor, press **Init** and **Start**, then use telemetry, visual feedback, and any checks or hints to debug before opening the answer.
 
 <Unit13Simulator lesson="static-constants" />
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-// INSERT CODE HERE: Write the complete HardwareNames class with all
-// six constants listed above as public static final declarations.
-
-```
-
 <details>
 <summary>Show answer</summary>
 
 ```java
-package org.firstinspires.ftc.teamcode;
+class HardwareNames {
+    public static final String CLAW_SERVO  = "claw_servo";
+    public static final String WRIST_MOTOR = "wrist_motor";
+    public static final String RANGE_SENSOR = "range_sensor";
 
-public class HardwareNames {
+    public static final double CLAW_OPEN       = 0.1;
+    public static final double CLAW_CLOSED     = 0.9;
+    public static final double WRIST_MAX_POWER = 0.5;
+}
 
-    public static final String CLAW_SERVO       = "claw_servo";
-    public static final String WRIST_MOTOR      = "wrist_motor";
-    public static final String FRONT_RANGE      = "front_range";
+@Override
+public void init() {
+    claw  = hardwareMap.get(Servo.class, HardwareNames.CLAW_SERVO);
+    wrist = hardwareMap.get(DcMotor.class, HardwareNames.WRIST_MOTOR);
+    range = hardwareMap.get(DistanceSensor.class, HardwareNames.RANGE_SENSOR);
 
-    public static final double WRIST_MAX_SPEED  = 0.6;
-    public static final double CLAW_CLOSED      = 0.9;
-    public static final double CLAW_OPEN        = 0.1;
+    claw.setPosition(HardwareNames.CLAW_OPEN);
+    telemetry.addData("Status", "Initialized");
+}
+
+@Override
+public void loop() {
+    telemetry.addData("Claw Servo", HardwareNames.CLAW_SERVO);
+    telemetry.addData("Wrist Motor", HardwareNames.WRIST_MOTOR);
+    telemetry.addData("Range Sensor", HardwareNames.RANGE_SENSOR);
+    telemetry.addData("Wrist Max Power", HardwareNames.WRIST_MAX_POWER);
+    telemetry.update();
 }
 ```
 

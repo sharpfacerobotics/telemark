@@ -85,11 +85,16 @@ Open the simulator in fullscreen before you start so the editor, telemetry, cont
 <summary>Show answer</summary>
 
 ```java
-@Autonomous(name="Intake_Test", group="Diagnostics")
-public class IntakeDiagnostic extends LinearOpMode {
+@Autonomous(name="Intake_Test")
+public class IntakeDiagnostic extends OpMode {
     @Override
-    public void runOpMode() {
-        // autonomous logic here
+    public void init() {
+        telemetry.addData("System", "Intake Logic Loaded");
+    }
+
+    @Override
+    public void loop() {
+        // Logic for motor testing
     }
 }
 ```

@@ -196,73 +196,25 @@ public class SpikeSelectionAuto extends LinearOpMode {
 
 ## Simulator Challenge
 
-Complete the `processFrame()` method below for a two-zone processor. It should compare the average saturation of a `LEFT_ZONE` and a `RIGHT_ZONE` and assign `detectedLocation` to `SpikeLocation.LEFT` if the left zone's saturation is higher, or `SpikeLocation.RIGHT` otherwise. The zone definitions and the `SpikeLocation` enum are already provided.
+Complete the simulator's `processFrame(Mat frame)` method for a two-zone processor. It should read average saturation from `LEFT_ZONE` and `RIGHT_ZONE` with the provided `getAverageSaturation(frame, zone)` helper, assign `detectedLocation` to `SpikeLocation.LEFT` if the left zone's saturation is higher, and assign `SpikeLocation.RIGHT` otherwise.
 
 Open the simulator in fullscreen before you start so the editor, telemetry, controls, and visualizer are easy to read. Complete the missing starter-code lines in the simulator editor, press **Init** and **Start**, then use telemetry, visual feedback, and any checks or hints to debug before opening the answer.
 
 <Unit14Simulator lesson="multi-zone" />
 
-```java
-package org.firstinspires.ftc.teamcode.vision;
-
-import org.firstinspires.ftc.vision.VisionProcessor;
-import org.opencv.core.Core;
-import org.opencv.core.Mat;
-import org.opencv.core.Rect;
-import org.opencv.imgproc.Imgproc;
-import android.graphics.Canvas;
-
-public class TwoZoneProcessor implements VisionProcessor {
-
-    public enum SpikeLocation { LEFT, RIGHT }
-
-    public volatile SpikeLocation detectedLocation = SpikeLocation.LEFT;
-
-    private static final Rect LEFT_ZONE  = new Rect(60,  350, 80, 80);
-    private static final Rect RIGHT_ZONE = new Rect(500, 350, 80, 80);
-
-    private final Mat hsvMat = new Mat();
-
-    @Override
-    public Object processFrame(Mat frame, long captureTimeNanos) {
-        // INSERT CODE HERE: Convert frame to HSV
-
-        // INSERT CODE HERE: Compute average saturation for LEFT_ZONE and RIGHT_ZONE
-        // using Core.mean(hsvMat.submat(ZONE)).val[1]
-
-        // INSERT CODE HERE: Set detectedLocation based on which saturation is higher
-
-        return null;
-    }
-
-    @Override
-    public void init(int width, int height,
-                     org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration cal) {}
-
-    @Override
-    public void onDrawFrame(Canvas canvas, int w, int h,
-                            float scaleBmp, float scaleDensity, Object ctx) {}
-}
-```
-
 <details>
 <summary>Show answer</summary>
 
 ```java
-@Override
-public Object processFrame(Mat frame, long captureTimeNanos) {
-    Imgproc.cvtColor(frame, hsvMat, Imgproc.COLOR_RGB2HSV);
+void processFrame(Mat frame) {
+    double leftSat  = getAverageSaturation(frame, LEFT_ZONE);
+    double rightSat = getAverageSaturation(frame, RIGHT_ZONE);
 
-    double satLeft  = Core.mean(hsvMat.submat(LEFT_ZONE)).val[1];
-    double satRight = Core.mean(hsvMat.submat(RIGHT_ZONE)).val[1];
-
-    if (satLeft > satRight) {
+    if (leftSat > rightSat) {
         detectedLocation = SpikeLocation.LEFT;
     } else {
         detectedLocation = SpikeLocation.RIGHT;
     }
-
-    return null;
 }
 ```
 

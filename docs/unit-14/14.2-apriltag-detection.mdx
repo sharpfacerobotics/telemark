@@ -131,36 +131,12 @@ Open the simulator in fullscreen before you start so the editor, telemetry, cont
 
 <Unit14Simulator lesson="apriltag-detection" />
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-import java.util.List;
-
-public class VisionHelper {
-
-    private AprilTagProcessor aprilTagProcessor;
-
-    public VisionHelper(AprilTagProcessor processor) {
-        this.aprilTagProcessor = processor;
-    }
-
-    // INSERT CODE HERE: Write scanForTag(int targetId) that returns true
-    // if a detection with that ID exists and has non-null metadata,
-    // and false otherwise.
-
-}
-```
-
 <details>
 <summary>Show answer</summary>
 
 ```java
-public boolean scanForTag(int targetId) {
-    List<AprilTagDetection> detections = aprilTagProcessor.getDetections();
-
-    for (AprilTagDetection detection : detections) {
+boolean scanForTag(int targetId) {
+    for (AprilTagDetection detection : aprilTagProcessor.getDetections()) {
         if (detection.id == targetId && detection.metadata != null) {
             return true;
         }

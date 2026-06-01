@@ -159,60 +159,40 @@ public class LimelightFusionDemo extends LinearOpMode {
 
 ## Simulator Challenge
 
-Write a standalone method `correctPoseFromLimelight()` for a mechanism class that holds both a `Follower` and a `Limelight3A` as member variables. The method should: get the latest Limelight result, return immediately if the result is null or invalid or if `getBotpose()` is null, otherwise convert the position from meters to inches, extract the yaw in radians, and call `follower.setPose()` with the corrected values.
+Complete the simulator's `correctPoseFromLimelight()` method. It should get the latest Limelight result, return immediately if the result is null or invalid, read `result.getBotpose()` into a `double[] botpose`, return if that array is null or shorter than 6 values, convert x and y from meters to inches, convert yaw from degrees to radians, and call `follower.setPose()` with the corrected `Pose`.
 
 Open the simulator in fullscreen before you start so the editor, telemetry, controls, and visualizer are easy to read. Complete the missing starter-code lines in the simulator editor, press **Init** and **Start**, then use telemetry, visual feedback, and any checks or hints to debug before opening the answer.
 
 <Unit15Simulator lesson="limelight-fusion" />
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.hardware.limelightvision.LLResult;
-import com.pedropathing.follower.Follower;
-import com.pedropathing.localization.Pose;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-
-public class FusionLocalizer {
-
-    private final Follower    follower;
-    private final Limelight3A limelight;
-
-    private static final double M_TO_IN = 39.3701;
-
-    public FusionLocalizer(Follower follower, Limelight3A limelight) {
-        this.follower  = follower;
-        this.limelight = limelight;
-    }
-
-    // INSERT CODE HERE: Write the correctPoseFromLimelight() method
-    // following the steps described above.
-
-}
-```
-
 <details>
 <summary>Show answer</summary>
 
 ```java
-public void correctPoseFromLimelight() {
+void correctPoseFromLimelight() {
     LLResult result = limelight.getLatestResult();
 
-    if (result == null || !result.isValid()) {
+    if (result == null) {
         return;
     }
 
-    Pose3D botPose = result.getBotpose();
-
-    if (botPose == null) {
+    if (!result.isValid()) {
         return;
     }
 
-    double xInches     = botPose.getPosition().x * M_TO_IN;
-    double yInches     = botPose.getPosition().y * M_TO_IN;
-    double headingRads = botPose.getOrientation().getYaw(AngleUnit.RADIANS);
+    double[] botpose = result.getBotpose();
+
+    if (botpose == null) {
+        return;
+    }
+
+    if (botpose.length < 6) {
+        return;
+    }
+
+    double xInches     = botpose[0] * 39.3701;
+    double yInches     = botpose[1] * 39.3701;
+    double headingRads = Math.toRadians(botpose[5]);
 
     follower.setPose(new Pose(xInches, yInches, headingRads));
 }

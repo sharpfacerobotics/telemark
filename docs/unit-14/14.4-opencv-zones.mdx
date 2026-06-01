@@ -139,37 +139,19 @@ public class SpikeMarkProcessor implements VisionProcessor {
 
 ## Simulator Challenge
 
-Your camera is a 640x480 stream. Define three `Rect` zone objects for detecting a team scoring element at the three possible spike mark positions. The zones should be approximately 60 pixels wide and 60 pixels tall. Position the left zone starting at x=60, the center zone starting at x=290, and the right zone starting at x=510. All three should have their top edge at y=350.
+Your camera is a 640x480 stream. Define three `Rect` zone constants named `LEFT_ZONE`, `CENTER_ZONE`, and `RIGHT_ZONE` for detecting a team scoring element at the three possible spike mark positions. Each zone should be 60 pixels wide and 60 pixels tall. Position the left zone starting at x=60, the center zone starting at x=290, and the right zone starting at x=510. All three should have their top edge at y=350.
 
 Open the simulator in fullscreen before you start so the editor, telemetry, controls, and visualizer are easy to read. Complete the missing starter-code lines in the simulator editor, press **Init** and **Start**, then use telemetry, visual feedback, and any checks or hints to debug before opening the answer.
 
 <Unit14Simulator lesson="opencv-zones" />
 
-```java
-package org.firstinspires.ftc.teamcode.vision;
-
-import org.opencv.core.Rect;
-
-public class SpikeMathZones {
-
-    // INSERT CODE HERE: Define rectLeft with top-left at (60, 350), 60x60
-    public Rect rectLeft   = // INSERT VALUE HERE
-
-    // INSERT CODE HERE: Define rectCenter with top-left at (290, 350), 60x60
-    public Rect rectCenter = // INSERT VALUE HERE
-
-    // INSERT CODE HERE: Define rectRight with top-left at (510, 350), 60x60
-    public Rect rectRight  = // INSERT VALUE HERE
-}
-```
-
 <details>
 <summary>Show answer</summary>
 
 ```java
-public Rect rectLeft   = new Rect(60,  350, 60, 60);
-public Rect rectCenter = new Rect(290, 350, 60, 60);
-public Rect rectRight  = new Rect(510, 350, 60, 60);
+static final Rect LEFT_ZONE   = new Rect(60,  350, 60, 60);
+static final Rect CENTER_ZONE = new Rect(290, 350, 60, 60);
+static final Rect RIGHT_ZONE  = new Rect(510, 350, 60, 60);
 ```
 
 </details>

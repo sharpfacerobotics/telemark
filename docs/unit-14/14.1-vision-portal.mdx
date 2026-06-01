@@ -138,57 +138,19 @@ Open the simulator in fullscreen before you start so the editor, telemetry, cont
 
 <Unit14Simulator lesson="vision-portal" />
 
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.hardware.WebcamName;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-
-@Autonomous(name="Portal_Init_Challenge")
-public class PortalInitChallenge extends LinearOpMode {
-
-    private VisionPortal      portal;
-    private AprilTagProcessor processor;
-
-    @Override
-    public void runOpMode() {
-        // INSERT CODE HERE: Retrieve "front_cam" as a WebcamName
-
-        // INSERT CODE HERE: Create a default AprilTagProcessor
-
-        // INSERT CODE HERE: Create the VisionPortal with the webcam and processor
-
-        telemetry.addData("Status", "Camera ready -- aim before pressing Start");
-        telemetry.update();
-
-        waitForStart();
-
-        // INSERT CODE HERE: Stop streaming now that the match has started
-
-        if (opModeIsActive()) {
-            telemetry.addData("Status", "Driving phase");
-            telemetry.update();
-            sleep(1000);
-        }
-    }
-}
-```
-
 <details>
 <summary>Show answer</summary>
 
 ```java
-WebcamName webcam = hardwareMap.get(WebcamName.class, "front_cam");
+aprilTagProcessor = AprilTagProcessor.easyCreateWithDefaults();
 
-processor = AprilTagProcessor.easyCreateWithDefaults();
-
-portal = VisionPortal.easyCreateWithDefaults(webcam, processor);
+visionPortal = new VisionPortal.Builder()
+    .setCamera(hardwareMap.get(WebcamName.class, "front_cam"))
+    .addProcessor(aprilTagProcessor)
+    .build();
 
 // After waitForStart():
-portal.stopStreaming();
+visionPortal.stopStreaming();
 ```
 
 </details>

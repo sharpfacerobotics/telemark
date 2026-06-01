@@ -154,97 +154,89 @@ public class ModularTeleOp extends OpMode {
 
 ## Simulator Challenge
 
-Assemble a `MyRobot` class that integrates two existing subsystems: a `ClawMechanism` and a `WristMechanism`. Both already have `init(HardwareMap hwMap)` and `stop()` methods. Then write the `init()` and `stopAll()` methods for `MyRobot`, and show how an OpMode would use it to open the claw when `gamepad1.a` is pressed.
+Complete the simulator's `ClawMechanism`, `WristMechanism`, and `MyRobot` classes. The claw should map the `"claw"` servo and expose `open()`, `close()`, and `stop()` methods. The wrist should map the `"wrist"` motor, brake when stopped, and expose `move()` and `stop()`. `MyRobot` should compose both subsystems, initialize them together, and provide one `stopAll()` cleanup method that the OpMode calls.
 
 Open the simulator in fullscreen before you start so the editor, telemetry, controls, and visualizer are easy to read. Complete the missing starter-code lines in the simulator editor, press **Init** and **Start**, then use telemetry, visual feedback, and any checks or hints to debug before opening the answer.
 
 <Unit13Simulator lesson="robot-class" />
 
-```java
-package org.firstinspires.ftc.teamcode.mechanisms;
-
-import com.qualcomm.robotcore.hardware.HardwareMap;
-
-public class MyRobot {
-
-    // INSERT CODE HERE: Declare a public ClawMechanism named 'claw'
-    // INSERT CODE HERE: Declare a public WristMechanism named 'wrist'
-
-    public void init(HardwareMap hwMap) {
-        // INSERT CODE HERE: Initialize both subsystems
-    }
-
-    public void stopAll() {
-        // INSERT CODE HERE: Stop both subsystems
-    }
-}
-```
-
-```java
-package org.firstinspires.ftc.teamcode;
-
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import org.firstinspires.ftc.teamcode.mechanisms.MyRobot;
-
-@TeleOp(name="My_Robot_TeleOp")
-public class MyRobotTeleOp extends OpMode {
-
-    // INSERT CODE HERE: Declare and instantiate a MyRobot object named 'robot'
-
-    @Override
-    public void init() {
-        // INSERT CODE HERE: Initialize the robot
-    }
-
-    @Override
-    public void loop() {
-        // INSERT CODE HERE: If gamepad1.a is pressed, open the claw
-        // Otherwise close it
-    }
-
-    @Override
-    public void stop() {
-        // INSERT CODE HERE: Stop everything
-    }
-}
-```
-
 <details>
 <summary>Show answer</summary>
 
 ```java
-// MyRobot.java
-public ClawMechanism  claw  = new ClawMechanism();
-public WristMechanism wrist = new WristMechanism();
+class ClawMechanism {
+    private Servo claw;
 
-public void init(HardwareMap hwMap) {
-    claw.init(hwMap);
-    wrist.init(hwMap);
+    public void init(HardwareMap hwMap) {
+        claw = hwMap.get(Servo.class, "claw");
+    }
+
+    public void open() {
+        claw.setPosition(0.1);
+    }
+
+    public void close() {
+        claw.setPosition(0.9);
+    }
+
+    public void stop() {
+        // Servos hold position.
+    }
 }
 
-public void stopAll() {
-    claw.stop();
-    wrist.stop();
+class WristMechanism {
+    private DcMotor wrist;
+
+    public void init(HardwareMap hwMap) {
+        wrist = hwMap.get(DcMotor.class, "wrist");
+        wrist.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    }
+
+    public void move(double power) {
+        wrist.setPower(power);
+    }
+
+    public void stop() {
+        wrist.setPower(0.0);
+    }
 }
 ```
 
 ```java
-// MyRobotTeleOp.java
-private MyRobot robot = new MyRobot();
+class MyRobot {
+    public ClawMechanism  claw  = new ClawMechanism();
+    public WristMechanism wrist = new WristMechanism();
+
+    public void init(HardwareMap hwMap) {
+        claw.init(hwMap);
+        wrist.init(hwMap);
+    }
+
+    public void stopAll() {
+        claw.stop();
+        wrist.stop();
+    }
+}
+```
+
+```java
+MyRobot robot = new MyRobot();
 
 @Override
 public void init() {
     robot.init(hardwareMap);
+    telemetry.addData("Status", "Initialized");
 }
 
 @Override
 public void loop() {
     if (gamepad1.a) {
         robot.claw.open();
+        telemetry.addData("Claw", "Open");
     } else {
-        robot.claw.close();
+        telemetry.addData("Claw", "Idle");
     }
+    telemetry.update();
 }
 
 @Override

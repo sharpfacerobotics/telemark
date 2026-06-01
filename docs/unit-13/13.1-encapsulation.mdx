@@ -161,45 +161,26 @@ Open the simulator in fullscreen before you start so the editor, telemetry, cont
 
 <Unit13Simulator lesson="encapsulation" />
 
-```java
-package org.firstinspires.ftc.teamcode.mechanisms;
-
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-
-public class IntakeMechanism {
-
-    // INSERT CODE HERE: Declare a private CRServo named intakeServo
-
-    public void init(HardwareMap hwMap) {
-        // INSERT CODE HERE: Map "intake_servo" as a CRServo
-    }
-
-    // INSERT CODE HERE: Write collect(), eject(), and stop() methods
-}
-```
-
 <details>
 <summary>Show answer</summary>
 
 ```java
-private CRServo intakeServo;
+private CRServo intake_servo;
 
 public void init(HardwareMap hwMap) {
-    intakeServo = hwMap.get(CRServo.class, "intake_servo");
-    intakeServo.setPower(0);
+    intake_servo = hwMap.get(CRServo.class, "intake_servo");
 }
 
 public void collect() {
-    intakeServo.setPower(0.8);
+    intake_servo.setPower(0.8);
 }
 
 public void eject() {
-    intakeServo.setPower(-0.8);
+    intake_servo.setPower(-0.8);
 }
 
 public void stop() {
-    intakeServo.setPower(0);
+    intake_servo.setPower(0.0);
 }
 ```
 

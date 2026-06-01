@@ -146,45 +146,14 @@ Open the simulator in fullscreen before you start so the editor, telemetry, cont
 
 <Unit13Simulator lesson="inheritance" />
 
-```java
-package org.firstinspires.ftc.teamcode.mechanisms;
-
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
-
-// Parent class -- do not modify
-public class BaseServoMechanism {
-    protected Servo servo;
-
-    public void init(HardwareMap hwMap, String servoName) {
-        servo = hwMap.get(Servo.class, servoName);
-    }
-
-    public void setPosition(double pos) {
-        servo.setPosition(pos);
-    }
-}
-```
-
-```java
-package org.firstinspires.ftc.teamcode.mechanisms;
-
-// INSERT CODE HERE: Declare GrabberMechanism extending BaseServoMechanism
-{
-    // INSERT CODE HERE: Declare OPEN_POS and CLOSED_POS as private static final doubles
-
-    // INSERT CODE HERE: Write open() and close() methods that call setPosition()
-}
-```
-
 <details>
 <summary>Show answer</summary>
 
 ```java
 public class GrabberMechanism extends BaseServoMechanism {
 
-    private static final double OPEN_POS   = 0.1;
-    private static final double CLOSED_POS = 0.9;
+    public static final double OPEN_POS   = 0.1;
+    public static final double CLOSED_POS = 0.9;
 
     public void open() {
         setPosition(OPEN_POS);
