@@ -124,11 +124,26 @@
     return result;
   }
 
+  const managedJavaRuntimes = new Set();
+
   function createRuntime(options) {
     if (!window.TelemarkJava || typeof window.TelemarkJava.createRuntime !== "function") {
       throw new Error("Telemark Java runtime is unavailable");
     }
-    return window.TelemarkJava.createRuntime.apply(window.TelemarkJava, arguments);
+    const original = options || {};
+    const settings = Object.assign({}, original, {
+      onBatteryChange: function (state) {
+        updateBatteryHud(state);
+        if (typeof original.onBatteryChange === "function") original.onBatteryChange(state);
+      },
+      onBatteryWarning: function (state) {
+        batteryWarning(state);
+        if (typeof original.onBatteryWarning === "function") original.onBatteryWarning(state);
+      },
+    });
+    const runtime = window.TelemarkJava.createRuntime(settings);
+    managedJavaRuntimes.add(runtime);
+    return runtime;
   }
 
   function preventNativeControllerDrag(root) {
@@ -782,7 +797,16 @@
       font-size: 0.85rem;
     }
     .sim-ds-state { font-weight: 700; }
+    .sim-ds-readouts { display: inline-flex; align-items: center; gap: 12px; }
     .sim-ds-timer { color: #569cd6; }
+    .sim-battery-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-secondary);
+      opacity: 0.78;
+      font-size: 0.76rem;
+    }
 
     /* ── Telemetry Panel ── */
     .sim-telemetry-panel {
@@ -1725,7 +1749,10 @@
     const dsStatus = el("div", { className: "sim-ds-status" });
     dsStatus.innerHTML = `
       <span class="sim-ds-state" id="sim-ds-state" style="color:var(--danger)">STOPPED</span>
-      <span class="sim-ds-timer">Time: <span id="sim-timer-val">0.00</span>s</span>
+      <span class="sim-ds-readouts">
+        <span class="sim-battery-status" title="Simulated robot battery"><i class="fa-solid fa-battery-three-quarters" aria-hidden="true"></i><span id="sim-battery-voltage">13.00</span> V</span>
+        <span class="sim-ds-timer">Time: <span id="sim-timer-val">0.00</span>s</span>
+      </span>
     `;
     bottomBar.appendChild(dsStatus);
 
@@ -2911,6 +2938,7 @@
   let pendingLoopFn = null;
   let timerInterval = null;
   let runtimeStart = 0;
+  let previousPhysicsTime = 0;
   let stopRequested = true;
   let studentLifecycle = null;
   let lifecycleError = false;
@@ -2971,12 +2999,22 @@
 
   function startTimer() {
     runtimeStart = Date.now();
+    previousPhysicsTime = runtimeStart;
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(function () {
+      const now = Date.now();
+      const dt = Math.max(0, (now - previousPhysicsTime) / 1000);
+      previousPhysicsTime = now;
+      if (window.hardwareMap && typeof window.hardwareMap.tick === "function") {
+        window.hardwareMap.tick(dt, true);
+      }
+      managedJavaRuntimes.forEach(function (runtime) {
+        if (typeof runtime.tick === "function") runtime.tick(dt);
+      });
       const timerVal = document.getElementById("sim-timer-val");
       if (timerVal) {
         timerVal.textContent = (
-          (Date.now() - runtimeStart) /
+          (now - runtimeStart) /
           1000
         ).toFixed(2);
       }
@@ -3055,6 +3093,14 @@
     pendingSleepTimers.clear();
     studentLifecycle = null;
     runtimeStart = 0;
+    previousPhysicsTime = 0;
+    if (window.TelemarkJava && typeof window.TelemarkJava.createBatteryModel === "function"
+        && window.hardwareMap && typeof window.hardwareMap.stopBattery === "function") {
+      window.hardwareMap.stopBattery();
+    }
+    managedJavaRuntimes.forEach(function (runtime) {
+      if (typeof runtime.stop === "function") runtime.stop();
+    });
 
     // Challenge pages often keep their own running flags, animation tokens,
     // and hardware state. Give them the same cleanup notification as a normal
@@ -3088,6 +3134,13 @@
     pendingLoopFn = null;
     studentLifecycle = null;
     lifecycleError = false;
+
+    if (window.TelemarkJava && typeof window.TelemarkJava.createBatteryModel === "function") {
+      window.hardwareMap.resetBattery();
+    }
+    managedJavaRuntimes.forEach(function (runtime) {
+      if (typeof runtime.resetBattery === "function") runtime.resetBattery();
+    });
 
     const telLog = document.getElementById("sim-telemetry-log");
 
@@ -3150,6 +3203,12 @@
 
     setDriverStationState("RUNNING", "var(--good)");
     setPrimaryButton("Start", true);
+    if (window.hardwareMap && typeof window.hardwareMap.startBattery === "function") {
+      window.hardwareMap.startBattery();
+    }
+    managedJavaRuntimes.forEach(function (runtime) {
+      if (typeof runtime.start === "function") runtime.start();
+    });
     startTimer();
 
     try {
@@ -3197,6 +3256,7 @@
       resolve();
     });
     pendingSleepTimers.clear();
+    previousPhysicsTime = 0;
 
     const dsState = document.getElementById("sim-ds-state");
     const btnRun = document.getElementById("sim-btn-run");
@@ -3229,6 +3289,15 @@
         reportLifecycleError("simulator stop callback error", error);
       }
     }
+    if (window.hardwareMap && typeof window.hardwareMap.stopAll === "function") {
+      window.hardwareMap.stopAll();
+      if (window.TelemarkJava && typeof window.TelemarkJava.createBatteryModel === "function") {
+        window.hardwareMap.tick(0, false);
+      }
+    }
+    managedJavaRuntimes.forEach(function (runtime) {
+      if (typeof runtime.stop === "function") runtime.stop();
+    });
   }
 
   // Expose for transpiler
@@ -3761,6 +3830,8 @@
 
   const hwCallbacks = {
     onMotorPower: [],
+    onMotorVelocity: [],
+    onBattery: [],
     onMotorDirection: [],
     onMotorMode: [],
     onMotorZeroPower: [],
@@ -3776,13 +3847,51 @@
 
   /** Registry of mock devices by name */
   const hwDevices = {};
+  let virtualBattery = null;
+
+  function updateBatteryHud(state) {
+    const value = document.getElementById("sim-battery-voltage");
+    if (value && state) value.textContent = Number(state.terminalVoltage).toFixed(2);
+  }
+
+  function batteryWarning() {
+    if (typeof window.addHint !== "function") return;
+    window.addHint(
+      '<i class="fa-solid fa-bolt"></i> An open-loop motor is losing speed as the battery drains. '
+        + '<code>setPower()</code> requests a fraction of battery voltage; use '
+        + '<code>DcMotorEx.setVelocity()</code> with tuned PIDF coefficients for consistent speed.',
+      "warn"
+    );
+  }
+
+  function ensureVirtualBattery() {
+    if (virtualBattery) return virtualBattery;
+    if (!window.TelemarkJava || typeof window.TelemarkJava.createBatteryModel !== "function") {
+      throw new Error("Telemark battery model is unavailable");
+    }
+    virtualBattery = window.TelemarkJava.createBatteryModel({
+      onChange: function (state) {
+        updateBatteryHud(state);
+        hwCallbacks.onBattery.forEach(function (callback) { callback(state); });
+      },
+      onWarning: batteryWarning,
+    });
+    return virtualBattery;
+  }
 
   /**
    * Mock DcMotor
    */
-  function MockDcMotor(name) {
+  function MockDcMotor(name, type) {
     this._name = name;
+    this._type = type === "DcMotorEx" ? "DcMotorEx" : "DcMotor";
     this._power = 0;
+    this._requestedPower = 0;
+    this._requestedVelocity = 0;
+    this._measuredVelocity = 0;
+    this._effectiveOutput = 0;
+    this._controlMode = "power";
+    this._pidf = { p: 10, i: 0, d: 0, f: 12 / 2800 };
     this._direction = "FORWARD";
     this._mode = "RUN_WITHOUT_ENCODER";
     this._zeroPowerBehavior = "BRAKE";
@@ -3792,7 +3901,9 @@
   }
 
   MockDcMotor.prototype.setPower = function (power) {
-    this._power = Math.max(-1, Math.min(1, power));
+    this._requestedPower = Math.max(-1, Math.min(1, Number(power) || 0));
+    this._power = this._requestedPower;
+    this._controlMode = "power";
     hwCallbacks.onMotorPower.forEach(
       function (cb) {
         cb(this._name, this._power);
@@ -3801,7 +3912,29 @@
   };
 
   MockDcMotor.prototype.getPower = function () {
-    return this._power;
+    return this._requestedPower;
+  };
+
+  MockDcMotor.prototype.setVelocity = function (velocity) {
+    this._requestedVelocity = Number(velocity) || 0;
+    this._controlMode = "velocity";
+  };
+
+  MockDcMotor.prototype.getVelocity = function () {
+    return this._measuredVelocity;
+  };
+
+  MockDcMotor.prototype.setVelocityPIDFCoefficients = function (p, i, d, f) {
+    this._pidf = {
+      p: Number(p) || 0,
+      i: Number(i) || 0,
+      d: Number(d) || 0,
+      f: Number(f) || 0,
+    };
+  };
+
+  MockDcMotor.prototype.getVelocityPIDFCoefficients = function () {
+    return Object.assign({}, this._pidf);
   };
 
   MockDcMotor.prototype.setDirection = function (dir) {
@@ -3822,6 +3955,8 @@
     if (mode === "STOP_AND_RESET_ENCODER") {
       this._currentPosition = 0;
       this._targetPosition = 0;
+      this._measuredVelocity = 0;
+      this._effectiveOutput = 0;
     }
     hwCallbacks.onMotorMode.forEach(
       function (cb) {
@@ -3864,16 +3999,58 @@
       && Math.abs(this._targetPosition - this._currentPosition) > 4;
   };
 
-  MockDcMotor.prototype._tick = function (seconds) {
+  MockDcMotor.prototype._demand = function () {
+    return {
+      mode: this._controlMode,
+      requestedPower: this._requestedPower,
+      demand: Math.min(1, this._controlMode === "velocity"
+        ? Math.abs(this._requestedVelocity) / 2800
+        : Math.abs(this._requestedPower)),
+    };
+  };
+
+  MockDcMotor.prototype._emitVelocity = function () {
+    hwCallbacks.onMotorVelocity.forEach(
+      function (callback) {
+        callback(this._name, this._measuredVelocity, this._effectiveOutput, this._measuredVelocity / (2800 * 13 / 12));
+      }.bind(this)
+    );
+  };
+
+  MockDcMotor.prototype._halt = function () {
+    this._measuredVelocity = 0;
+    this._effectiveOutput = 0;
+    this._emitVelocity();
+  };
+
+  MockDcMotor.prototype._tick = function (seconds, terminalVoltage) {
     const dt = Math.max(0, Math.min(0.1, Number(seconds) || 0));
+    const availableVelocity = 2800 * (Number(terminalVoltage) || 13) / 12;
+    let targetVelocity = this._controlMode === "velocity"
+      ? Math.max(-availableVelocity, Math.min(availableVelocity, this._requestedVelocity))
+      : this._requestedPower * availableVelocity;
     if (this._mode === "RUN_TO_POSITION") {
       const remaining = this._targetPosition - this._currentPosition;
-      const step = Math.abs(this._power) * this._ticksPerRev * dt;
-      if (Math.abs(remaining) <= step) this._currentPosition = this._targetPosition;
-      else this._currentPosition += Math.sign(remaining) * step;
-      return;
+      targetVelocity = Math.sign(remaining) * Math.abs(this._requestedPower) * availableVelocity;
     }
-    this._currentPosition += this._power * this._ticksPerRev * dt;
+    const rate = Math.abs(targetVelocity) > Math.abs(this._measuredVelocity) ? 9000 : 11000;
+    const difference = targetVelocity - this._measuredVelocity;
+    const maximumChange = rate * dt;
+    this._measuredVelocity += Math.abs(difference) <= maximumChange
+      ? difference
+      : Math.sign(difference) * maximumChange;
+    this._effectiveOutput = availableVelocity > 0
+      ? Math.max(-1, Math.min(1, this._measuredVelocity / availableVelocity))
+      : 0;
+    const step = this._measuredVelocity * dt;
+    if (this._mode === "RUN_TO_POSITION" && Math.abs(this._targetPosition - this._currentPosition) <= Math.abs(step)) {
+      this._currentPosition = this._targetPosition;
+      this._measuredVelocity = 0;
+      this._effectiveOutput = 0;
+    } else {
+      this._currentPosition += step;
+    }
+    this._emitVelocity();
   };
 
   /**
@@ -4142,8 +4319,8 @@
   window.hardwareMap = {
     _devices: hwDevices,
 
-    registerMotor: function (name) {
-      const motor = new MockDcMotor(name);
+    registerMotor: function (name, type) {
+      const motor = new MockDcMotor(name, type);
       hwDevices[name] = motor;
       return motor;
     },
@@ -4213,7 +4390,7 @@
       // Auto-register based on type string
       const typeStr = String(type).toLowerCase();
       if (typeStr.includes("dcmotor")) {
-        return this.registerMotor(name);
+        return this.registerMotor(name, typeStr.includes("dcmotorex") ? "DcMotorEx" : "DcMotor");
       } else if (typeStr.includes("crservo")) {
         return this.registerCRServo(name);
       } else if (typeStr.includes("servo")) {
@@ -4251,6 +4428,12 @@
     onMotorPower: function (cb) {
       hwCallbacks.onMotorPower.push(cb);
     },
+    onMotorVelocity: function (cb) {
+      hwCallbacks.onMotorVelocity.push(cb);
+    },
+    onBattery: function (cb) {
+      hwCallbacks.onBattery.push(cb);
+    },
     onMotorDirection: function (cb) {
       hwCallbacks.onMotorDirection.push(cb);
     },
@@ -4285,17 +4468,41 @@
       hwCallbacks.onVisionState.push(cb);
     },
 
-    tick: function (seconds) {
-      Object.keys(hwDevices).forEach(function (name) {
-        const device = hwDevices[name];
-        if (device && typeof device._tick === "function") device._tick(seconds);
+    tick: function (seconds, active) {
+      const battery = ensureVirtualBattery();
+      if (active === true) battery.start();
+      else if (active === false) battery.stop();
+      const motors = Object.keys(hwDevices).map(function (name) { return hwDevices[name]; }).filter(function (device) {
+        return device instanceof MockDcMotor;
       });
+      const batteryState = battery.tick(seconds, motors.map(function (motor) { return motor._demand(); }));
+      motors.forEach(function (motor) { motor._tick(seconds, batteryState.terminalVoltage); });
+      return batteryState;
+    },
+
+    resetBattery: function () {
+      return ensureVirtualBattery().reset();
+    },
+
+    getBatteryState: function () {
+      return ensureVirtualBattery().snapshot();
+    },
+
+    startBattery: function () {
+      return ensureVirtualBattery().start();
+    },
+
+    stopBattery: function () {
+      return ensureVirtualBattery().stop();
     },
 
     stopAll: function () {
       Object.keys(hwDevices).forEach(function (name) {
         const device = hwDevices[name];
-        if (device instanceof MockDcMotor || device instanceof MockCRServo) device.setPower(0);
+        if (device instanceof MockDcMotor) {
+          device.setPower(0);
+          device._halt();
+        } else if (device instanceof MockCRServo) device.setPower(0);
       });
     },
 
@@ -4306,6 +4513,7 @@
     clear: function () {
       for (const k in hwDevices) delete hwDevices[k];
       for (const k in hwCallbacks) hwCallbacks[k] = [];
+      if (virtualBattery) virtualBattery.reset();
     },
   };
 
@@ -4326,6 +4534,7 @@
       FLOAT: "FLOAT",
     },
   };
+  window.DcMotorEx = window.DcMotor;
 
   // Expose DcMotorSimple for direction
   window.DcMotorSimple = {

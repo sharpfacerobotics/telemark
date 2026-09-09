@@ -21,6 +21,8 @@ Apply encoder feedback in `Launcher.java`. `setPower()` is still useful for many
 
 Make the conversion readable enough that a teammate can change wheel size without rewriting the routine.
 
+The simulator's small battery readout starts at 13.0 V and drains only while the OpMode is running. Compare an open-loop `setPower()` launcher with `setVelocity()`: the measured open-loop speed will fall with voltage, while a reachable velocity target should remain steady. If that loss continues long enough, the normal code-hint area will explain what the motor command is doing.
+
 ## Coding Challenge Simulator
 
 <MasterySimulator unit={10} project />

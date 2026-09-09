@@ -213,6 +213,7 @@ function testTypedVariablesAndMethods() {
   for (const [type, name, prefix, expected] of [
     ['DcMotor', 'armLift', 'setP', 'setPower'],
     ['DcMotorEx', 'flywheel', 'setV', 'setVelocity'],
+    ['DcMotorEx', 'flywheel', 'setVelocityP', 'setVelocityPIDFCoefficients'],
     ['Servo', 'claw', 'setP', 'setPosition'],
     ['ElapsedTime', 'timer', 'sec', 'seconds'],
   ]) {

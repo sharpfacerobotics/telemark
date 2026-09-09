@@ -1823,9 +1823,6 @@ public class FullAutonomous extends LinearOpMode {
         const dt = currentTime - previousTime;
         previousTime = currentTime;
         if (!modelReady) return;
-        if (global.hardwareMap && typeof global.hardwareMap.tick === "function") {
-          global.hardwareMap.tick(dt);
-        }
         motion.step(dt);
         animation(currentTime, dt);
         if (motionReadout) motionReadout.textContent = generatedMotionText();

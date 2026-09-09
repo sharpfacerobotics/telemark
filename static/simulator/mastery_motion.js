@@ -234,7 +234,16 @@
 
     function connectHardwareMap(hardwareMap) {
       if (!hardwareMap) return;
-      if (typeof hardwareMap.onMotorPower === "function") hardwareMap.onMotorPower(setMotorPower);
+      if (typeof hardwareMap.onMotorVelocity === "function") {
+        hardwareMap.onMotorVelocity(function (name, velocity, _effectiveOutput, normalizedVelocity) {
+          const measured = Number.isFinite(normalizedVelocity)
+            ? normalizedVelocity
+            : (Number(velocity) || 0) / (2800 * 13 / 12);
+          setMotorPower(name, measured);
+        });
+      } else if (typeof hardwareMap.onMotorPower === "function") {
+        hardwareMap.onMotorPower(setMotorPower);
+      }
       if (typeof hardwareMap.onServoPosition === "function") hardwareMap.onServoPosition(setServoPosition);
       if (typeof hardwareMap.onCRServoPower === "function") hardwareMap.onCRServoPower(setCRServoPower);
       if (typeof hardwareMap.onVisionState === "function") {

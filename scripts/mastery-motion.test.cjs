@@ -462,6 +462,20 @@ function testChallengeSdkMocks() {
   assert.ok(pathMotion.snapshot().pathProgress > 0);
 }
 
+function testConnectedMotionUsesMeasuredMotorVelocity() {
+  const motion = MasteryMotion.create(10);
+  let velocityCallback = null;
+  let powerCallbackRegistered = false;
+  motion.connectHardwareMap({
+    onMotorVelocity(callback) { velocityCallback = callback; },
+    onMotorPower() { powerCallbackRegistered = true; },
+  });
+  assert.equal(powerCallbackRegistered, false, 'measured velocity replaces requested power when the runtime supports it');
+  velocityCallback('flywheel', 1400, 0.6, 0.46);
+  motion.step(0.1);
+  assert.ok(Math.abs(motion.outputs().primary - 0.46) < 1e-9, 'flywheel animation follows measured motor velocity');
+}
+
 testUnit2KgDrivetrain();
 testUnit4Drivetrain();
 testIndependentWheelOutputs();
@@ -479,4 +493,5 @@ testGeneratedChallengeMotionIsObservable();
 testMecanumDrive();
 testMecanumPhysicsBeginsAfterUnitEightLesson();
 testChallengeSdkMocks();
+testConnectedMotionUsesMeasuredMotorVelocity();
 console.log('Mastery challenge motion tests passed');
