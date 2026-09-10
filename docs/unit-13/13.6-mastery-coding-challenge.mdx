@@ -25,6 +25,21 @@ The OpMode should read like coordination code. A passing snapshot becomes the re
 
 ## Coding Challenge Simulator
 
+The simulator turns the completed project into a KG-SFR DECODE driver-control challenge. Start in **Practice** to see the predicted artifact trajectory and use a replenishing supply. Switch to **Match** for a deterministic 120-second run with 18 alliance-side artifacts and no trajectory preview.
+
+The three-artifact robot capacity and two-minute TeleOp clock follow the [DECODE Competition Manual](https://ftc-resources.firstinspires.org/ftc/archive/2026/game/cm-html/DECODE_Competition_Manual_TU32.htm).
+
+The visible wheels, intake, transfer, and flywheel follow measured hardware output from your code. A fixed open-loop launcher power will therefore lose speed and change the shot arc as the virtual battery drains; a reachable `setVelocity()` target with PIDF stays much more consistent.
+
+- Left stick: field-relative forward and sideways motion
+- Right stick X: rotation
+- Y: toggle precision mode
+- X: reset heading
+- Right bumper: intake and transfer forward
+- Left bumper: reverse both mechanisms
+- Right trigger: proportional flywheel velocity
+- A: launch one ready artifact on the press edge
+
 <MasterySimulator unit={13} project />
 
 <MarkComplete

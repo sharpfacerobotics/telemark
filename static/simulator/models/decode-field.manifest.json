@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "asset": {
+    "primarySource": "robot-cad-sources/decode-field.glb",
+    "alternateSource": "robot-cad-sources/decode-field.obj",
+    "browserAsset": null,
+    "status": "procedural-fallback"
+  },
+  "scale": 1,
+  "origin": {"x": 0, "y": 0, "z": 0},
+  "boundaries": {"minX": -3.6, "maxX": 3.6, "minZ": -3.6, "maxZ": 3.6},
+  "goalOpening": {
+    "planeZ": -3.28,
+    "minX": -0.72,
+    "maxX": 0.72,
+    "minY": 0.72,
+    "maxY": 1.72
+  },
+  "collisionAreas": [
+    {"id": "goal-left", "minX": -1.02, "maxX": -0.72, "minZ": -3.38, "maxZ": -3.18},
+    {"id": "goal-right", "minX": 0.72, "maxX": 1.02, "minZ": -3.38, "maxZ": -3.18}
+  ],
+  "artifactSpawnPoints": [
+    {"x": -2.35, "y": 0.09, "z": 0.95},
+    {"x": -1.42, "y": 0.09, "z": 0.95},
+    {"x": -0.48, "y": 0.09, "z": 0.95},
+    {"x": 0.48, "y": 0.09, "z": 0.95},
+    {"x": 1.42, "y": 0.09, "z": 0.95},
+    {"x": 2.35, "y": 0.09, "z": 0.95},
+    {"x": -2.35, "y": 0.09, "z": 1.72},
+    {"x": -1.42, "y": 0.09, "z": 1.72},
+    {"x": -0.48, "y": 0.09, "z": 1.72},
+    {"x": 0.48, "y": 0.09, "z": 1.72},
+    {"x": 1.42, "y": 0.09, "z": 1.72},
+    {"x": 2.35, "y": 0.09, "z": 1.72},
+    {"x": -2.35, "y": 0.09, "z": 2.48},
+    {"x": -1.42, "y": 0.09, "z": 2.48},
+    {"x": -0.48, "y": 0.09, "z": 2.48},
+    {"x": 0.48, "y": 0.09, "z": 2.48},
+    {"x": 1.42, "y": 0.09, "z": 2.48},
+    {"x": 2.35, "y": 0.09, "z": 2.48}
+  ]
+}

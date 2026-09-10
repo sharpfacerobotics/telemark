@@ -365,7 +365,7 @@ vm.runInNewContext(challengeSource, {
 });
 const challengeApi = challengeWindow.TelemarkMasteryChallenge;
 // Exercise the actual presentation update with independent drive commands.
-const driveUpdate = challengeSource.match(/function applyDriveState\(\) \{([\s\S]*?)\n    \}\n\n    if \(cadSourceUnit\)/)[1];
+const driveUpdate = challengeSource.match(/function applyDriveState\(\) \{([\s\S]*?)\n    \}\n\n    let decodeMechanisms/)[1];
 for (const [angles, expected] of [
   [[1, 1, 1, 1], [1, 1, 1, 1]],
   [[-1, -1, -1, -1], [-1, -1, -1, -1]],
@@ -382,7 +382,7 @@ for (const [angles, expected] of [
   assert.deepEqual(wheels.map(wheel => wheel.object.rotation.z), expected);
   assert.ok(robot.position.x < 0, 'Forward travels along CAD negative X; positive Z wheel rotation rolls in that direction');
 }
-for (const unit of [7, 9, 11, 13]) {
+for (const unit of [7, 9, 11]) {
   assert.equal(
     challengeApi.cadSourceUnitFor(unit),
     null,
@@ -390,6 +390,8 @@ for (const unit of [7, 9, 11, 13]) {
   );
 }
 assert.equal(challengeApi.cadSourceUnitFor(8), 8, 'Unit 8 must use Team 11115 Gluten Free CAD');
+assert.equal(challengeApi.cadSourceUnitFor(13), 2, 'Unit 13 must use the KG-SFR CAD chassis');
+assert.equal(challengeApi.robotProfileForUnit(13).name, 'KG-SFR DECODE robot');
 for (const unit of [2, 3, 4, 5, 6, 10, 12, 14, 15]) {
   assert.equal(
     challengeApi.cadSourceUnitFor(unit),
@@ -397,6 +399,17 @@ for (const unit of [2, 3, 4, 5, 6, 10, 12, 14, 15]) {
     `Unit ${unit} must retain its imported competition CAD`,
   );
 }
+for (const part of ['intake', 'transfer', 'flywheel']) {
+  assert.match(
+    challengeSource,
+    new RegExp(`name = "telemark-cad-${part}"`),
+    `Unit 13 must expose a stable ${part} animation node`,
+  );
+}
+assert.match(challengeSource, /motion\.state\.intakeAngle/);
+assert.match(challengeSource, /motion\.state\.transferAngle/);
+assert.match(challengeSource, /motion\.state\.flywheelAngle/);
+assert.match(challengeSource, /TelemarkDecodeGameView\.mount/);
 
 const unit5Solution = `
   import com.qualcomm.robotcore.eventloop.opmode.OpMode;

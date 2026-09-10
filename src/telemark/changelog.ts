@@ -37,6 +37,7 @@ export const CHANGELOG: readonly ChangeEntry[] = [
       'Preview, copy, and export read-only snapshots from earlier passing stages.',
       'Review each grading result and choose Auto, Done, or Not done when the automatic judge needs correction.',
       'See open-loop motors slow as the virtual battery drains, then compare them with DcMotorEx velocity control and PIDF.',
+      'Drive the KG-SFR DECODE TeleOp in trajectory-assisted practice or a deterministic 120-second, 18-artifact match.',
       'See Java annotations highlighted and complete @TeleOp, @Autonomous, and @Override as you type.',
       'Get case-sensitive suggestions for FTC SDK types and the classes and methods you write.',
       'Read plain-language definitions of foundational Java keywords in Unit 0.',

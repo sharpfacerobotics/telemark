@@ -950,16 +950,17 @@ public class FullAutonomous extends LinearOpMode {
     10: {name: "Encoder distance robot", detail: "Marked drive wheels for measured RUN_TO_POSITION travel", accent: 0x4ade80},
     11: {name: "Multi-sensor intake robot", detail: "Touch, potentiometer, color, and distance sensing around the intake", accent: 0xfbbf24},
     12: {name: "Field-centric mecanum robot", detail: "Four-wheel drive with a visible Control Hub IMU and orientation axes", accent: 0x818cf8},
-    13: {name: "Modular DECODE robot", detail: "Drive, intake, transfer, launcher, and artifact sensing composed together", accent: 0xc084fc},
+    13: {name: "KG-SFR DECODE robot", detail: "Student code drives the match-ready intake, transfer, flywheel, and mecanum chassis", accent: 0x22d3ee, driveYaw: 0},
     14: {name: "Vision-guided robot", detail: "Camera mast facing three autonomous analysis zones", accent: 0x22c55e},
     15: {name: "Sensor-fused autonomous robot", detail: "Limelight, path follower, and timed scoring arm on one platform", accent: 0x06b6d4}
   });
 
-  const GENERATED_MECHANISM_UNITS = Object.freeze([7, 9, 11, 13]);
+  const GENERATED_MECHANISM_UNITS = Object.freeze([7, 9, 11]);
 
   function cadSourceUnitFor(unit) {
     const numericUnit = Number(unit);
     if (numericUnit < 2 || numericUnit > 15) return null;
+    if (numericUnit === 13) return 2;
     // These challenges need several independently controlled parts that the
     // flattened imported CAD cannot articulate faithfully. Their dedicated
     // models preserve the exact motor, sensor, and servo behavior being coded.
@@ -969,6 +970,7 @@ public class FullAutonomous extends LinearOpMode {
   }
 
   function robotProfileForUnit(unit) {
+    if (Number(unit) === 13) return ROBOT_PROFILES[13];
     return ROBOT_PROFILES[cadSourceUnitFor(unit)] || ROBOT_PROFILES[unit];
   }
 
@@ -1534,6 +1536,7 @@ public class FullAutonomous extends LinearOpMode {
 
     let animation = null;
     let motionReadout = null;
+    let decodeGameView = null;
 
     function generatedMotionText() {
       const power = Number(motion.state.primaryPower || 0);
@@ -1567,6 +1570,20 @@ public class FullAutonomous extends LinearOpMode {
       });
     }
 
+    let decodeMechanisms = null;
+    if (unit === 13) {
+      const intake = visibleRoller(0.17, 1.38, [0, 0.33, -0.79], warningMat, [0, 0, Math.PI / 2]);
+      intake.name = "telemark-cad-intake";
+      intake.userData.telemarkDecodeMechanism = "intake";
+      const transfer = visibleRoller(0.15, 0.82, [0, 0.61, -0.12], accentMat, [0, 0, Math.PI / 2]);
+      transfer.name = "telemark-cad-transfer";
+      transfer.userData.telemarkDecodeMechanism = "transfer";
+      const flywheel = visibleRoller(0.3, 0.38, [0, 0.94, 0.58], greenMat, [Math.PI / 2, 0, 0]);
+      flywheel.name = "telemark-cad-flywheel";
+      flywheel.userData.telemarkDecodeMechanism = "flywheel";
+      decodeMechanisms = {intake: intake, transfer: transfer, flywheel: flywheel};
+    }
+
     if (cadSourceUnit) {
       let cadMechanism = null;
       let glutenFreeLift = null;
@@ -1585,6 +1602,12 @@ public class FullAutonomous extends LinearOpMode {
       });
       animation = function () {
         applyDriveState();
+        if (unit === 13) {
+          decodeMechanisms.intake.rotation.y = motion.state.intakeAngle;
+          decodeMechanisms.transfer.rotation.y = motion.state.transferAngle;
+          decodeMechanisms.flywheel.rotation.x = motion.state.flywheelAngle;
+          return;
+        }
         if (cadSourceUnit === 8) {
           if (glutenFreeLift) animate11115Lift(glutenFreeLift);
           return;
@@ -1699,24 +1722,6 @@ public class FullAutonomous extends LinearOpMode {
         box([0.05, 0.36, 0.08], [wheel.position.x, wheel.position.y, wheel.position.z], accentMat, null, [0.65, 0, index % 2 ? 0.65 : -0.65]);
       });
       animation = applyDriveState;
-    } else if (unit === 13) {
-      box([0.52, 0.34, 0.46], [-0.58, 0.77, 0.12], blueMat);
-      box([0.52, 0.34, 0.46], [0.58, 0.77, 0.12], greenMat);
-      const intake = visibleRoller(0.17, 1.38, [0, 0.33, -0.79], warningMat, [0, 0, Math.PI / 2]);
-      const transfer = visibleRoller(0.15, 0.82, [0, 0.61, -0.12], accentMat, [0, 0, Math.PI / 2]);
-      const flywheel = visibleRoller(0.3, 0.38, [0, 0.94, 0.58], greenMat, [Math.PI / 2, 0, 0]);
-      const intakeSample = sphere(0.16, [0, 0.2, -1.48], blueMat);
-      animation = function (_time, dt) {
-        applyDriveState();
-        intake.rotation.y = motion.state.primaryAngle;
-        transfer.rotation.y = motion.state.primaryAngle * 0.8;
-        flywheel.rotation.x = motion.state.primaryAngle * 1.7;
-        intakeSample.position.z = THREE.MathUtils.clamp(
-          intakeSample.position.z + motion.state.primaryPower * dt * 0.95,
-          -1.55,
-          -0.48
-        );
-      };
     } else if (unit === 14) {
       box([0.1, 0.92, 0.1], [0, 1.08, -0.12], frameMat);
       const cameraHead = new THREE.Group();
@@ -1804,17 +1809,28 @@ public class FullAutonomous extends LinearOpMode {
     }
 
     if (typeof global.setCameraOrbit === "function") {
-      const groundView = unit === 2;
+      const groundView = unit === 2 || unit === 13;
       global.setCameraOrbit({
         theta: groundView ? 0.82 : 0.56,
-        phi: groundView ? 1.2 : 0.78,
-        radius: unit === 8 ? 8.0 : (unit >= 14 ? 6.8 : 5.2),
+        phi: unit === 13 ? 0.92 : (groundView ? 1.2 : 0.78),
+        radius: unit === 8 ? 8.0 : (unit === 13 ? 8.0 : (unit >= 14 ? 6.8 : 5.2)),
         target: {
           x: 0,
           y: unit === 8 ? 1.5 : (groundView ? 0.42 : 0.72),
           z: unit >= 14 ? -0.35 : 0
         }
       });
+    }
+    if (unit === 13 && global.TelemarkDecodeGameView) {
+      decodeGameView = global.TelemarkDecodeGameView.mount({
+        THREE: THREE,
+        visual: visual,
+        robot: robot,
+        motion: motion,
+        hardwareMap: global.hardwareMap,
+        getGamepad: function () { return global.gamepad || {}; }
+      });
+      visual.userData.decodeGameView = decodeGameView;
     }
     if (animation && typeof global.addAnimationCallback === "function") {
       let previousTime = Date.now() * 0.001;
@@ -1825,6 +1841,7 @@ public class FullAutonomous extends LinearOpMode {
         if (!modelReady) return;
         motion.step(dt);
         animation(currentTime, dt);
+        if (decodeGameView) decodeGameView.update(dt);
         if (motionReadout) motionReadout.textContent = generatedMotionText();
       });
     }
@@ -2276,6 +2293,9 @@ public class FullAutonomous extends LinearOpMode {
           addHint('Wait for the robot model to load before initializing.', 'info');
           return false;
         }
+        if (challengeVisual && challengeVisual.userData.decodeGameView) {
+          challengeVisual.userData.decodeGameView.initialize();
+        }
         challengeMotion.setLifecyclePhase("initialized");
         return transpileAndRun(
           getCode(),
@@ -2290,11 +2310,17 @@ public class FullAutonomous extends LinearOpMode {
       };
       global.onStart = function () {
         challengeMotion.setLifecyclePhase("running");
+        if (challengeVisual && challengeVisual.userData.decodeGameView) {
+          challengeVisual.userData.decodeGameView.start();
+        }
         validate();
         updateTelemetry();
       };
       global.onStop = function () {
         challengeMotion.setLifecyclePhase("stopped");
+        if (challengeVisual && challengeVisual.userData.decodeGameView) {
+          challengeVisual.userData.decodeGameView.stop();
+        }
         updateTelemetry();
         if (global.hardwareMap && typeof global.hardwareMap.stopAll === "function") {
           global.hardwareMap.stopAll();
@@ -2302,6 +2328,9 @@ public class FullAutonomous extends LinearOpMode {
       };
       global.onReset = function () {
         clearHints();
+        if (challengeVisual && challengeVisual.userData.decodeGameView) {
+          challengeVisual.userData.decodeGameView.reset();
+        }
         checks.forEach(function (_check, index) { setRequirement(index, false); });
       };
 

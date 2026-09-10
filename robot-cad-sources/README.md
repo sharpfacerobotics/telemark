@@ -10,9 +10,12 @@ These are the original, high-detail files supplied for the coding-challenge robo
 | Unit 5 — 2024 FTC Robot — CENTERSTAGE by Manning | `2024-centerstage-bot-manning-meador-.step` | `2024-centerstage-manning-telemark.glb` |
 | Unit 6 — FTC 17438 Input/Output | `ftc17438_inputoutput_robot_model_29.03.2024.glb` | `ftc17438-inputoutput-telemark.glb` |
 | Unit 8 — FTC 11115 Gluten Free SKYSTONE | `11115_Gluten_Free_Skystone_Robot_STEP.step`, `11115_Gluten_Free_Skystone_Robot_GLB.glb` | `11115-gluten-free-skystone-telemark.glb` |
+| Unit 13 — DECODE field | `decode-field.glb` (preferred) or `decode-field.obj` | `decode-field-optimized.glb` after upload |
 
 The browser assets are modified from their sources through tessellation, spatial simplification, mesh optimization, and/or quantization. Attribution is displayed in each simulator and retained in available GLB metadata.
 
 For Units 3, 5, and 6, existing triangles in the optimized CAD are partitioned into named chassis and mechanism nodes by `scripts/split-cad-mechanisms.cjs`. This lets student motor commands articulate the real robot geometry; the simulator does not add substitute wheels, rollers, claws, or arms to these imported models.
 
 The Team 11115 asset is used with the team's explicit permission and is modified from the original. `scripts/prepare-11115-cad.cjs` preserves the chassis, wheels, intake rollers, DR4B bars, and scoring assembly as separate optimized groups. Unit 8 uses simplified lift motion controlled by one motor; it does not reproduce the exact mechanism in the team's [SKYSTONE reveal video](https://www.youtube.com/watch?v=i2g_b54MEFI).
+
+Unit 13 reuses the optimized KG-SFR chassis and four independently movable CAD wheel nodes. The DECODE presentation adds stable `telemark-cad-intake`, `telemark-cad-transfer`, and `telemark-cad-flywheel` nodes, each animated from its own measured motor output. Run `npm run prepare:decode-field` after uploading either field source. A GLB is validated and prepared directly; an OBJ is triangulated, given smooth normals, and converted to a browser GLB. Until an upload exists, the checked-in manifest deliberately selects the procedural field fallback.

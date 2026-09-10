@@ -22,6 +22,7 @@
 
   function create(unit) {
     const motors = new Map();
+    const motorVelocities = new Map();
     const servos = new Map();
     const crServos = new Map();
     const state = {
@@ -40,14 +41,35 @@
       elapsed: 0,
       driveLeftPower: 0,
       driveRightPower: 0,
+      velocityX: 0,
+      velocityZ: 0,
+      angularVelocity: 0,
       primaryPower: 0,
       armPower: 0,
+      intakePower: 0,
+      transferPower: 0,
+      flywheelPower: 0,
+      intakeVelocity: 0,
+      transferVelocity: 0,
+      flywheelVelocity: 0,
+      intakeAngle: 0,
+      transferAngle: 0,
+      flywheelAngle: 0,
       lifecyclePhase: "stopped",
     };
 
     function setMotorPower(name, power) {
       if (!motors.has(name)) motors.set(name, 0);
       motors.set(name, clamp(power, -1, 1));
+    }
+
+    function setMotorVelocity(name, velocity, normalizedVelocity) {
+      const measured = Number(velocity) || 0;
+      motorVelocities.set(name, measured);
+      setMotorPower(
+        name,
+        Number.isFinite(normalizedVelocity) ? normalizedVelocity : measured / (2800 * 13 / 12)
+      );
     }
 
     function setServoPosition(name, logical, physical) {
@@ -80,7 +102,7 @@
     }
 
     function drivetrainEntries() {
-      const mechanismName = /intake|arm|lift|slide|turret|wrist|flywheel|shooter|roller|claw|grip|mechanism/;
+      const mechanismName = /intake|transfer|launcher|arm|lift|slide|turret|wrist|flywheel|shooter|roller|claw|grip|mechanism/;
       return motorEntries().filter(function (entry) {
         return !mechanismName.test(normalizedName(entry[0]));
       });
@@ -173,12 +195,18 @@
       const forward = mecanum ? powers.forward : (powers.left + powers.right) / 2;
       const strafe = mecanum ? powers.strafe : 0;
       const turn = mecanum ? powers.turn : (powers.left - powers.right) / 2;
+      const previousX = state.x;
+      const previousZ = state.z;
+      const previousHeading = state.heading;
       state.heading += turn * dt * 1.7;
       const speed = 1.65;
       state.x += (Math.sin(state.heading) * forward + Math.cos(state.heading) * strafe) * speed * dt;
       state.z += (-Math.cos(state.heading) * forward + Math.sin(state.heading) * strafe) * speed * dt;
       state.x = clamp(state.x, -2.7, 2.7);
       state.z = clamp(state.z, -2.7, 2.7);
+      state.velocityX = dt > 0 ? (state.x - previousX) / dt : 0;
+      state.velocityZ = dt > 0 ? (state.z - previousZ) / dt : 0;
+      state.angularVelocity = dt > 0 ? (state.heading - previousHeading) / dt : 0;
       state.wheelAngles[0] += powers.wheels[0] * dt * 11;
       state.wheelAngles[1] += powers.wheels[1] * dt * 11;
       state.wheelAngles[2] += powers.wheels[2] * dt * 11;
@@ -193,6 +221,21 @@
       const crPower = average(Array.from(crServos.entries()));
       state.primaryPower = primaryPower || crPower;
       state.armPower = armPower;
+
+      if (unit === 13) {
+        state.intakePower = mechanismPower(/^intake(?:motor)?$/);
+        state.transferPower = mechanismPower(/^transfer(?:motor)?$/);
+        state.flywheelPower = mechanismPower(/^(?:launcher|flywheel|shooter)(?:motor)?$/);
+        state.intakeVelocity = motorVelocities.get("intake") || 0;
+        state.transferVelocity = motorVelocities.get("transfer") || 0;
+        state.flywheelVelocity = motorVelocities.get("launcher")
+          || motorVelocities.get("flywheel")
+          || motorVelocities.get("shooter")
+          || 0;
+        state.intakeAngle += state.intakePower * dt * 12;
+        state.transferAngle += state.transferPower * dt * 12;
+        state.flywheelAngle += state.flywheelPower * dt * 38;
+      }
 
       if (unit === 3) {
         state.primaryPosition = clamp(state.primaryPosition + primaryPower * dt * 0.9, 0, 0.72);
@@ -236,10 +279,7 @@
       if (!hardwareMap) return;
       if (typeof hardwareMap.onMotorVelocity === "function") {
         hardwareMap.onMotorVelocity(function (name, velocity, _effectiveOutput, normalizedVelocity) {
-          const measured = Number.isFinite(normalizedVelocity)
-            ? normalizedVelocity
-            : (Number(velocity) || 0) / (2800 * 13 / 12);
-          setMotorPower(name, measured);
+          setMotorVelocity(name, velocity, normalizedVelocity);
         });
       } else if (typeof hardwareMap.onMotorPower === "function") {
         hardwareMap.onMotorPower(setMotorPower);
@@ -259,6 +299,9 @@
       state.followerActive = false;
       state.driveLeftPower = 0;
       state.driveRightPower = 0;
+      state.velocityX = 0;
+      state.velocityZ = 0;
+      state.angularVelocity = 0;
       state.wheelAngles = [0, 0, 0, 0];
       return state;
     }
@@ -266,6 +309,7 @@
     return {
       state,
       setMotorPower,
+      setMotorVelocity,
       setServoPosition,
       setCRServoPower,
       setVisionActive(active) { state.visionActive = Boolean(active); },
