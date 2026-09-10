@@ -390,9 +390,13 @@ for (const unit of [7, 9, 11]) {
   );
 }
 assert.equal(challengeApi.cadSourceUnitFor(8), 8, 'Unit 8 must use Team 11115 Gluten Free CAD');
-assert.equal(challengeApi.cadSourceUnitFor(13), 2, 'Unit 13 must use the KG-SFR CAD chassis');
+for (const unit of [13, 14, 15]) {
+  assert.equal(challengeApi.cadSourceUnitFor(unit), 2, `Unit ${unit} must keep the KG-SFR CAD chassis`);
+}
 assert.equal(challengeApi.robotProfileForUnit(13).name, 'KG-SFR DECODE robot');
-for (const unit of [2, 3, 4, 5, 6, 10, 12, 14, 15]) {
+assert.equal(challengeApi.robotProfileForUnit(14).name, 'KG-SFR DECODE · Vision');
+assert.equal(challengeApi.robotProfileForUnit(15).name, 'KG-SFR DECODE · Full Autonomous');
+for (const unit of [2, 3, 4, 5, 6, 10, 12]) {
   assert.equal(
     challengeApi.cadSourceUnitFor(unit),
     2 + ((unit - 2) % 5),
@@ -406,6 +410,9 @@ for (const part of ['intake', 'transfer', 'flywheel']) {
     `Unit 13 must expose a stable ${part} animation node`,
   );
 }
+assert.match(challengeSource, /name = "telemark-cad-vision-camera"/, 'Unit 14 must add a camera to the carried-forward robot');
+assert.match(challengeSource, /name = "telemark-cad-limelight"/, 'Unit 15 must add Limelight to the carried-forward robot');
+assert.match(challengeSource, /name = "telemark-autonomous-path"/, 'Unit 15 must render the advanced autonomous path');
 assert.match(challengeSource, /motion\.state\.intakeAngle/);
 assert.match(challengeSource, /motion\.state\.transferAngle/);
 assert.match(challengeSource, /motion\.state\.flywheelAngle/);

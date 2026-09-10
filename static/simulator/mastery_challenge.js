@@ -804,7 +804,7 @@ public class FullAutonomous extends LinearOpMode {
       stageFiles: ["Vision.java", "RobotHardware.java", "CompetitionTeleOp.java"],
       inputs: [],
       checks: [
-        ["Map the configured camera inside Vision", /class\s+Vision[\s\S]*?hardwareMap\s*\.\s*get\s*\(\s*WebcamName\.class/],
+        ["Map Webcam 1 inside Vision", /class\s+Vision[\s\S]*?hardwareMap\s*\.\s*get\s*\(\s*WebcamName\.class\s*,\s*"Webcam 1"\s*\)/],
         ["Build an AprilTag processor and VisionPortal", /class\s+Vision[\s\S]*?AprilTagProcessor[\s\S]*?VisionPortal/],
         ["Inspect current detections safely", /getDetections\s*\(\s*\)/, /for\s*\(\s*AprilTagDetection\s+\w+\s*:/, /metadata\s*!=\s*null/],
         ["Classify left, center, and right zones", /(?:LEFT|CENTER|RIGHT)[\s\S]*?(?:LEFT|CENTER|RIGHT)[\s\S]*?(?:LEFT|CENTER|RIGHT)/],
@@ -821,7 +821,7 @@ public class FullAutonomous extends LinearOpMode {
       stageFiles: ["FullAutonomous.java", "RobotHardware.java", "Vision.java"],
       inputs: [],
       checks: [
-        ["Map, select, and start the Limelight pipeline", /hardwareMap\s*\.\s*get\s*\(\s*Limelight3A\.class/, /pipelineSwitch\s*\(/, /limelight\s*\.\s*start\s*\(/],
+        ["Map, select, and start the Limelight pipeline", /hardwareMap\s*\.\s*get\s*\(\s*Limelight3A\.class\s*,\s*"limelight"\s*\)/, /pipelineSwitch\s*\(/, /limelight\s*\.\s*start\s*\(/],
         ["Create a Follower with a starting Pose", /new\s+Follower\s*\(/, /setStartingPose\s*\(\s*new\s+Pose\s*\(/],
         ["Build a Bézier line and curve PathChain", /new\s+BezierLine\s*\(/, /new\s+BezierCurve\s*\(/, /PathChain/],
         ["Use a named autonomous state machine", /enum\s+\w*State/, /switch\s*\(/, /case\s+\w+\s*:/],
@@ -866,6 +866,7 @@ public class FullAutonomous extends LinearOpMode {
       "13:1": {anyClass: {names: ["Intake", "Transfer", "Launcher"], superClass: "PoweredMechanism"}},
       "13:2": {classes: [{name: "RobotHardware"}]},
       "14:0": {classes: [{name: "Vision", methods: ["init"]}]},
+      "14:5": {classes: [{name: "Vision", methods: ["close"], calls: ["close"]}]},
       "15:7": {classes: [{name: "FullAutonomous", fields: [{type: "RobotHardware"}]}]}
     };
     return rules[unit + ":" + index] || null;
@@ -951,8 +952,8 @@ public class FullAutonomous extends LinearOpMode {
     11: {name: "Multi-sensor intake robot", detail: "Touch, potentiometer, color, and distance sensing around the intake", accent: 0xfbbf24},
     12: {name: "Field-centric mecanum robot", detail: "Four-wheel drive with a visible Control Hub IMU and orientation axes", accent: 0x818cf8},
     13: {name: "KG-SFR DECODE robot", detail: "Student code drives the match-ready intake, transfer, flywheel, and mecanum chassis", accent: 0x22d3ee, driveYaw: 0},
-    14: {name: "Vision-guided robot", detail: "Camera mast facing three autonomous analysis zones", accent: 0x22c55e},
-    15: {name: "Sensor-fused autonomous robot", detail: "Limelight, path follower, and timed scoring arm on one platform", accent: 0x06b6d4}
+    14: {name: "KG-SFR DECODE · Vision", detail: "The finished TeleOp robot gains a camera and three analysis zones", accent: 0x22c55e, driveYaw: 0},
+    15: {name: "KG-SFR DECODE · Full Autonomous", detail: "The same robot follows a Bézier path with Limelight pose correction", accent: 0x06b6d4, driveYaw: 0}
   });
 
   const GENERATED_MECHANISM_UNITS = Object.freeze([7, 9, 11]);
@@ -960,7 +961,7 @@ public class FullAutonomous extends LinearOpMode {
   function cadSourceUnitFor(unit) {
     const numericUnit = Number(unit);
     if (numericUnit < 2 || numericUnit > 15) return null;
-    if (numericUnit === 13) return 2;
+    if (numericUnit >= 13) return 2;
     // These challenges need several independently controlled parts that the
     // flattened imported CAD cannot articulate faithfully. Their dedicated
     // models preserve the exact motor, sensor, and servo behavior being coded.
@@ -970,7 +971,7 @@ public class FullAutonomous extends LinearOpMode {
   }
 
   function robotProfileForUnit(unit) {
-    if (Number(unit) === 13) return ROBOT_PROFILES[13];
+    if (Number(unit) >= 13) return ROBOT_PROFILES[Number(unit)];
     return ROBOT_PROFILES[cadSourceUnitFor(unit)] || ROBOT_PROFILES[unit];
   }
 
@@ -1027,8 +1028,11 @@ public class FullAutonomous extends LinearOpMode {
     ],
     12: DRIVE_HARDWARE.concat([{label: "IMU", name: "imu"}]),
     13: DECODE_HARDWARE,
-    14: [{label: "Camera", name: "Webcam 1"}],
-    15: DECODE_HARDWARE.concat([{label: "Vision", name: "limelight"}])
+    14: DECODE_HARDWARE.concat([{label: "Camera", name: "Webcam 1"}]),
+    15: DECODE_HARDWARE.concat([
+      {label: "Camera", name: "Webcam 1"},
+      {label: "Vision", name: "limelight"}
+    ])
   });
 
   const CAD_WHEEL_ORDER = Object.freeze(["left-front", "left-back", "right-front", "right-back"]);
@@ -1571,7 +1575,7 @@ public class FullAutonomous extends LinearOpMode {
     }
 
     let decodeMechanisms = null;
-    if (unit === 13) {
+    if (unit >= 13) {
       const intake = visibleRoller(0.17, 1.38, [0, 0.33, -0.79], warningMat, [0, 0, Math.PI / 2]);
       intake.name = "telemark-cad-intake";
       intake.userData.telemarkDecodeMechanism = "intake";
@@ -1582,6 +1586,54 @@ public class FullAutonomous extends LinearOpMode {
       flywheel.name = "telemark-cad-flywheel";
       flywheel.userData.telemarkDecodeMechanism = "flywheel";
       decodeMechanisms = {intake: intake, transfer: transfer, flywheel: flywheel};
+    }
+
+    let visionCameraHead = null;
+    let limelightIndicator = null;
+    let autonomousPath = null;
+    if (unit === 14) {
+      box([0.1, 0.92, 0.1], [0, 1.08, -0.12], frameMat);
+      visionCameraHead = new THREE.Group();
+      visionCameraHead.name = "telemark-cad-vision-camera";
+      visionCameraHead.position.set(0, 1.55, -0.12);
+      robot.add(visionCameraHead);
+      box([0.52, 0.28, 0.3], [0, 0, 0], darkMat, visionCameraHead);
+      cylinder(0.1, 0.08, [0, 0, -0.19], blueMat, [Math.PI / 2, 0, 0], visionCameraHead);
+      [-1.45, 0, 1.45].forEach(function (x, index) {
+        const zoneMat = index === 0 ? redMat : index === 1 ? warningMat : greenMat;
+        const zone = box([0.9, 0.025, 0.9], [x, 0.025, -2.05], zoneMat, visual);
+        zone.name = "telemark-vision-zone-" + ["left", "center", "right"][index];
+        box([0.42, 0.65, 0.06], [x, 0.34, -2.47], sensorMat, visual);
+        box([0.24, 0.24, 0.025], [x, 0.38, -2.51], zoneMat, visual);
+      });
+    }
+    if (unit === 15) {
+      box([0.1, 0.72, 0.1], [-0.45, 1.0, -0.02], frameMat);
+      limelightIndicator = box(
+        [0.42, 0.25, 0.28],
+        [-0.45, 1.4, -0.02],
+        material(0x18232d, {emissive: 0x064e3b, emissiveIntensity: 0.18})
+      );
+      limelightIndicator.name = "telemark-cad-limelight";
+      cylinder(0.09, 0.08, [-0.45, 1.4, -0.2], greenMat, [Math.PI / 2, 0, 0]);
+      autonomousPath = new THREE.QuadraticBezierCurve3(
+        new THREE.Vector3(-2.55, 0.04, 2.1),
+        new THREE.Vector3(2.6, 0.04, 1.4),
+        new THREE.Vector3(1.9, 0.04, -2.25)
+      );
+      const pathLine = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(autonomousPath.getPoints(48)),
+        new THREE.LineBasicMaterial({color: profile.accent, transparent: true, opacity: 0.75})
+      );
+      pathLine.name = "telemark-autonomous-path";
+      visual.add(pathLine);
+    }
+
+    function animateDecodeMechanisms() {
+      if (!decodeMechanisms) return;
+      decodeMechanisms.intake.rotation.y = motion.state.intakeAngle;
+      decodeMechanisms.transfer.rotation.y = motion.state.transferAngle;
+      decodeMechanisms.flywheel.rotation.x = motion.state.flywheelAngle;
     }
 
     if (cadSourceUnit) {
@@ -1601,11 +1653,18 @@ public class FullAutonomous extends LinearOpMode {
         }
       });
       animation = function () {
-        applyDriveState();
-        if (unit === 13) {
-          decodeMechanisms.intake.rotation.y = motion.state.intakeAngle;
-          decodeMechanisms.transfer.rotation.y = motion.state.transferAngle;
-          decodeMechanisms.flywheel.rotation.x = motion.state.flywheelAngle;
+        if (unit === 15 && autonomousPath && (motion.state.pathProgress > 0 || motion.state.followerActive)) {
+          const point = autonomousPath.getPoint(motion.state.pathProgress);
+          robot.position.set(point.x, 0, point.z);
+        } else {
+          applyDriveState();
+        }
+        if (unit >= 13) {
+          animateDecodeMechanisms();
+          if (visionCameraHead) visionCameraHead.rotation.y = motion.state.cameraAngle;
+          if (limelightIndicator) {
+            limelightIndicator.material.emissiveIntensity = motion.state.visionActive ? 0.52 : 0.08;
+          }
           return;
         }
         if (cadSourceUnit === 8) {
@@ -1722,59 +1781,6 @@ public class FullAutonomous extends LinearOpMode {
         box([0.05, 0.36, 0.08], [wheel.position.x, wheel.position.y, wheel.position.z], accentMat, null, [0.65, 0, index % 2 ? 0.65 : -0.65]);
       });
       animation = applyDriveState;
-    } else if (unit === 14) {
-      box([0.1, 0.92, 0.1], [0, 1.08, -0.12], frameMat);
-      const cameraHead = new THREE.Group();
-      cameraHead.position.set(0, 1.55, -0.12);
-      robot.add(cameraHead);
-      box([0.52, 0.28, 0.3], [0, 0, 0], darkMat, cameraHead);
-      cylinder(0.1, 0.08, [0, 0, -0.19], blueMat, [Math.PI / 2, 0, 0], cameraHead);
-      [-1.45, 0, 1.45].forEach(function (x, index) {
-        const zoneMat = index === 0 ? redMat : index === 1 ? warningMat : greenMat;
-        box([0.9, 0.025, 0.9], [x, 0.025, -2.05], zoneMat, visual);
-        box([0.42, 0.65, 0.06], [x, 0.34, -2.47], sensorMat, visual);
-        box([0.24, 0.24, 0.025], [x, 0.38, -2.51], zoneMat, visual);
-      });
-      robot.position.z = 0.65;
-      animation = function () {
-        applyDriveState();
-        cameraHead.rotation.y = motion.state.cameraAngle;
-      };
-    } else if (unit === 15) {
-      box([0.1, 0.72, 0.1], [-0.45, 1.0, -0.02], frameMat);
-      const limelight = box(
-        [0.42, 0.25, 0.28],
-        [-0.45, 1.4, -0.02],
-        material(0x18232d, {emissive: 0x064e3b, emissiveIntensity: 0.18})
-      );
-      cylinder(0.09, 0.08, [-0.45, 1.4, -0.2], greenMat, [Math.PI / 2, 0, 0]);
-      const scoringArm = new THREE.Group();
-      scoringArm.position.set(0.5, 0.68, 0.12);
-      robot.add(scoringArm);
-      box([0.13, 0.9, 0.13], [0, 0.4, 0], frameMat, scoringArm, [0, 0, -0.28]);
-      box([0.42, 0.16, 0.3], [0.12, 0.83, 0], accentMat, scoringArm);
-      const path = new THREE.QuadraticBezierCurve3(
-        new THREE.Vector3(-2.55, 0.04, 2.1),
-        new THREE.Vector3(2.6, 0.04, 1.4),
-        new THREE.Vector3(1.9, 0.04, -2.25)
-      );
-      const pathLine = new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints(path.getPoints(48)),
-        new THREE.LineBasicMaterial({color: profile.accent, transparent: true, opacity: 0.75})
-      );
-      visual.add(pathLine);
-      animation = function () {
-        if (motion.state.pathProgress > 0 || motion.state.followerActive) {
-          const point = path.getPoint(motion.state.pathProgress);
-          robot.position.set(point.x, 0, point.z);
-        } else {
-          applyDriveState();
-        }
-        const servoPosition = motion.servoValues()[0] || 0;
-        scoringArm.rotation.z = -0.38 + servoPosition * 0.7;
-        limelight.material.emissive = new THREE.Color(0x064e3b);
-        limelight.material.emissiveIntensity = motion.state.visionActive ? 0.52 : 0.08;
-      };
     }
 
     const sceneContainer = document.getElementById("sim-scene-container");

@@ -181,4 +181,67 @@ const finalNames = Array.from(mastery.decodeProjectOptions(15, mastery.configs[1
 expectedFiles.forEach(name => assert.ok(finalNames.includes(name), `Unit 15 cumulative project is missing ${name}`));
 assert.deepEqual(finalNames, expectedFiles, 'the DECODE project has the planned file set and no lift');
 
+function entryFromSerializedProject(source) {
+  return JSON.parse(source.split('\n', 1)[0].slice('// @telemark-project '.length)).entry;
+}
+
+const unit13Options = mastery.decodeProjectOptions(13, mastery.configs[13]);
+const unit13Page = createPage();
+unit13Page.editor.value = unit13Options.initialFiles.find(file => file.name === unit13Options.preferredActiveFile).source;
+const unit13Project = unit13Page.window.TelemarkProject.attach(unit13Page.editor, null, unit13Options);
+const teleOpTab = [...unit13Page.window.document.querySelectorAll('.telemark-project-tab')]
+  .find(button => button.textContent === 'CompetitionTeleOp.java');
+teleOpTab.click();
+unit13Page.editor.value = unit13Page.editor.value.replace(
+  '// Leave every mechanism safe.',
+  '// Learner-authored TeleOp must survive vision and autonomous stages.\n        // Leave every mechanism safe.',
+);
+unit13Page.editor.dispatchEvent(new unit13Page.window.Event('input'));
+unit13Project.saveSnapshot(unit13Options.stage);
+const unit13Saved = unit13Page.window.localStorage.getItem(projectKey);
+const unit13Snapshots = unit13Page.window.localStorage.getItem('telemark:java-snapshots:v1');
+unit13Page.dom.window.close();
+
+const unit14Options = mastery.decodeProjectOptions(14, mastery.configs[14]);
+const unit14Page = createPage({[projectKey]: unit13Saved, 'telemark:java-snapshots:v1': unit13Snapshots});
+unit14Page.editor.value = unit14Options.initialFiles.find(file => file.name === unit14Options.preferredActiveFile).source;
+const unit14Project = unit14Page.window.TelemarkProject.attach(unit14Page.editor, null, unit14Options);
+assert.match(
+  unit14Project.files().find(file => file.name === 'CompetitionTeleOp.java').source,
+  /Learner-authored TeleOp/,
+  'Unit 14 keeps the completed TeleOp byte-for-byte while adding Vision.java',
+);
+assert.ok(unit14Project.files().some(file => file.name === 'Vision.java'), 'Unit 14 appends the missing Vision scaffold');
+assert.equal(entryFromSerializedProject(unit14Project.source()), 'org.firstinspires.ftc.teamcode.CompetitionTeleOp');
+unit14Page.editor.value = unit14Page.editor.value.replace(
+  'public void update() {}',
+  'public void update() { /* learner vision marker */ }',
+);
+unit14Page.editor.dispatchEvent(new unit14Page.window.Event('input'));
+unit14Project.saveSnapshot(unit14Options.stage);
+const unit14Saved = unit14Page.window.localStorage.getItem(projectKey);
+const unit14Snapshots = unit14Page.window.localStorage.getItem('telemark:java-snapshots:v1');
+unit14Page.dom.window.close();
+
+const unit15Options = mastery.decodeProjectOptions(15, mastery.configs[15]);
+const unit15Page = createPage({[projectKey]: unit14Saved, 'telemark:java-snapshots:v1': unit14Snapshots});
+unit15Page.editor.value = unit15Options.initialFiles.find(file => file.name === unit15Options.preferredActiveFile).source;
+const unit15Project = unit15Page.window.TelemarkProject.attach(unit15Page.editor, null, unit15Options);
+assert.match(unit15Project.files().find(file => file.name === 'CompetitionTeleOp.java').source, /Learner-authored TeleOp/);
+assert.match(unit15Project.files().find(file => file.name === 'Vision.java').source, /learner vision marker/);
+assert.ok(unit15Project.files().some(file => file.name === 'FullAutonomous.java'), 'Unit 15 appends FullAutonomous.java');
+assert.equal(entryFromSerializedProject(unit15Project.source()), 'org.firstinspires.ftc.teamcode.FullAutonomous');
+assert.equal(java.compile(unit15Project.source()).ok, true, 'the carried-forward project compiles with FullAutonomous selected');
+assert.deepEqual(
+  Array.from(unit15Project.stages()).slice(-3),
+  ['unit-13/mastery-coding-challenge', 'unit-14/mastery-coding-challenge', 'unit-15/mastery-coding-challenge'],
+  'advanced stages remain part of the same saved project history',
+);
+assert.deepEqual(
+  Array.from(unit15Project.listSnapshots(), snapshot => snapshot.stage.id),
+  ['unit-13/mastery-coding-challenge', 'unit-14/mastery-coding-challenge'],
+  'earlier TeleOp and Vision passing snapshots remain available in Unit 15',
+);
+unit15Page.dom.window.close();
+
 console.log('Cumulative DECODE project persistence and snapshot checks passed.');

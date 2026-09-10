@@ -118,7 +118,11 @@ assert.match(read('static/simulator/unit13.5.html'), /point\.project\(window\.ca
 for (const stage of ['intake', 'lift', 'hardware', 'teleop']) {
   assert.match(unit13Simulator, new RegExp(`${stage}: \\{[\\s\\S]*?heading:`), `Unit 13 ${stage} stage needs matched visual guidance`);
 }
-assert.match(read('static/simulator/mastery_challenge.js'), /unit === 13[\s\S]*?scoringArm/, 'Unit 13 mastery needs an architecture visual');
+assert.match(
+  read('static/simulator/mastery_challenge.js'),
+  /unit >= 13[\s\S]*?decodeMechanisms = \{intake: intake, transfer: transfer, flywheel: flywheel\}/,
+  'Unit 13 mastery needs the DECODE subsystem architecture visual',
+);
 
 let unit13TeleopFiles = [];
 for (const lesson of ['intake', 'lift', 'hardware', 'teleop']) {

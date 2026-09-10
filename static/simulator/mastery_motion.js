@@ -222,7 +222,7 @@
       state.primaryPower = primaryPower || crPower;
       state.armPower = armPower;
 
-      if (unit === 13) {
+      if (unit >= 13) {
         state.intakePower = mechanismPower(/^intake(?:motor)?$/);
         state.transferPower = mechanismPower(/^transfer(?:motor)?$/);
         state.flywheelPower = mechanismPower(/^(?:launcher|flywheel|shooter)(?:motor)?$/);
@@ -293,7 +293,7 @@
 
     function resetPose() {
       state.x = 0;
-      state.z = 0;
+      state.z = unit === 14 ? 0.65 : 0;
       state.heading = 0;
       state.pathProgress = 0;
       state.followerActive = false;
@@ -412,7 +412,13 @@
 
     class Rect { constructor(x, y, width, height) { Object.assign(this, {x, y, width, height}); } }
     class AprilTagProcessor {
-      getDetections() { return [{id: 1, ftcPose: {x: 0, y: 24, yaw: 0}}]; }
+      getDetections() {
+        return [{
+          id: 1,
+          metadata: {name: "DECODE goal"},
+          ftcPose: {x: 0, y: 24, z: 0, yaw: 0, pitch: 0, roll: 0}
+        }];
+      }
       static easyCreate() { return new AprilTagProcessor(); }
       static get() { return new AprilTagProcessor(); }
     }

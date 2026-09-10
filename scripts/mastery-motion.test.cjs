@@ -399,16 +399,18 @@ function testGeneratedChallengeMotionIsObservable() {
 }
 
 function testDecodeMechanismsUseIndependentMeasuredOutputs() {
-  const modular = MasteryMotion.create(13);
-  modular.setMotorVelocity('intake', 1200, 0.4);
-  modular.setMotorVelocity('transfer', -900, -0.3);
-  modular.setMotorVelocity('launcher', 2100, 0.7);
-  modular.step(0.1);
-  const snapshot = modular.snapshot();
-  assert.ok(snapshot.intakeAngle > 0, 'measured intake output must drive only the intake animation state');
-  assert.ok(snapshot.transferAngle < 0, 'measured reverse transfer output must reverse its animation state');
-  assert.ok(snapshot.flywheelAngle > snapshot.intakeAngle, 'measured flywheel output must drive its faster animation state');
-  assert.equal(snapshot.flywheelVelocity, 2100, 'shot physics must retain exact measured flywheel velocity');
+  for (const unit of [13, 14, 15]) {
+    const modular = MasteryMotion.create(unit);
+    modular.setMotorVelocity('intake', 1200, 0.4);
+    modular.setMotorVelocity('transfer', -900, -0.3);
+    modular.setMotorVelocity('launcher', 2100, 0.7);
+    modular.step(0.1);
+    const snapshot = modular.snapshot();
+    assert.ok(snapshot.intakeAngle > 0, `Unit ${unit} measured intake output must drive its animation state`);
+    assert.ok(snapshot.transferAngle < 0, `Unit ${unit} measured reverse transfer output must reverse its animation state`);
+    assert.ok(snapshot.flywheelAngle > snapshot.intakeAngle, `Unit ${unit} measured flywheel output must drive its faster animation state`);
+    assert.equal(snapshot.flywheelVelocity, 2100, `Unit ${unit} must retain exact measured flywheel velocity`);
+  }
 }
 
 function testMecanumDrive() {
@@ -454,9 +456,11 @@ function testChallengeSdkMocks() {
   MasteryMotion.installSdkMocks(sdk, visionMotion);
   assert.equal(sdk.Range.clip(2, -1, 1), 1);
   assert.equal(sdk.Range.scale(1.65, 0, 3.3, 0, 180), 90);
+  const processor = sdk.AprilTagProcessor.easyCreate();
+  assert.equal(processor.getDetections()[0].metadata.name, 'DECODE goal');
   const portal = new sdk.VisionPortal.Builder()
     .setCamera({name: 'Webcam 1'})
-    .addProcessor(sdk.AprilTagProcessor.easyCreate())
+    .addProcessor(processor)
     .build();
   assert.equal(visionMotion.snapshot().visionActive, true);
   portal.close();
