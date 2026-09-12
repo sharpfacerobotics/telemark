@@ -295,6 +295,16 @@
   padding-top: 0.65rem;
   border-top: 1px dashed var(--ifm-color-emphasis-300);
 }
+/* Sharp AI can now answer entirely below the line: when a question is outside
+   the curriculum, the grounded half is empty by design rather than padded with
+   a sentence about what the index lacks. This block is then the first thing in
+   the bubble, and a divider with nothing above it is just a stray rule. */
+.beyond:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
 .beyondLabel {
   margin: 0 0 0.35rem;
   font-size: var(--tm-fs-2xs);
