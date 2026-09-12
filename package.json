@@ -30,7 +30,8 @@
     "test:parity": "node scripts/track-parity.test.cjs",
     "test:mechanical": "node scripts/mechanical-content.test.cjs && node scripts/mechanical-math.test.cjs && node scripts/mechanical-render.test.cjs && node scripts/cad-check.test.cjs && node scripts/chat-store.test.cjs && node scripts/ask-stream.test.cjs",
     "pdf:mechanical": "node scripts/build-curriculum-pdf.mjs mechanical",
-    "prepare:decode-field": "node scripts/prepare-decode-field.cjs"
+    "prepare:decode-field": "node scripts/prepare-decode-field.cjs",
+    "rig:decode-mechanisms": "node scripts/rig-decode-mechanisms.cjs"
   },
   "dependencies": {
     "@docusaurus/core": "3.9.2",

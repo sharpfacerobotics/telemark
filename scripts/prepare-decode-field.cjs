@@ -3,7 +3,11 @@ const path = require('node:path');
 
 const repoRoot = path.resolve(__dirname, '..');
 const sourceRoot = path.join(repoRoot, 'robot-cad-sources');
-const glbSource = path.join(sourceRoot, 'decode-field.glb');
+const glbSources = [
+  path.join(sourceRoot, 'decode-field.glb'),
+  path.join(sourceRoot, 'DECODE™ presented by RTX Full Field - am-5700_Full.glb'),
+];
+const glbSource = glbSources.find((candidate) => fs.existsSync(candidate));
 const objSource = path.join(sourceRoot, 'decode-field.obj');
 const outputName = 'decode-field-optimized.glb';
 const outputFile = path.join(repoRoot, 'static/simulator/models', outputName);
@@ -31,6 +35,31 @@ function encodeGlb(json, binary) {
   output.writeUInt32LE(0x004e4942, binaryHeader + 4);
   binaryChunk.copy(output, binaryHeader + 8);
   return output;
+}
+
+function prepareUploadedGlb(source) {
+  if (source.toString('ascii', 0, 4) !== 'glTF') throw new Error('The uploaded DECODE field is not a binary glTF file');
+  const jsonLength = source.readUInt32LE(12);
+  const json = JSON.parse(source.subarray(20, 20 + jsonLength).toString().replace(/\0+$/, ''));
+  const binaryHeader = 20 + jsonLength;
+  const binaryLength = source.readUInt32LE(binaryHeader);
+  const binary = source.subarray(binaryHeader + 8, binaryHeader + 8 + binaryLength);
+  const removed = new Set();
+  (json.nodes || []).forEach((node, index) => {
+    if (/Driver Station .* Tape/i.test(node.name || '')) removed.add(index);
+  });
+  for (const node of json.nodes || []) {
+    if (node.children) node.children = node.children.filter((index) => !removed.has(index));
+  }
+  for (const scene of json.scenes || []) {
+    scene.nodes = (scene.nodes || []).filter((index) => !removed.has(index));
+  }
+  json.extras = {
+    ...(json.extras || {}),
+    telemarkDecodeField: true,
+    modification: 'Prepared for browser presentation; outer driver-station tape subtrees removed.',
+  };
+  return encodeGlb(json, binary);
 }
 
 function objToGlb(source) {
@@ -120,12 +149,11 @@ function objToGlb(source) {
 }
 
 const manifest = JSON.parse(fs.readFileSync(manifestFile, 'utf8'));
-if (fs.existsSync(glbSource)) {
+if (glbSource) {
   const source = fs.readFileSync(glbSource);
-  if (source.toString('ascii', 0, 4) !== 'glTF') throw new Error('decode-field.glb is not a binary glTF file');
-  fs.copyFileSync(glbSource, outputFile);
+  fs.writeFileSync(outputFile, prepareUploadedGlb(source));
   manifest.asset.status = 'uploaded-glb';
-  manifest.asset.provenance = 'robot-cad-sources/decode-field.glb';
+  manifest.asset.provenance = path.relative(repoRoot, glbSource);
 } else if (fs.existsSync(objSource)) {
   fs.writeFileSync(outputFile, objToGlb(fs.readFileSync(objSource, 'utf8')));
   manifest.asset.status = 'converted-obj';

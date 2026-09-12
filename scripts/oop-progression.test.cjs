@@ -120,8 +120,8 @@ for (const stage of ['intake', 'lift', 'hardware', 'teleop']) {
 }
 assert.match(
   read('static/simulator/mastery_challenge.js'),
-  /unit >= 13[\s\S]*?decodeMechanisms = \{intake: intake, transfer: transfer, flywheel: flywheel\}/,
-  'Unit 13 mastery needs the DECODE subsystem architecture visual',
+  /function rigDecodeMechanisms\(model\)[\s\S]*?getObjectByName\("telemark-cad-" \+ name\)[\s\S]*?decodeMechanisms = rigDecodeMechanisms\(model\)/,
+  'Unit 13 mastery must bind the DECODE subsystem architecture to the KG-SFR CAD nodes',
 );
 
 let unit13TeleopFiles = [];

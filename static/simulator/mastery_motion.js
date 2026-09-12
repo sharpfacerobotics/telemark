@@ -55,6 +55,8 @@
       intakeAngle: 0,
       transferAngle: 0,
       flywheelAngle: 0,
+      triggerPosition: 0,
+      triggerAngle: 0,
       lifecyclePhase: "stopped",
     };
 
@@ -235,6 +237,13 @@
         state.intakeAngle += state.intakePower * dt * 12;
         state.transferAngle += state.transferPower * dt * 12;
         state.flywheelAngle += state.flywheelPower * dt * 38;
+        const trigger = Array.from(servos.entries()).find(function (entry) {
+          return /^(?:launchertrigger|trigger)$/.test(normalizedName(entry[0]));
+        });
+        state.triggerPosition = trigger ? trigger[1] : 0;
+        const triggerTarget = state.triggerPosition * 0.85;
+        const triggerTravel = 8.5 * dt;
+        state.triggerAngle += clamp(triggerTarget - state.triggerAngle, -triggerTravel, triggerTravel);
       }
 
       if (unit === 3) {

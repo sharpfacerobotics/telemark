@@ -51,6 +51,7 @@
     let appliedStages = [];
     let lesson = null;
     let completed = [];
+    let draggedIndex = -1;
     try {
       const saved = JSON.parse(global.localStorage.getItem(key));
       if (saved) {
@@ -114,6 +115,7 @@
     function updateActiveChrome() {
       bar.querySelectorAll('.telemark-project-tab').forEach((button, index) => {
         button.setAttribute('aria-pressed', String(index === active));
+        button.setAttribute('aria-selected', String(index === active));
         button.parentElement?.toggleAttribute('data-active', index === active);
       });
     }
@@ -192,6 +194,27 @@
       });
       input.addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); apply.click(); } });
       buttons.appendChild(cancel); buttons.appendChild(apply); dialog.appendChild(buttons); showDialog(dialog, input); input.select();
+    }
+    function moveFile(fromIndex, toIndex, announce) {
+      if (!Number.isInteger(fromIndex) || !Number.isInteger(toIndex) || fromIndex < 0 || fromIndex >= files.length || toIndex < 0 || toIndex >= files.length || fromIndex === toIndex) return false;
+      save();
+      const activeFile = files[active];
+      const moved = files.splice(fromIndex, 1)[0];
+      files.splice(toIndex, 0, moved);
+      active = files.indexOf(activeFile);
+      show(true);
+      save();
+      if (announce !== false) report('Moved ' + moved.name + ' to tab ' + (toIndex + 1) + '.');
+      return true;
+    }
+    function moveFileAtDrop(fromIndex, targetIndex, after) {
+      let insertionIndex = targetIndex + (after ? 1 : 0);
+      if (fromIndex < insertionIndex) insertionIndex -= 1;
+      return moveFile(fromIndex, insertionIndex);
+    }
+    function focusActiveTab() {
+      const focus = () => bar.querySelector('.telemark-project-tab[aria-pressed="true"]')?.focus();
+      if (typeof global.requestAnimationFrame === 'function') global.requestAnimationFrame(focus); else setTimeout(focus, 0);
     }
     function openDeleteDialog(index) {
       const filename = files[index].name;
@@ -388,15 +411,55 @@
       });
       bar.appendChild(upload);
 
-      const tabs = document.createElement('div'); tabs.className = 'telemark-project-tabs'; tabs.setAttribute('role', 'group'); tabs.setAttribute('aria-label', 'Open files'); bar.appendChild(tabs);
+      const tabs = document.createElement('div'); tabs.className = 'telemark-project-tabs'; tabs.setAttribute('role', 'tablist'); tabs.setAttribute('aria-label', 'Open files'); bar.appendChild(tabs);
       files.forEach((file, index) => {
-        const shell = document.createElement('div'); shell.className = 'telemark-project-tab-shell'; shell.toggleAttribute('data-active', index === active);
-        const button = document.createElement('button'); button.type = 'button'; button.textContent = file.name; button.setAttribute('aria-pressed', String(index === active)); button.className = 'telemark-project-tab'; button.title = file.name + ' (double-click to rename)';
+        const shell = document.createElement('div'); shell.className = 'telemark-project-tab-shell'; shell.toggleAttribute('data-active', index === active); shell.toggleAttribute('data-deletable', files.length > 1); shell.draggable = true; shell.dataset.fileIndex = String(index);
+        shell.addEventListener('dragstart', event => {
+          if (event.target.closest?.('.telemark-project-tab-rename, .telemark-project-tab-delete')) { event.preventDefault(); return; }
+          draggedIndex = index;
+          shell.toggleAttribute('data-dragging', true);
+          if (event.dataTransfer) { event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.setData('text/x-telemark-file-index', String(index)); }
+        });
+        shell.addEventListener('dragover', event => {
+          if (draggedIndex < 0 && !event.dataTransfer?.types?.includes?.('text/x-telemark-file-index')) return;
+          event.preventDefault();
+          if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+          const bounds = shell.getBoundingClientRect();
+          shell.dataset.dropPosition = event.clientX >= bounds.left + bounds.width / 2 ? 'after' : 'before';
+        });
+        shell.addEventListener('dragleave', event => {
+          if (!event.relatedTarget || !shell.contains(event.relatedTarget)) delete shell.dataset.dropPosition;
+        });
+        shell.addEventListener('drop', event => {
+          event.preventDefault();
+          const transferred = Number.parseInt(event.dataTransfer?.getData('text/x-telemark-file-index') || '', 10);
+          const fromIndex = Number.isInteger(transferred) ? transferred : draggedIndex;
+          const after = shell.dataset.dropPosition === 'after';
+          draggedIndex = -1;
+          tabs.querySelectorAll('[data-drop-position]').forEach(tab => delete tab.dataset.dropPosition);
+          if (fromIndex >= 0 && fromIndex !== index && moveFileAtDrop(fromIndex, index, after)) focusActiveTab();
+        });
+        shell.addEventListener('dragend', () => {
+          draggedIndex = -1;
+          bar.querySelectorAll('[data-dragging]').forEach(tab => tab.removeAttribute('data-dragging'));
+          bar.querySelectorAll('[data-drop-position]').forEach(tab => delete tab.dataset.dropPosition);
+        });
+        const button = document.createElement('button'); button.type = 'button'; button.textContent = file.name; button.setAttribute('role', 'tab'); button.setAttribute('aria-pressed', String(index === active)); button.setAttribute('aria-selected', String(index === active)); button.setAttribute('aria-keyshortcuts', 'F2 Alt+ArrowLeft Alt+ArrowRight'); button.className = 'telemark-project-tab'; button.title = file.name + ' (drag to move, double-click to rename)';
         button.addEventListener('click', () => { if (index === active) return; save(); active = index; show(false); save(); });
         button.addEventListener('dblclick', () => openRenameDialog(index));
+        button.addEventListener('keydown', event => {
+          if (event.key === 'F2') { event.preventDefault(); openRenameDialog(index); return; }
+          if (!event.altKey || !['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+          const destination = index + (event.key === 'ArrowLeft' ? -1 : 1);
+          if (destination < 0 || destination >= files.length) return;
+          event.preventDefault();
+          if (moveFile(index, destination)) focusActiveTab();
+        });
         shell.appendChild(button);
+        const rename = document.createElement('button'); rename.type = 'button'; rename.className = 'telemark-project-tab-rename'; rename.textContent = '\u270e'; rename.title = 'Rename ' + file.name; rename.setAttribute('aria-label', 'Rename ' + file.name); rename.draggable = false;
+        rename.addEventListener('click', event => { event.stopPropagation(); openRenameDialog(index); }); shell.appendChild(rename);
         if (files.length > 1) {
-          const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'telemark-project-tab-delete'; remove.textContent = '\u00d7'; remove.title = 'Delete ' + file.name; remove.setAttribute('aria-label', 'Delete ' + file.name);
+          const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'telemark-project-tab-delete'; remove.textContent = '\u00d7'; remove.title = 'Delete ' + file.name; remove.setAttribute('aria-label', 'Delete ' + file.name); remove.draggable = false;
           remove.addEventListener('click', event => { event.stopPropagation(); openDeleteDialog(index); }); shell.appendChild(remove);
         }
         tabs.appendChild(shell);
@@ -425,7 +488,7 @@
         downloadProject({files, entry}, 'telemark-project.json');
       });
       utility.appendChild(download);
-      const note = document.createElement('p'); note.className = 'telemark-project-note'; note.textContent = 'Saved on this browser \u00b7 No sign-in needed. Export to move code to another device.'; bar.appendChild(note);
+      const note = document.createElement('p'); note.className = 'telemark-project-note'; note.textContent = 'Saved on this browser \u00b7 Drag tabs to reorder \u00b7 Double-click or use \u270e to rename \u00b7 Export to move code to another device.'; bar.appendChild(note);
       bar.appendChild(status);
     }
     editor.addEventListener('input', save);
@@ -457,6 +520,7 @@
       saveSnapshot,
       listSnapshots,
       prerequisiteDiagnostics,
+      moveFile(fromIndex, toIndex) { return moveFile(fromIndex, toIndex); },
       key,
       files() { save(); return files.map(f => ({...f})); },
       activeFile() { save(); return files[active] ? {...files[active]} : null; },

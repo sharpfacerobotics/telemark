@@ -70,6 +70,13 @@ layer. Unit 7 mastery and Units 8.1–8.5/9.1 use isolated hardware behavior che
 to accept working imported helpers and reject inactive or unsafe implementations.
 Other lesson rubrics retain their existing lesson-specific checks.
 
+The Unit 13 DECODE scene uses the uploaded full-field GLB through
+`npm run prepare:decode-field`; preparation removes the external driver-station
+tape while retaining the competition field. `npm run rig:decode-mechanisms`
+partitions the existing KG-SFR intake into three independently pivoted stages
+and rigs the anti-jam transfer spinner, flywheel, and servo trigger as stable
+animation nodes. Neither command fabricates replacement robot mechanisms.
+
 ### Adding a mechanical module
 
 1. Add a seed to `MODULE_SEEDS` in `src/telemark/mechanical.ts`.

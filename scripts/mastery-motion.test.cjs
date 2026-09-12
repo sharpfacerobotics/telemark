@@ -392,9 +392,14 @@ function testGeneratedChallengeMotionIsObservable() {
   assert.notEqual(moved.primaryAngle, start.primaryAngle, 'Unit 13 intake needs visible rotor motion state');
 
   const visualSource = fs.readFileSync(path.resolve(__dirname, '../static/simulator/mastery_challenge.js'), 'utf8');
-  for (const token of ['visibleRoller', 'mechanismLever', 'intakeSample', 'sensedSample', 'const transfer', 'const flywheel', 'mastery-motion-readout']) {
+  for (const token of ['visibleRoller', 'mechanismLever', 'intakeSample', 'sensedSample', 'rigDecodeMechanisms', 'telemark-cad-', 'mastery-motion-readout']) {
     assert.ok(visualSource.includes(token), `Generated challenge visuals are missing ${token}`);
   }
+  assert.doesNotMatch(
+    visualSource,
+    /visibleRoller\(0\.17,\s*1\.38/,
+    'DECODE units must animate the KG-SFR mechanism CAD instead of adding generated rollers',
+  );
   assert.match(visualSource, /animation\(currentTime, dt\)/, 'visible game-piece motion must use frame time');
 }
 
@@ -404,12 +409,21 @@ function testDecodeMechanismsUseIndependentMeasuredOutputs() {
     modular.setMotorVelocity('intake', 1200, 0.4);
     modular.setMotorVelocity('transfer', -900, -0.3);
     modular.setMotorVelocity('launcher', 2100, 0.7);
+    modular.setServoPosition('launcher_trigger', 1, 1);
     modular.step(0.1);
     const snapshot = modular.snapshot();
     assert.ok(snapshot.intakeAngle > 0, `Unit ${unit} measured intake output must drive its animation state`);
     assert.ok(snapshot.transferAngle < 0, `Unit ${unit} measured reverse transfer output must reverse its animation state`);
     assert.ok(snapshot.flywheelAngle > snapshot.intakeAngle, `Unit ${unit} measured flywheel output must drive its faster animation state`);
     assert.equal(snapshot.flywheelVelocity, 2100, `Unit ${unit} must retain exact measured flywheel velocity`);
+    assert.equal(snapshot.triggerPosition, 1, `Unit ${unit} must retain the physical trigger-servo position`);
+    assert.ok(Math.abs(snapshot.triggerAngle - 0.85) < 1e-9, `Unit ${unit} trigger must reach its CAD fire angle after 0.10 seconds`);
+    modular.setServoPosition('launcher_trigger', 0, 0);
+    modular.step(0.05);
+    assert.ok(
+      modular.snapshot().triggerAngle > 0 && modular.snapshot().triggerAngle < snapshot.triggerAngle,
+      `Unit ${unit} trigger must visibly animate back toward rest instead of teleporting`,
+    );
   }
 }
 
@@ -421,6 +435,41 @@ function testMecanumDrive() {
   motion.setMotorPower('backRight', 1);
   motion.step(0.1);
   assert.notEqual(motion.snapshot().x, 0, 'Unit 12 mecanum strafe should translate sideways');
+}
+
+function testUnit13ForwardAndStrafeAxesStayDistinct() {
+  const forward = MasteryMotion.create(13);
+  ['leftFront', 'leftBack', 'rightFront', 'rightBack'].forEach(name => forward.setMotorPower(name, 1));
+  forward.step(0.1);
+  assert.ok(forward.snapshot().z < 0, 'four positive wheel outputs must move Unit 13 simulator-forward');
+  assert.ok(Math.abs(forward.snapshot().x) < 1e-9, 'forward must not leak into Unit 13 strafe');
+
+  const strafe = MasteryMotion.create(13);
+  strafe.setMotorPower('leftFront', 1);
+  strafe.setMotorPower('leftBack', -1);
+  strafe.setMotorPower('rightFront', -1);
+  strafe.setMotorPower('rightBack', 1);
+  strafe.step(0.1);
+  assert.ok(strafe.snapshot().x > 0, 'the standard mecanum pattern must strafe Unit 13 to simulator-right');
+  assert.ok(Math.abs(strafe.snapshot().z) < 1e-9, 'strafe must not leak into Unit 13 forward motion');
+}
+
+function testFieldCentricStrafeAfterTurn() {
+  const motion = MasteryMotion.create(13);
+  motion.setPose(0, 0, Math.PI / 2);
+  // With the robot turned 90 degrees clockwise, a field-forward request is
+  // robot-left strafe. These are the standard LF/LB/RF/RB mecanum outputs.
+  motion.setMotorPower('leftFront', -1);
+  motion.setMotorPower('leftBack', 1);
+  motion.setMotorPower('rightFront', 1);
+  motion.setMotorPower('rightBack', -1);
+  motion.step(0.1);
+  assert.ok(motion.snapshot().z < 0, 'field-forward must still travel toward field negative Z after a 90-degree turn');
+  assert.ok(Math.abs(motion.snapshot().x) < 1e-9, 'the corrected strafe must not drift sideways in field coordinates');
+
+  const challenge = fs.readFileSync(path.resolve(__dirname, '../static/simulator/mastery_challenge.js'), 'utf8');
+  assert.match(challenge, /imu\._setHeading\(-motion\.state\.heading\)/, 'clockwise scene heading must be exposed as FTC counterclockwise-positive IMU yaw');
+  assert.doesNotMatch(challenge, /imu\._setHeading\(motion\.state\.heading\)/, 'IMU synchronization must not reverse field-centric strafe');
 }
 
 function testMecanumPhysicsBeginsAfterUnitEightLesson() {
@@ -509,6 +558,8 @@ testServosVisionAndPaths();
 testGeneratedChallengeMotionIsObservable();
 testDecodeMechanismsUseIndependentMeasuredOutputs();
 testMecanumDrive();
+testUnit13ForwardAndStrafeAxesStayDistinct();
+testFieldCentricStrafeAfterTurn();
 testMecanumPhysicsBeginsAfterUnitEightLesson();
 testChallengeSdkMocks();
 testConnectedMotionUsesMeasuredMotorVelocity();

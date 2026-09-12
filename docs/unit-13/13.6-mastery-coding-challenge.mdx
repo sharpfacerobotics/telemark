@@ -29,16 +29,22 @@ The simulator turns the completed project into a KG-SFR DECODE driver-control ch
 
 The three-artifact robot capacity and two-minute TeleOp clock follow the [DECODE Competition Manual](https://ftc-resources.firstinspires.org/ftc/archive/2026/game/cm-html/DECODE_Competition_Manual_TU32.htm).
 
-The visible wheels, intake, transfer, and flywheel follow measured hardware output from your code. A fixed open-loop launcher power will therefore lose speed and change the shot arc as the virtual battery drains; a reachable `setVelocity()` target with PIDF stays much more consistent.
+The visible wheels, all three intake stages, anti-jam transfer spinner, flywheel, and servo trigger follow measured hardware output from your code. Artifacts also follow the physical route through the robot, so a stopped intake, an empty magazine, a trigger pulse that is too short, or a slow flywheel is visible in the simulation. A fixed open-loop launcher power will lose speed and change the shot arc as the virtual battery drains; a reachable `setVelocity()` target with PIDF stays much more consistent.
 
-- Left stick: field-relative forward and sideways motion
-- Right stick X: rotation
-- Y: toggle precision mode
-- X: reset heading
-- Right bumper: intake and transfer forward
-- Left bumper: reverse both mechanisms
-- Right trigger: proportional flywheel velocity
-- A: launch one ready artifact on the press edge
+### Successful practice-shot hardware sequence
+
+Your project decides which gamepad inputs request these actions. The simulator watches the resulting hardware state, not any particular button:
+
+1. Run the intake motor forward for about one second at full power. Its three roller stages carry the artifact all the way into the horizontal three-artifact magazine automatically.
+2. Position the robot so the cyan Practice trajectory passes through the raised goal opening.
+3. Command the launcher flywheel near `1900` ticks per second and wait until its measured velocity is close to the target.
+4. Move the positional `launcher_trigger` servo from your configured rest position to your configured fire position for at least `0.10` seconds, then return it to rest. The visible pusher must lift the staged artifact into the flywheel before it can launch. Servo positions are normalized from `0.0` to `1.0`; `1900` is the flywheel motor velocity, not a servo position.
+
+The transfer motor is not a normal magazine stage. It drives the small spinner beside the flywheel to help clear a blockage; running it is not required for an artifact that is flowing normally.
+
+In Practice, either field goal counts. The scoring detector intentionally allows a little more room than the strict opening: an artifact also scores when it reaches the goal's back wall from above or passes through the invisible triangular catch region directly in front of the goal. After a hit or miss, its replacement returns to the same initial field side rather than appearing across the field.
+
+FTC gamepad Y follows the SDK convention: pushing a stick up reports `-1`. Convert it to positive forward once in your Java drive code. The simulator does not apply another gamepad-axis negation.
 
 <MasterySimulator unit={13} project />
 

@@ -951,9 +951,12 @@ public class FullAutonomous extends LinearOpMode {
     10: {name: "Encoder distance robot", detail: "Marked drive wheels for measured RUN_TO_POSITION travel", accent: 0x4ade80},
     11: {name: "Multi-sensor intake robot", detail: "Touch, potentiometer, color, and distance sensing around the intake", accent: 0xfbbf24},
     12: {name: "Field-centric mecanum robot", detail: "Four-wheel drive with a visible Control Hub IMU and orientation axes", accent: 0x818cf8},
-    13: {name: "KG-SFR DECODE robot", detail: "Student code drives the match-ready intake, transfer, flywheel, and mecanum chassis", accent: 0x22d3ee, driveYaw: 0},
-    14: {name: "KG-SFR DECODE · Vision", detail: "The finished TeleOp robot gains a camera and three analysis zones", accent: 0x22c55e, driveYaw: 0},
-    15: {name: "KG-SFR DECODE · Full Autonomous", detail: "The same robot follows a Bézier path with Limelight pose correction", accent: 0x06b6d4, driveYaw: 0}
+    // The uploaded KG assembly is on the simulator's drive axes but faces the
+    // opposite direction. A half-turn preserves forward/strafe axes while
+    // aligning both signs with the visible chassis and intake opening.
+    13: {name: "KG-SFR DECODE robot", detail: "Student code drives the three-stage intake, anti-jam transfer, flywheel, trigger, and mecanum chassis", accent: 0x22d3ee, driveYaw: 0, modelYaw: Math.PI},
+    14: {name: "KG-SFR DECODE · Vision", detail: "The finished TeleOp robot gains a camera and three analysis zones", accent: 0x22c55e, driveYaw: 0, modelYaw: Math.PI},
+    15: {name: "KG-SFR DECODE · Full Autonomous", detail: "The same robot follows a Bézier path with Limelight pose correction", accent: 0x06b6d4, driveYaw: 0, modelYaw: Math.PI}
   });
 
   const GENERATED_MECHANISM_UNITS = Object.freeze([7, 9, 11]);
@@ -984,8 +987,8 @@ public class FullAutonomous extends LinearOpMode {
   const DECODE_MECHANISM_HARDWARE = Object.freeze([
     {label: "Intake", name: "intake"},
     {label: "Transfer", name: "transfer"},
-    {label: "Flywheel", name: "launcher"},
-    {label: "Trigger", name: "launcher_trigger"},
+    {label: "Flywheel motor", name: "launcher"},
+    {label: "Trigger servo", name: "launcher_trigger"},
     {label: "Intake sensor", name: "intake_sensor"},
     {label: "Storage sensor", name: "storage_sensor"}
   ]);
@@ -1027,9 +1030,10 @@ public class FullAutonomous extends LinearOpMode {
       {label: "Distance sensor", name: "intake_range"}
     ],
     12: DRIVE_HARDWARE.concat([{label: "IMU", name: "imu"}]),
-    13: DECODE_HARDWARE,
-    14: DECODE_HARDWARE.concat([{label: "Camera", name: "Webcam 1"}]),
+    13: DECODE_HARDWARE.concat([{label: "IMU", name: "imu"}]),
+    14: DECODE_HARDWARE.concat([{label: "IMU", name: "imu"}, {label: "Camera", name: "Webcam 1"}]),
     15: DECODE_HARDWARE.concat([
+      {label: "IMU", name: "imu"},
       {label: "Camera", name: "Webcam 1"},
       {label: "Vision", name: "limelight"}
     ])
@@ -1187,11 +1191,13 @@ public class FullAutonomous extends LinearOpMode {
     });
   }
 
-  function loadKgRobot(THREE, robot, onLoad) {
+  function loadKgRobot(THREE, robot, onLoad, destinationUnit) {
     loadImportedRobot(THREE, robot, {
       name: "KG-SFR model",
       url: KG_ROBOT_MODEL_URL,
-      footprint: 2.15,
+      // The DECODE field is rendered at twice its real dimensions, so the
+      // 18-inch robot uses the same scale instead of the enlarged lesson view.
+      footprint: Number(destinationUnit) >= 13 ? 1.18 : 2.15,
       groundClearance: 0,
       loadedMessage: "Optimized team CAD model · real wheels driven by student code",
       onLoad: onLoad
@@ -1261,8 +1267,8 @@ public class FullAutonomous extends LinearOpMode {
     });
   }
 
-  function loadCadRobotForUnit(sourceUnit, THREE, robot, onLoad) {
-    if (sourceUnit === 2) return loadKgRobot(THREE, robot, onLoad);
+  function loadCadRobotForUnit(sourceUnit, THREE, robot, onLoad, destinationUnit) {
+    if (sourceUnit === 2) return loadKgRobot(THREE, robot, onLoad, destinationUnit);
     if (sourceUnit === 3) return loadQuixilverRobot(THREE, robot, onLoad);
     if (sourceUnit === 4) return load2025FtcRobot(THREE, robot, onLoad);
     if (sourceUnit === 5) return load2024CenterstageRobot(THREE, robot, onLoad);
@@ -1520,6 +1526,39 @@ public class FullAutonomous extends LinearOpMode {
       return rigged.length === CAD_WHEEL_ORDER.length;
     }
 
+    function rigDecodeMechanisms(model) {
+      const rig = {};
+      const intakeStages = ["intake-stage-1", "intake-stage-2", "intake-stage-3"];
+      const mechanismNames = intakeStages.concat(["transfer", "flywheel", "trigger"]);
+      mechanismNames.forEach(function (name) {
+        const part = model.getObjectByName && model.getObjectByName("telemark-cad-" + name);
+        if (!part) return;
+        robot.updateMatrixWorld(true);
+        const storedPivot = part.userData && part.userData.telemarkCadPivot;
+        let center = importedCadCenter(THREE, part);
+        if (Array.isArray(storedPivot) && storedPivot.length === 3) {
+          part.updateWorldMatrix(true, false);
+          center = part.localToWorld(new THREE.Vector3(storedPivot[0], storedPivot[1], storedPivot[2]));
+        }
+        const pivot = new THREE.Group();
+        pivot.name = "telemark-cad-" + name + "-pivot";
+        robot.add(pivot);
+        pivot.position.copy(robot.worldToLocal(center.clone()));
+        robot.updateMatrixWorld(true);
+        pivot.attach(part);
+        rig[name] = {
+          object: pivot,
+          axis: part.userData && part.userData.spinAxis || "x"
+        };
+      });
+      if (mechanismNames.some(function (name) { return !rig[name]; })) {
+        setImportedRobotStatus("The optimized KG-SFR CAD is missing an animated DECODE mechanism.");
+        return null;
+      }
+      rig.intakeStages = intakeStages.map(function (name) { return rig[name]; });
+      return rig;
+    }
+
     const wheels = [];
     if (!cadSourceUnit) {
       // The generated challenge robots share a competition-scale chassis.
@@ -1564,7 +1603,7 @@ public class FullAutonomous extends LinearOpMode {
       const sinYaw = Math.sin(driveYaw);
       robot.position.x = cosYaw * motion.state.x + sinYaw * motion.state.z;
       robot.position.z = -sinYaw * motion.state.x + cosYaw * motion.state.z;
-      robot.rotation.y = -motion.state.heading;
+      robot.rotation.y = (profile.modelYaw || 0) - motion.state.heading;
       wheels.forEach(function (wheel, index) {
         const object = wheel.object || wheel;
         const axis = wheel.axis || "x";
@@ -1575,18 +1614,6 @@ public class FullAutonomous extends LinearOpMode {
     }
 
     let decodeMechanisms = null;
-    if (unit >= 13) {
-      const intake = visibleRoller(0.17, 1.38, [0, 0.33, -0.79], warningMat, [0, 0, Math.PI / 2]);
-      intake.name = "telemark-cad-intake";
-      intake.userData.telemarkDecodeMechanism = "intake";
-      const transfer = visibleRoller(0.15, 0.82, [0, 0.61, -0.12], accentMat, [0, 0, Math.PI / 2]);
-      transfer.name = "telemark-cad-transfer";
-      transfer.userData.telemarkDecodeMechanism = "transfer";
-      const flywheel = visibleRoller(0.3, 0.38, [0, 0.94, 0.58], greenMat, [Math.PI / 2, 0, 0]);
-      flywheel.name = "telemark-cad-flywheel";
-      flywheel.userData.telemarkDecodeMechanism = "flywheel";
-      decodeMechanisms = {intake: intake, transfer: transfer, flywheel: flywheel};
-    }
 
     let visionCameraHead = null;
     let limelightIndicator = null;
@@ -1631,9 +1658,12 @@ public class FullAutonomous extends LinearOpMode {
 
     function animateDecodeMechanisms() {
       if (!decodeMechanisms) return;
-      decodeMechanisms.intake.rotation.y = motion.state.intakeAngle;
-      decodeMechanisms.transfer.rotation.y = motion.state.transferAngle;
-      decodeMechanisms.flywheel.rotation.x = motion.state.flywheelAngle;
+      decodeMechanisms.intakeStages.forEach(function (stage) {
+        stage.object.rotation[stage.axis] = motion.state.intakeAngle;
+      });
+      decodeMechanisms.transfer.object.rotation[decodeMechanisms.transfer.axis] = motion.state.transferAngle;
+      decodeMechanisms.flywheel.object.rotation[decodeMechanisms.flywheel.axis] = motion.state.flywheelAngle;
+      decodeMechanisms.trigger.object.rotation[decodeMechanisms.trigger.axis] = motion.state.triggerAngle;
     }
 
     if (cadSourceUnit) {
@@ -1641,17 +1671,22 @@ public class FullAutonomous extends LinearOpMode {
       let glutenFreeLift = null;
       loadCadRobotForUnit(cadSourceUnit, THREE, robot, function (model, modelScale) {
         rigCadChassis(model);
+        if (unit >= 13) decodeMechanisms = rigDecodeMechanisms(model);
+        if (unit >= 13 && !decodeMechanisms) return;
         if (cadSourceUnit === 8) glutenFreeLift = rig11115Lift(model, modelScale);
         if (cadSourceUnit === 8 && !glutenFreeLift) return;
         modelReady = true;
         const button = document.getElementById('sim-btn-run');
         if (button) { button.disabled = false; button.textContent = 'Init'; }
+        if (unit >= 13) {
+          setImportedRobotStatus("Optimized team CAD · real wheels, three-stage intake, anti-jam transfer, flywheel, and trigger driven by student code");
+        }
         if (model.getObjectByName && model.getObjectByName("telemark-cad-mechanism")) {
           if (cadSourceUnit === 3) cadMechanism = rigCadTranslation(model);
           if (cadSourceUnit === 5) cadMechanism = rigCadMechanism(model, [0.46, 0.505, 0.5]);
           if (cadSourceUnit === 6) cadMechanism = rigCadMechanism(model, [0.5, 0.455, 0.356]);
         }
-      });
+      }, unit);
       animation = function () {
         if (unit === 15 && autonomousPath && (motion.state.pathProgress > 0 || motion.state.followerActive)) {
           const point = autonomousPath.getPoint(motion.state.pathProgress);
@@ -1819,7 +1854,7 @@ public class FullAutonomous extends LinearOpMode {
       global.setCameraOrbit({
         theta: groundView ? 0.82 : 0.56,
         phi: unit === 13 ? 0.92 : (groundView ? 1.2 : 0.78),
-        radius: unit === 8 ? 8.0 : (unit === 13 ? 8.0 : (unit >= 14 ? 6.8 : 5.2)),
+        radius: unit === 8 ? 8.0 : (unit === 13 ? 11.0 : (unit >= 14 ? 6.8 : 5.2)),
         target: {
           x: 0,
           y: unit === 8 ? 1.5 : (groundView ? 0.42 : 0.72),
@@ -1846,6 +1881,11 @@ public class FullAutonomous extends LinearOpMode {
         previousTime = currentTime;
         if (!modelReady) return;
         motion.step(dt);
+        const imu = global.hardwareMap && global.hardwareMap._devices && global.hardwareMap._devices.imu;
+        // motion.heading is clockwise-positive in the Three.js field; FTC IMU
+        // yaw is counterclockwise-positive. Expose it once with no joystick
+        // sign conversion so student field-centric math does not get doubled.
+        if (imu && typeof imu._setHeading === "function") imu._setHeading(-motion.state.heading);
         animation(currentTime, dt);
         if (decodeGameView) decodeGameView.update(dt);
         if (motionReadout) motionReadout.textContent = generatedMotionText();

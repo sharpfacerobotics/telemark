@@ -468,6 +468,13 @@ function testEverySimulatorUsesFtcYAxisSign() {
     /setValues\([^\n]*-c(?:lampedD|d)y/,
     'pointer-up must remain negative throughout legacy simulator paths',
   );
+  const simulatorBase = fs.readFileSync(path.join(simulatorRoot, 'simulator_base.js'), 'utf8');
+  assert.match(simulatorBase, /const ny = Math\.max\(-1, Math\.min\(1, dy \/ maxR\)\)/, 'the Unit 13 controller must report pointer-up as negative Y');
+  assert.doesNotMatch(simulatorBase, /const ny = Math\.max\(-1, Math\.min\(1, -dy \/ maxR\)\)/, 'the base controller must not negate the normalized Y axis');
+  assert.match(simulatorBase, /TelemarkGamepadControls\.install\(\{[\s\S]*?state: window\.gamepad,[\s\S]*?pointer: false/, 'the shared control layer must not install a second pointer handler');
+
+  const challenge = fs.readFileSync(path.join(simulatorRoot, 'mastery_challenge.js'), 'utf8');
+  assert.doesNotMatch(challenge, /global\.gamepad\.(?:left|right)_stick_y\s*=\s*-/, 'the challenge must pass the already-normalized FTC Y axis through unchanged');
 }
 
 function testInputCallbackFailureDoesNotAbortInstall() {

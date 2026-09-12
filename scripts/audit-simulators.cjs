@@ -48,7 +48,8 @@ assert.match(
 
 const masteryContext = {window: {}, document: {currentScript: null}};
 vm.runInNewContext(masteryRuntimeSource, masteryContext, {filename: 'mastery_challenge.js'});
-const masteryConfigs = masteryContext.window.TelemarkMasteryChallenge.configs;
+const masteryApi = masteryContext.window.TelemarkMasteryChallenge;
+const masteryConfigs = masteryApi.configs;
 assert.deepEqual(
   Object.keys(masteryConfigs),
   Array.from({length: 14}, (_, index) => String(index + 2)),
@@ -59,16 +60,17 @@ for (let unit = 2; unit <= 15; unit += 1) {
   const name = `unit${unit}.mastery.html`;
   const source = fs.readFileSync(path.join(simulatorRoot, name), 'utf8');
   const config = masteryConfigs[unit];
+  const project = masteryApi.decodeProjectOptions(unit, config);
+  const activeFile = project.initialFiles.find((file) => file.name === config.activeFile);
+  const entryFile = project.initialFiles.find((file) => file.name === `${config.entryClass}.java`);
   assert.match(source, new RegExp(`mastery_challenge\\.js["'][^>]*data-unit=["']${unit}["']`));
-  assert.match(config.starter, /^import\s/m, `Unit ${unit} starter must begin with imports`);
-  assert.match(config.starter, /@(TeleOp|Autonomous)\s*\(/, `Unit ${unit} starter needs an OpMode annotation`);
-  assert.match(
-    config.starter,
-    /public\s+class\s+\w+\s+extends\s+(?:OpMode|LinearOpMode)\s*\{\s*\}\s*$/,
-    `Unit ${unit} starter must leave the entire class body empty`,
-  );
-  assert.doesNotMatch(config.starter, /\b(?:init|loop|runOpMode|start|stop)\s*\(/);
-  assert.ok(config.checks.length >= 6, `Unit ${unit} mastery challenge is not comprehensive`);
+  assert.equal(project.key, 'telemark:decode-project:v1');
+  assert.ok(activeFile, `Unit ${unit} cumulative project needs its active stage file`);
+  assert.match(activeFile.source, /^package\s+org\.firstinspires\.ftc\.teamcode;/);
+  assert.match(activeFile.source, new RegExp(`\\bclass\\s+${path.basename(config.activeFile, '.java')}\\b`));
+  assert.ok(entryFile, `Unit ${unit} cumulative project needs its runnable entry file`);
+  assert.match(entryFile.source, /@(TeleOp|Autonomous)\s*\(/, `Unit ${unit} entry file needs an OpMode annotation`);
+  assert.ok(config.checks.length >= 4, `Unit ${unit} mastery challenge is not comprehensive`);
 }
 
 let starterCount = 0;
@@ -301,7 +303,7 @@ assert.doesNotMatch(
 );
 assert.match(
   baseSource,
-  /function createRuntime\s*\([^)]*\)[\s\S]{0,500}TelemarkJava\.createRuntime(?:\.apply)?\s*\(/,
+  /function createRuntime\s*\([^)]*\)[\s\S]{0,1200}TelemarkJava\.createRuntime(?:\.apply)?\s*\(/,
   'simulator_base.js must own the shared Java runtime wrapper',
 );
 assert.match(

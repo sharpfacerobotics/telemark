@@ -45,6 +45,12 @@ function rotateAroundX(vector, angle) {
   return [vector[0], vector[1] * cosine - vector[2] * sine, vector[1] * sine + vector[2] * cosine];
 }
 
+function nodePointToWorld(node, point) {
+  const scaled = point.map((value, axis) => value * (node.scale?.[axis] ?? 1));
+  const rotated = rotateByQuaternion(scaled, node.rotation);
+  return rotated.map((value, axis) => value + (node.translation?.[axis] ?? 0));
+}
+
 function readGlb(relativeFile) {
   const file = path.join(repoRoot, 'static/simulator/models', relativeFile);
   const bytes = fs.readFileSync(file);
@@ -250,6 +256,50 @@ for (const model of chassisModels) {
   }
 }
 
+const decodeRobot = readGlb('kg-sfr-telemark.glb');
+const decodeChassis = decodeRobot.json.nodes.find((node) => node.name === 'telemark-cad-chassis');
+const decodeChassisSignatures = triangleSignatures(decodeRobot, decodeChassis);
+const decodeMinimumTriangles = {
+  'intake-stage-1': 1000,
+  'intake-stage-2': 1000,
+  'intake-stage-3': 1000,
+  transfer: 100,
+  flywheel: 1000,
+  trigger: 200,
+};
+for (const name of ['intake-stage-1', 'intake-stage-2', 'intake-stage-3', 'transfer', 'flywheel', 'trigger']) {
+  const node = decodeRobot.json.nodes.find((candidate) => candidate.name === `telemark-cad-${name}`);
+  assert.ok(node, `KG-SFR must expose its real ${name} CAD as a stable animation node`);
+  assert.equal(node.extras?.telemarkDecodeMechanism, name.startsWith('intake-stage-') ? 'intake' : name);
+  if (name.startsWith('intake-stage-')) assert.equal(node.extras?.intakeStage, Number(name.at(-1)));
+  const triangles = decodeRobot.json.meshes[node.mesh].primitives.reduce(
+    (sum, primitive) => sum + decodeRobot.json.accessors[primitive.indices].count / 3,
+    0,
+  );
+  assert.ok(triangles >= decodeMinimumTriangles[name], `KG-SFR ${name} must contain real CAD geometry`);
+  assert.equal(node.extras?.spinAxis, name === 'transfer' ? 'z' : 'x');
+  if (name === 'trigger') {
+    assert.equal(node.extras?.telemarkCadPivot?.length, 3, 'KG-SFR trigger must pivot on its real servo axis');
+  }
+  for (const triangle of triangleSignatures(decodeRobot, node)) {
+    assert.equal(decodeChassisSignatures.has(triangle), false, `KG-SFR ${name} geometry must be removed from the fixed chassis`);
+  }
+}
+const intakeCenters = [1, 2, 3].map((stage) => {
+  const node = decodeRobot.json.nodes.find((candidate) => candidate.name === `telemark-cad-intake-stage-${stage}`);
+  return nodePointToWorld(node, node.extras.telemarkCadCenter).map((value) => Number(value.toFixed(4)));
+});
+assert.equal(new Set(intakeCenters.map((center) => center.join(','))).size, 3, 'each intake row must retain its own axle pivot');
+const decodeTrigger = decodeRobot.json.nodes.find((node) => node.name === 'telemark-cad-trigger');
+const triggerCenter = nodePointToWorld(decodeTrigger, decodeTrigger.extras.telemarkCadCenter);
+const triggerPivot = nodePointToWorld(decodeTrigger, decodeTrigger.extras.telemarkCadPivot);
+const triggerOffset = triggerCenter.map((value, axis) => value - triggerPivot[axis]);
+const firedTriggerCenter = rotateAroundX(triggerOffset, 0.85).map((value, axis) => value + triggerPivot[axis]);
+assert.ok(
+  firedTriggerCenter[1] > triggerCenter[1] + 0.03,
+  'positive launcher_trigger servo travel must lift the real CAD pusher toward the flywheel',
+);
+
 const glutenFreeModel = readGlb('11115-gluten-free-skystone-telemark.glb');
 const glutenFreeJson = glutenFreeModel.json;
 function subtreeTriangles(json, node) {
@@ -396,6 +446,11 @@ for (const unit of [13, 14, 15]) {
 assert.equal(challengeApi.robotProfileForUnit(13).name, 'KG-SFR DECODE robot');
 assert.equal(challengeApi.robotProfileForUnit(14).name, 'KG-SFR DECODE · Vision');
 assert.equal(challengeApi.robotProfileForUnit(15).name, 'KG-SFR DECODE · Full Autonomous');
+for (const unit of [13, 14, 15]) {
+  assert.equal(challengeApi.robotProfileForUnit(unit).modelYaw, Math.PI, `Unit ${unit} KG CAD must preserve forward/strafe axes while correcting both signs`);
+}
+assert.match(challengeSource, /footprint:\s*Number\(destinationUnit\) >= 13 \? 1\.18 : 2\.15/, 'the Unit 13 KG-SFR robot must be large enough to visibly store three artifacts side by side');
+assert.match(challengeSource, /robot\.rotation\.y = \(profile\.modelYaw \|\| 0\) - motion\.state\.heading/, 'the displayed CAD heading must include its drivetrain-frame correction');
 for (const unit of [2, 3, 4, 5, 6, 10, 12]) {
   assert.equal(
     challengeApi.cadSourceUnitFor(unit),
@@ -403,19 +458,17 @@ for (const unit of [2, 3, 4, 5, 6, 10, 12]) {
     `Unit ${unit} must retain its imported competition CAD`,
   );
 }
-for (const part of ['intake', 'transfer', 'flywheel']) {
-  assert.match(
-    challengeSource,
-    new RegExp(`name = "telemark-cad-${part}"`),
-    `Unit 13 must expose a stable ${part} animation node`,
-  );
-}
+assert.match(challengeSource, /function rigDecodeMechanisms\(model\)/);
+assert.match(challengeSource, /getObjectByName && model\.getObjectByName\("telemark-cad-" \+ name\)/);
+assert.doesNotMatch(challengeSource, /visibleRoller\(0\.17, 1\.38/);
 assert.match(challengeSource, /name = "telemark-cad-vision-camera"/, 'Unit 14 must add a camera to the carried-forward robot');
 assert.match(challengeSource, /name = "telemark-cad-limelight"/, 'Unit 15 must add Limelight to the carried-forward robot');
 assert.match(challengeSource, /name = "telemark-autonomous-path"/, 'Unit 15 must render the advanced autonomous path');
 assert.match(challengeSource, /motion\.state\.intakeAngle/);
+assert.match(challengeSource, /decodeMechanisms\.intakeStages\.forEach/, 'all three intake-stage pivots must spin independently');
 assert.match(challengeSource, /motion\.state\.transferAngle/);
 assert.match(challengeSource, /motion\.state\.flywheelAngle/);
+assert.match(challengeSource, /motion\.state\.triggerAngle/);
 assert.match(challengeSource, /TelemarkDecodeGameView\.mount/);
 
 const unit5Solution = `

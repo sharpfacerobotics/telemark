@@ -4246,6 +4246,8 @@
   function MockIMU(name) {
     this._name = name;
     this._heading = 0;
+    this._physicalHeading = 0;
+    this._yawOffset = 0;
     this._angularVelocity = { x: 0, y: 0, z: 0 };
     this._orientation = { heading: 0, pitch: 0, roll: 0 };
   }
@@ -4253,6 +4255,7 @@
   MockIMU.prototype.initialize = function () {};
 
   MockIMU.prototype.resetYaw = function () {
+    this._yawOffset = this._physicalHeading;
     this._heading = 0;
   };
 
@@ -4276,11 +4279,12 @@
   };
 
   // Allow challenges to set heading
-  MockIMU.prototype._setHeading = function (deg) {
-    this._heading = deg;
+  MockIMU.prototype._setHeading = function (angle) {
+    this._physicalHeading = Number(angle) || 0;
+    this._heading = this._physicalHeading - this._yawOffset;
     hwCallbacks.onIMU.forEach(
       function (cb) {
-        cb(this._name, { heading: deg });
+        cb(this._name, { heading: this._heading });
       }.bind(this)
     );
   };
