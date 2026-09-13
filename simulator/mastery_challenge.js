@@ -18,6 +18,251 @@
       + "\npublic class " + className + " extends " + parent + " {\n\n}";
   }
 
+  const DECODE_PROJECT_KEY = "telemark:decode-project:v1";
+  const TEAM_PACKAGE = "org.firstinspires.ftc.teamcode";
+  function decodeSource(body) {
+    return "package " + TEAM_PACKAGE + ";\n\n" + body.trim() + "\n";
+  }
+
+  const DECODE_FILE_STAGES = Object.freeze([
+    {
+      unit: 2,
+      name: "CompetitionTeleOp.java",
+      className: "CompetitionTeleOp",
+      methods: ["init", "start", "loop", "stop"],
+      source: decodeSource(`
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+@TeleOp(name="DECODE Competition TeleOp")
+public class CompetitionTeleOp extends OpMode {
+    @Override
+    public void init() {
+        // Report that the robot is ready.
+    }
+
+    @Override
+    public void start() {
+        // Reset match timing here.
+    }
+
+    @Override
+    public void loop() {
+        // Repeated driver-control code belongs here.
+    }
+
+    @Override
+    public void stop() {
+        // Leave every mechanism safe.
+    }
+}`)
+    },
+    {
+      unit: 3,
+      name: "RobotConfig.java",
+      className: "RobotConfig",
+      source: decodeSource(`
+public final class RobotConfig {
+    private RobotConfig() {}
+
+    // Add shared hardware names, powers, deadzones, and mechanism state here.
+}`)
+    },
+    {
+      unit: 4,
+      name: "Drivetrain.java",
+      className: "Drivetrain",
+      methods: ["init", "drive", "stop"],
+      source: decodeSource(`
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+public class Drivetrain {
+    // Keep the four drive motors private.
+
+    public void init(HardwareMap hardwareMap) {}
+
+    public void drive(double forward, double strafe, double turn) {}
+
+    public void stop() {}
+}`)
+    },
+    {
+      unit: 5,
+      name: "Intake.java",
+      className: "Intake",
+      methods: ["init", "collect", "reverse", "stop"],
+      source: decodeSource(`
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+public class Intake {
+    private DcMotor motor;
+
+    public void init(HardwareMap hardwareMap) {}
+    public void collect() {}
+    public void reverse() {}
+    public void stop() {}
+}`)
+    },
+    {
+      unit: 5,
+      name: "Transfer.java",
+      className: "Transfer",
+      methods: ["init", "forward", "reverse", "stop"],
+      source: decodeSource(`
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+public class Transfer {
+    private DcMotor motor;
+
+    public void init(HardwareMap hardwareMap) {}
+    public void forward() {}
+    public void reverse() {}
+    public void stop() {}
+}`)
+    },
+    {
+      unit: 7,
+      name: "Launcher.java",
+      className: "Launcher",
+      methods: ["init", "update", "launch", "stop"],
+      source: decodeSource(`
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+public class Launcher {
+    private DcMotor flywheel;
+
+    public void init(HardwareMap hardwareMap) {}
+    public void update(double nowSeconds) {}
+    public void launch(double nowSeconds) {}
+    public void stop() {}
+}`)
+    },
+    {
+      unit: 7,
+      name: "ArtifactSensors.java",
+      className: "ArtifactSensors",
+      methods: ["init", "update", "hasCapacity"],
+      source: decodeSource(`
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+public class ArtifactSensors {
+    private int storedArtifacts;
+
+    public void init(HardwareMap hardwareMap) {}
+    public void update() {}
+    public boolean hasCapacity() { return storedArtifacts < 3; }
+}`)
+    },
+    {
+      unit: 13,
+      name: "PoweredMechanism.java",
+      className: "PoweredMechanism",
+      methods: ["init", "setPower", "stop"],
+      source: decodeSource(`
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+public class PoweredMechanism {
+    protected DcMotor motor;
+
+    public void init(HardwareMap hardwareMap, String hardwareName) {}
+    public void setPower(double power) {}
+    public void stop() {}
+}`)
+    },
+    {
+      unit: 13,
+      name: "RobotHardware.java",
+      className: "RobotHardware",
+      methods: ["init", "update", "stopAll"],
+      source: decodeSource(`
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+public class RobotHardware {
+    public final Drivetrain drivetrain = new Drivetrain();
+    public final Intake intake = new Intake();
+    public final Transfer transfer = new Transfer();
+    public final Launcher launcher = new Launcher();
+    public final ArtifactSensors sensors = new ArtifactSensors();
+
+    public void init(HardwareMap hardwareMap) {}
+    public void update(double nowSeconds) {}
+    public void stopAll() {}
+}`)
+    },
+    {
+      unit: 14,
+      name: "Vision.java",
+      className: "Vision",
+      methods: ["init", "update", "close"],
+      source: decodeSource(`
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+public class Vision {
+    public void init(HardwareMap hardwareMap) {}
+    public void update() {}
+    public void close() {}
+}`)
+    },
+    {
+      unit: 15,
+      name: "FullAutonomous.java",
+      className: "FullAutonomous",
+      methods: ["runOpMode"],
+      source: decodeSource(`
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+
+@Autonomous(name="DECODE Full Autonomous")
+public class FullAutonomous extends LinearOpMode {
+    @Override
+    public void runOpMode() {
+        // Coordinate vision, localization, paths, and robot subsystems here.
+    }
+}`)
+    }
+  ]);
+
+  function publicClassName(source) {
+    const match = String(source || "").match(/\bpublic\s+(?:final\s+|abstract\s+)?class\s+(\w+)/)
+      || String(source || "").match(/\bclass\s+(\w+)/);
+    return match ? match[1] : "Main";
+  }
+
+  function decodeScaffold(file) {
+    return {
+      name: file.name,
+      source: file.source
+    };
+  }
+
+  function decodeProjectOptions(unit, config) {
+    const byName = new Map();
+    DECODE_FILE_STAGES.filter(function (file) { return file.unit <= unit; }).forEach(function (file) {
+      if (!byName.has(file.name)) byName.set(file.name, decodeScaffold(file));
+    });
+    const stageId = "unit-" + String(unit).padStart(2, "0") + "/mastery-coding-challenge";
+    const stageFiles = new Set(config.stageFiles || [config.activeFile]);
+    DECODE_FILE_STAGES.filter(function (file) { return file.unit === unit; }).forEach(function (file) { stageFiles.add(file.name); });
+    return {
+      key: DECODE_PROJECT_KEY,
+      initialFiles: Array.from(byName.values()),
+      preferredActiveFile: config.activeFile,
+      preferredEntry: TEAM_PACKAGE + "." + (config.entryClass || "CompetitionTeleOp"),
+      preserveProjectOnReset: true,
+      snapshotsOnly: true,
+      enableSnapshots: true,
+      stage: {id: stageId, title: config.title, files: Array.from(stageFiles)},
+      prerequisites: DECODE_FILE_STAGES.filter(function (file) { return file.unit < unit; }).map(function (file) {
+        return {file: file.name, className: file.className, methods: file.methods || []};
+      })
+    };
+  }
+
   const CONFIGS = {
     2: {
       title: "Unit 2 Coding Challenge: Complete OpMode Lifecycle",
@@ -356,6 +601,304 @@
     }
   };
 
+  // Part 3 turns each mastery challenge into the next stage of one DECODE
+  // project. The earlier CONFIGS remain above as historical lesson fixtures;
+  // these stage definitions are the learner-facing cumulative progression.
+  const DECODE_STAGE_CONFIGS = {
+    2: {
+      title: "Stage 1 · CompetitionTeleOp Lifecycle",
+      scenario: "Start the shared DECODE project by turning CompetitionTeleOp.java into a registered iterative OpMode with a complete, safe lifecycle.",
+      activeFile: "CompetitionTeleOp.java",
+      entryClass: "CompetitionTeleOp",
+      registration: "teleop",
+      inputs: ["a"],
+      checks: [
+        ["Report robot status during init()", /void\s+init\s*\(\s*\)[\s\S]*?telemetry\s*\.\s*addData\s*\(/],
+        ["Reset match time in start()", /void\s+start\s*\(\s*\)[\s\S]*?resetRuntime\s*\(/],
+        ["Read gamepad1 and update telemetry in loop()", /void\s+loop\s*\(\s*\)[\s\S]*?gamepad1\s*\.[\s\S]*?telemetry\s*\.\s*(?:addData|update)\s*\(/],
+        ["Provide a stop() safety lifecycle method", /void\s+stop\s*\(\s*\)/]
+      ]
+    },
+    3: {
+      title: "Stage 2 · Shared Robot Configuration",
+      scenario: "Add RobotConfig.java and centralize the names, constants, primitive values, and mechanism state that later DECODE subsystems will share.",
+      activeFile: "RobotConfig.java",
+      entryClass: "CompetitionTeleOp",
+      stageFiles: ["RobotConfig.java", "CompetitionTeleOp.java"],
+      inputs: ["a", "left_bumper", "left_stick_y"],
+      checks: [
+        ["Make RobotConfig a non-instantiable final class", /final\s+class\s+RobotConfig[\s\S]*?private\s+RobotConfig\s*\(\s*\)/],
+        ["Define shared String hardware names", /class\s+RobotConfig[\s\S]*?static\s+final\s+String\s+\w+\s*=\s*"[^"]+"/],
+        ["Define double power, deadzone, and launcher values", /static\s+final\s+double\s+\w*(?:POWER|SPEED)\w*\s*=/i, /static\s+final\s+double\s+\w*DEADZONE\w*\s*=/i, /static\s+final\s+double\s+\w*(?:VELOCITY|FLYWHEEL)\w*\s*=/i],
+        ["Track mechanism state with boolean and int values", /\bboolean\s+\w+\s*=/, /\bint\s+\w+\s*=/],
+        ["Use a RobotConfig value outside RobotConfig.java", /class\s+(?!RobotConfig)\w+[\s\S]*?RobotConfig\s*\.\s*\w+/]
+      ]
+    },
+    4: {
+      title: "Stage 3 · Mecanum Drivetrain",
+      scenario: "Build Drivetrain.java with four mapped motors, joystick deadzones, normalized mecanum math, and one-gamepad control delegated by CompetitionTeleOp.",
+      activeFile: "Drivetrain.java",
+      entryClass: "CompetitionTeleOp",
+      stageFiles: ["Drivetrain.java", "CompetitionTeleOp.java"],
+      inputs: ["left_stick_x", "left_stick_y", "right_stick_x"],
+      checks: [
+        ["Keep and map four drivetrain motors", /class\s+Drivetrain[\s\S]*?(?:DcMotor\s+\w+[\s\S]*?){4}/, /class\s+Drivetrain[\s\S]*?(?:\w+\s*\.\s*get\s*\(\s*DcMotor\.class[\s\S]*?){4}/],
+        ["Apply a joystick deadzone", /Math\s*\.\s*abs\s*\([^)]*\)\s*[<>]=?\s*(?:0?\.\d+|(?:RobotConfig\s*\.\s*)?[A-Z][A-Z0-9_]*)/],
+        ["Calculate four mecanum wheel values", /class\s+Drivetrain[\s\S]*?(?:void|double\s*\[\s*\])\s+\w*(?:drive|mecanum)\w*\s*\(/i],
+        ["Normalize wheel power to the available range", /(?:Math\s*\.\s*(?:max|min|abs)|Range\s*\.\s*clip)\s*\(/],
+        ["Send power to all four motors", /setPower\s*\([^)]*\)[\s\S]*?setPower\s*\([^)]*\)[\s\S]*?setPower\s*\([^)]*\)[\s\S]*?setPower\s*\(/],
+        ["Delegate gamepad1 drive axes from CompetitionTeleOp", /class\s+CompetitionTeleOp[\s\S]*?\w+\s*\.\s*\w*(?:drive|mecanum)\w*\s*\([^;]*gamepad1\s*\./i]
+      ]
+    },
+    5: {
+      title: "Stage 4 · Intake and Transfer Logic",
+      scenario: "Complete Intake.java and Transfer.java, then use clear conditional driver controls to collect, feed, reverse, and stop them safely.",
+      activeFile: "Intake.java",
+      entryClass: "CompetitionTeleOp",
+      stageFiles: ["Intake.java", "Transfer.java", "CompetitionTeleOp.java"],
+      inputs: ["right_bumper", "left_bumper"],
+      checks: [
+        ["Map private intake and transfer motors in init(HMap)", /class\s+Intake[\s\S]*?private\s+DcMotor[\s\S]*?\w+\s*\.\s*get\s*\(\s*DcMotor\.class/, /class\s+Transfer[\s\S]*?private\s+DcMotor[\s\S]*?\w+\s*\.\s*get\s*\(\s*DcMotor\.class/],
+        ["Give Intake collect, reverse, and stop commands", /class\s+Intake[\s\S]*?void\s+collect\s*\(/, /class\s+Intake[\s\S]*?void\s+reverse\s*\(/, /class\s+Intake[\s\S]*?void\s+stop\s*\(/],
+        ["Give Transfer forward, reverse, and stop commands", /class\s+Transfer[\s\S]*?void\s+forward\s*\(/, /class\s+Transfer[\s\S]*?void\s+reverse\s*\(/, /class\s+Transfer[\s\S]*?void\s+stop\s*\(/],
+        ["Use clear conditional control logic", /(?:\bif\s*\(|\bswitch\s*\(|\?[^:]+:)/],
+        ["Run both mechanisms forward and reverse from the bumpers", /gamepad1\s*\.\s*right_bumper[\s\S]*?(?:intake|transfer)\s*\./, /gamepad1\s*\.\s*left_bumper[\s\S]*?(?:reverse|stop)/]
+      ]
+    },
+    6: {
+      title: "Stage 5 · Arrays and Non-Blocking Launch Timing",
+      scenario: "Use motor collections and loops to keep repeated setup concise, then add a launch sequence that advances by timestamps without blocking TeleOp updates.",
+      activeFile: "CompetitionTeleOp.java",
+      entryClass: "CompetitionTeleOp",
+      stageFiles: ["CompetitionTeleOp.java", "Drivetrain.java"],
+      inputs: ["a"],
+      checks: [
+        ["Store related drive motors in an array", /DcMotor\s*\[\s*\]\s+\w+/],
+        ["Use a loop to configure or stop the motor array", /for\s*\([^)]*(?:;|:)\s*[^)]*\)[\s\S]*?\w+\s*\.\s*(?:setMode|setZeroPowerBehavior|setPower)\s*\(/],
+        ["Start launch timing on an A-button rising edge", /gamepad1\s*\.\s*a\s*&&\s*!\s*\w+/],
+        ["Advance launch state with a getRuntime() deadline", /getRuntime\s*\(\s*\)\s*\+\s*[^;]+/, /getRuntime\s*\(\s*\)\s*[<>]=?\s*\w+/],
+        ["Keep stop() responsible for safe shutdown", /void\s+stop\s*\(\s*\)[\s\S]*?(?:stop|setPower\s*\(\s*0)/]
+      ],
+      forbidden: [
+        ["Do not block TeleOp with sleep()", /\bsleep\s*\(/],
+        ["Do not add an unbounded while(true) loop", /while\s*\(\s*true\s*\)/]
+      ]
+    },
+    7: {
+      title: "Stage 6 · Subsystem Hardware Mapping",
+      scenario: "Move every hardware lookup into subsystem init(HardwareMap) methods and add the Launcher and ArtifactSensors scaffolds without exposing raw hardware in CompetitionTeleOp.",
+      activeFile: "Launcher.java",
+      entryClass: "CompetitionTeleOp",
+      stageFiles: ["Drivetrain.java", "Intake.java", "Transfer.java", "Launcher.java", "ArtifactSensors.java", "CompetitionTeleOp.java"],
+      inputs: ["a", "right_bumper"],
+      checks: [
+        ["Give all five subsystems init(HardwareMap)", /class\s+Drivetrain[\s\S]*?init\s*\(\s*HardwareMap/, /class\s+Intake[\s\S]*?init\s*\(\s*HardwareMap/, /class\s+Transfer[\s\S]*?init\s*\(\s*HardwareMap/, /class\s+Launcher[\s\S]*?init\s*\(\s*HardwareMap/, /class\s+ArtifactSensors[\s\S]*?init\s*\(\s*HardwareMap/],
+        ["Map hardware inside subsystem classes", /class\s+(?:Drivetrain|Intake|Transfer|Launcher|ArtifactSensors)[\s\S]*?hardwareMap\s*\.\s*get\s*\(/],
+        ["Keep Launcher flywheel hardware private", /class\s+Launcher[\s\S]*?private\s+DcMotor\s+\w+/],
+        ["Give ArtifactSensors stored-artifact state", /class\s+ArtifactSensors[\s\S]*?\bint\s+\w+/, /class\s+ArtifactSensors[\s\S]*?boolean\s+hasCapacity\s*\(/],
+        ["Initialize and command subsystems from CompetitionTeleOp", /class\s+CompetitionTeleOp[\s\S]*?\.\s*init\s*\(\s*hardwareMap\s*\)[\s\S]*?gamepad1\s*\./],
+        ["Keep raw hardwareMap.get calls out of CompetitionTeleOp", /class\s+CompetitionTeleOp/]
+      ]
+    },
+    8: {
+      title: "Stage 7 · Safe Motor Configuration",
+      scenario: "Configure drivetrain and mechanism direction, encoder modes, braking, and reliable zero-power shutdown inside their subsystem classes.",
+      activeFile: "Drivetrain.java",
+      entryClass: "CompetitionTeleOp",
+      stageFiles: ["Drivetrain.java", "Intake.java", "Transfer.java", "Launcher.java"],
+      inputs: ["left_stick_y"],
+      checks: [
+        ["Set the required motor directions", /setDirection\s*\([^)]*Direction\.REVERSE/],
+        ["Configure RUN_USING_ENCODER", /setMode\s*\(\s*DcMotor\.RunMode\.RUN_USING_ENCODER\s*\)/],
+        ["Configure BRAKE at zero power", /setZeroPowerBehavior\s*\(\s*DcMotor\.ZeroPowerBehavior\.BRAKE\s*\)/],
+        ["Stop every powered subsystem at zero", /class\s+Drivetrain[\s\S]*?void\s+stop\s*\([^)]*\)[\s\S]*?setPower\s*\(\s*0/, /class\s+Intake[\s\S]*?void\s+stop\s*\([^)]*\)[\s\S]*?setPower\s*\(\s*0/, /class\s+Transfer[\s\S]*?void\s+stop\s*\([^)]*\)[\s\S]*?setPower\s*\(\s*0/, /class\s+Launcher[\s\S]*?void\s+stop\s*\([^)]*\)[\s\S]*?setPower\s*\(\s*0/]
+      ]
+    },
+    9: {
+      title: "Stage 8 · Launcher Trigger Servo",
+      scenario: "Add a positional trigger Servo to Launcher and release exactly one artifact from an A-button press without pausing the OpMode loop.",
+      activeFile: "Launcher.java",
+      entryClass: "CompetitionTeleOp",
+      stageFiles: ["Launcher.java", "CompetitionTeleOp.java", "RobotConfig.java"],
+      inputs: ["a", "right_trigger"],
+      checks: [
+        ["Map a private positional Servo trigger", /class\s+Launcher[\s\S]*?private\s+Servo\s+\w+[\s\S]*?hardwareMap\s*\.\s*get\s*\(\s*Servo\.class/],
+        ["Configure fire and rest positions", /(?:static\s+final\s+double|RobotConfig\s*\.\s*\w+)[\s\S]*?setPosition\s*\([^)]*\)[\s\S]*?setPosition\s*\([^)]*\)/],
+        ["Launch on the A-button rising edge", /gamepad1\s*\.\s*a\s*&&\s*!\s*\w+[\s\S]*?launcher\s*\.\s*launch\s*\(/],
+        ["Return the trigger using non-blocking timing", /class\s+Launcher[\s\S]*?void\s+update\s*\([^)]*\)[\s\S]*?(?:deadline|return|release|trigger)[\s\S]*?setPosition\s*\(/i]
+      ],
+      forbidden: [["Do not block trigger timing with sleep()", /\bsleep\s*\(/]]
+    },
+    10: {
+      title: "Stage 9 · Closed-Loop Flywheel Velocity",
+      scenario: "Convert Launcher to DcMotorEx, command velocity, measure it, and tune PIDF so the flywheel can resist battery-related speed loss.",
+      activeFile: "Launcher.java",
+      entryClass: "CompetitionTeleOp",
+      stageFiles: ["Launcher.java", "CompetitionTeleOp.java"],
+      inputs: ["right_trigger", "a"],
+      checks: [
+        ["Use DcMotorEx for the flywheel", /class\s+Launcher[\s\S]*?DcMotorEx\s+\w+[\s\S]*?hardwareMap\s*\.\s*get\s*\(\s*DcMotorEx\.class/],
+        ["Run the flywheel with encoders", /setMode\s*\(\s*DcMotor\.RunMode\.RUN_USING_ENCODER\s*\)/],
+        ["Set PIDF coefficients", /setVelocityPIDFCoefficients\s*\(/],
+        ["Command proportional target velocity", /gamepad1\s*\.\s*right_trigger[\s\S]*?setVelocity\s*\(/],
+        ["Read measured velocity", /getVelocity\s*\(\s*\)/],
+        ["Report target and measured velocity", /telemetry\s*\.\s*addData\s*\([^)]*(?:target|command)/i, /telemetry\s*\.\s*addData\s*\([^)]*(?:measured|actual|velocity)/i]
+      ]
+    },
+    11: {
+      title: "Stage 10 · Artifact Capacity and Interlocks",
+      scenario: "Finish ArtifactSensors and prevent intake, transfer, or launch actions that would violate the three-artifact capacity or mechanism state.",
+      activeFile: "ArtifactSensors.java",
+      entryClass: "CompetitionTeleOp",
+      stageFiles: ["ArtifactSensors.java", "Intake.java", "Transfer.java", "Launcher.java", "CompetitionTeleOp.java"],
+      inputs: ["right_bumper", "left_bumper", "a"],
+      checks: [
+        ["Map and read artifact sensors", /class\s+ArtifactSensors[\s\S]*?hardwareMap\s*\.\s*get\s*\([^;]+[\s\S]*?(?:getState|getDistance)\s*\(/],
+        ["Track a maximum capacity of three", /class\s+ArtifactSensors[\s\S]*?(?:<\s*3|MAX\w*\s*=\s*3)/],
+        ["Update stored count from sensor transitions", /class\s+ArtifactSensors[\s\S]*?void\s+update\s*\([^)]*\)[\s\S]*?(?:\+\+|--|\+=|-=)/],
+        ["Expose storage and capacity state", /class\s+ArtifactSensors[\s\S]*?boolean\s+hasCapacity\s*\(/],
+        ["Interlock intake or transfer when storage is full", /hasCapacity\s*\(\s*\)/, /(?:intake|transfer)\s*\./],
+        ["Launch only when an artifact is ready", /(?:hasArtifact|isReady|readyToLaunch|storedArtifacts\s*>\s*0)[\s\S]*?launcher\s*\.\s*launch\s*\(/]
+      ]
+    },
+    12: {
+      title: "Stage 11 · IMU Field-Centric Drive",
+      scenario: "Upgrade Drivetrain to field-centric mecanum control with IMU heading, heading reset, rotated joystick vectors, and normalized output.",
+      activeFile: "Drivetrain.java",
+      entryClass: "CompetitionTeleOp",
+      stageFiles: ["Drivetrain.java", "CompetitionTeleOp.java"],
+      inputs: ["x", "left_stick_x", "left_stick_y", "right_stick_x"],
+      checks: [
+        ["Map and initialize the IMU", /hardwareMap\s*\.\s*get\s*\(\s*IMU\.class/, /new\s+RevHubOrientationOnRobot\s*\(/, /imu\s*\.\s*initialize\s*\(/],
+        ["Read robot yaw in radians", /getRobotYawPitchRollAngles\s*\(\s*\)[\s\S]*?getYaw\s*\(\s*AngleUnit\.RADIANS\s*\)/],
+        ["Reset heading from the X button", /gamepad1\s*\.\s*x[\s\S]*?(?:resetYaw|resetHeading)\s*\(/],
+        ["Rotate field input with sine and cosine", /Math\s*\.\s*cos\s*\(/, /Math\s*\.\s*sin\s*\(/],
+        ["Normalize and command four mecanum powers", /Math\s*\.\s*max\s*\(/, /setPower\s*\([^)]*\)[\s\S]*?setPower\s*\([^)]*\)[\s\S]*?setPower\s*\([^)]*\)[\s\S]*?setPower\s*\(/]
+      ]
+    },
+    13: {
+      title: "Stage 12 · Complete Modular TeleOp",
+      scenario: "Add PoweredMechanism and RobotHardware, compose every DECODE subsystem, and finish CompetitionTeleOp as coordination-only code with no raw hardware access.",
+      activeFile: "RobotHardware.java",
+      entryClass: "CompetitionTeleOp",
+      registration: "teleop",
+      stageFiles: ["PoweredMechanism.java", "RobotHardware.java", "CompetitionTeleOp.java", "Intake.java", "Transfer.java", "Launcher.java"],
+      inputs: ["a", "x", "y", "left_bumper", "right_bumper", "left_stick_x", "left_stick_y", "right_stick_x", "right_trigger"],
+      checks: [
+        ["Put shared powered behavior in PoweredMechanism", /class\s+PoweredMechanism[\s\S]*?protected\s+DcMotor\s+\w+[\s\S]*?void\s+setPower\s*\([^)]*\)[\s\S]*?void\s+stop\s*\(/],
+        ["Reuse PoweredMechanism in powered subsystems", /class\s+(?:Intake|Transfer|Launcher)\s+extends\s+PoweredMechanism/],
+        ["Compose every subsystem in RobotHardware", /class\s+RobotHardware[\s\S]*?new\s+Drivetrain\s*\([\s\S]*?new\s+Intake\s*\([\s\S]*?new\s+Transfer\s*\([\s\S]*?new\s+Launcher\s*\([\s\S]*?new\s+ArtifactSensors\s*\(/],
+        ["Initialize every subsystem through RobotHardware", /class\s+RobotHardware[\s\S]*?void\s+init\s*\(\s*HardwareMap[\s\S]*?drivetrain\s*\.\s*init[\s\S]*?intake\s*\.\s*init[\s\S]*?transfer\s*\.\s*init[\s\S]*?launcher\s*\.\s*init[\s\S]*?sensors\s*\.\s*init/],
+        ["Update mechanisms without blocking", /class\s+RobotHardware[\s\S]*?void\s+update\s*\([^)]*\)[\s\S]*?(?:launcher|sensors)\s*\.\s*update/],
+        ["Stop every subsystem through stopAll()", /class\s+RobotHardware[\s\S]*?void\s+stopAll\s*\([^)]*\)[\s\S]*?drivetrain\s*\.\s*stop[\s\S]*?intake\s*\.\s*stop[\s\S]*?transfer\s*\.\s*stop[\s\S]*?launcher\s*\.\s*stop/],
+        ["Delegate TeleOp init, loop, and stop to RobotHardware", /class\s+CompetitionTeleOp[\s\S]*?robot\s*\.\s*init\s*\(\s*hardwareMap\s*\)[\s\S]*?robot\s*\.\s*update\s*\([\s\S]*?robot\s*\.\s*stopAll\s*\(/],
+        ["Keep raw hardware access out of CompetitionTeleOp", /class\s+CompetitionTeleOp/]
+      ],
+      forbidden: [["Do not block TeleOp updates with sleep()", /\bsleep\s*\(/]]
+    },
+    14: {
+      title: "Stage 13 · Vision Subsystem",
+      scenario: "Add Vision.java beside the finished TeleOp, own the camera pipeline there, and let RobotHardware initialize, update, and close it without replacing driver control.",
+      activeFile: "Vision.java",
+      entryClass: "CompetitionTeleOp",
+      stageFiles: ["Vision.java", "RobotHardware.java", "CompetitionTeleOp.java"],
+      inputs: [],
+      checks: [
+        ["Map Webcam 1 inside Vision", /class\s+Vision[\s\S]*?hardwareMap\s*\.\s*get\s*\(\s*WebcamName\.class\s*,\s*"Webcam 1"\s*\)/],
+        ["Build an AprilTag processor and VisionPortal", /class\s+Vision[\s\S]*?AprilTagProcessor[\s\S]*?VisionPortal/],
+        ["Inspect current detections safely", /getDetections\s*\(\s*\)/, /for\s*\(\s*AprilTagDetection\s+\w+\s*:/, /metadata\s*!=\s*null/],
+        ["Classify left, center, and right zones", /(?:LEFT|CENTER|RIGHT)[\s\S]*?(?:LEFT|CENTER|RIGHT)[\s\S]*?(?:LEFT|CENTER|RIGHT)/],
+        ["Initialize and update Vision through RobotHardware", /class\s+RobotHardware[\s\S]*?vision\s*\.\s*init\s*\(\s*hardwareMap\s*\)[\s\S]*?vision\s*\.\s*update\s*\(/],
+        ["Close camera resources during shutdown", /class\s+Vision[\s\S]*?void\s+close\s*\([^)]*\)[\s\S]*?\.\s*close\s*\(/]
+      ]
+    },
+    15: {
+      title: "Stage 14 · Full Sensor-Fused Autonomous",
+      scenario: "Add FullAutonomous.java to the same robot project and coordinate Limelight validation, localization correction, Bézier paths, non-blocking subsystem updates, and clean shutdown.",
+      activeFile: "FullAutonomous.java",
+      entryClass: "FullAutonomous",
+      registration: "autonomous",
+      stageFiles: ["FullAutonomous.java", "RobotHardware.java", "Vision.java"],
+      inputs: [],
+      checks: [
+        ["Map, select, and start the Limelight pipeline", /hardwareMap\s*\.\s*get\s*\(\s*Limelight3A\.class\s*,\s*"limelight"\s*\)/, /pipelineSwitch\s*\(/, /limelight\s*\.\s*start\s*\(/],
+        ["Create a Follower with a starting Pose", /new\s+Follower\s*\(/, /setStartingPose\s*\(\s*new\s+Pose\s*\(/],
+        ["Build a Bézier line and curve PathChain", /new\s+BezierLine\s*\(/, /new\s+BezierCurve\s*\(/, /PathChain/],
+        ["Use a named autonomous state machine", /enum\s+\w*State/, /switch\s*\(/, /case\s+\w+\s*:/],
+        ["Keep follower and robot updates non-blocking", /while\s*\([^)]*opModeIsActive[\s\S]*?follower\s*\.\s*update\s*\([\s\S]*?robot\s*\.\s*update\s*\(/],
+        ["Validate Limelight results before reading pose", /getLatestResult\s*\(/, /\.\s*isValid\s*\(\s*\)/],
+        ["Correct localization from a valid vision pose", /getBotpose\s*\(/, /follower\s*\.\s*setPose\s*\(/],
+        ["Initialize the existing RobotHardware project", /new\s+RobotHardware\s*\(/, /robot\s*\.\s*init\s*\(\s*hardwareMap\s*\)/],
+        ["Coordinate launcher, transfer, and intake through subsystems", /robot\s*\.\s*launcher\s*\./, /robot\s*\.\s*transfer\s*\./, /robot\s*\.\s*intake\s*\./],
+        ["Stop robot, vision, and Limelight cleanly", /robot\s*\.\s*stopAll\s*\(/, /vision\s*\.\s*close\s*\(/, /limelight\s*\.\s*stop\s*\(/],
+        ["Keep raw hardware access out of FullAutonomous", /class\s+FullAutonomous/]
+      ],
+      forbidden: [["Do not block follower updates with sleep()", /\bsleep\s*\(/]]
+    }
+  };
+
+  function criterionAstRule(unit, index) {
+    const rules = {
+      "2:0": {classes: [{name: "CompetitionTeleOp", methods: ["init"]}]},
+      "2:1": {classes: [{name: "CompetitionTeleOp", methods: ["start"]}]},
+      "2:2": {classes: [{name: "CompetitionTeleOp", methods: ["loop"]}]},
+      "2:3": {classes: [{name: "CompetitionTeleOp", methods: ["stop"]}]},
+      "3:0": {classes: [{name: "RobotConfig", modifiers: ["final"]}]},
+      "3:1": {classes: [{name: "RobotConfig", fields: [{type: "String", static: true, final: true}]}]},
+      "4:0": {classes: [{name: "Drivetrain", methods: ["init"]}]},
+      "4:4": {classes: [{name: "Drivetrain", calls: ["setPower"]}]},
+      "4:5": {classes: [{name: "CompetitionTeleOp", methods: ["loop"]}]},
+      "5:1": {classes: [{name: "Intake", methods: ["collect", "reverse", "stop"]}]},
+      "5:2": {classes: [{name: "Transfer", methods: ["forward", "reverse", "stop"]}]},
+      "7:0": {classes: [
+        {name: "Drivetrain", methods: ["init"]}, {name: "Intake", methods: ["init"]},
+        {name: "Transfer", methods: ["init"]}, {name: "Launcher", methods: ["init"]},
+        {name: "ArtifactSensors", methods: ["init"]}
+      ]},
+      "9:0": {classes: [{name: "Launcher", fields: [{type: "Servo", modifiers: ["private"]}]}]},
+      "10:0": {classes: [{name: "Launcher", fields: [{type: "DcMotorEx"}]}]},
+      "10:1": {classes: [{name: "Launcher", calls: ["setMode"]}]},
+      "10:2": {classes: [{name: "Launcher", calls: ["setVelocityPIDFCoefficients"]}]},
+      "10:3": {classes: [{name: "Launcher", calls: ["setVelocity"]}]},
+      "10:4": {classes: [{name: "Launcher", calls: ["getVelocity"]}]},
+      "11:3": {classes: [{name: "ArtifactSensors", methods: ["hasCapacity"]}]},
+      "13:0": {classes: [{name: "PoweredMechanism", methods: ["setPower", "stop"], fields: [{type: "DcMotor", modifiers: ["protected"]}]}]},
+      "13:1": {anyClass: {names: ["Intake", "Transfer", "Launcher"], superClass: "PoweredMechanism"}},
+      "13:2": {classes: [{name: "RobotHardware"}]},
+      "14:0": {classes: [{name: "Vision", methods: ["init"]}]},
+      "14:5": {classes: [{name: "Vision", methods: ["close"], calls: ["close"]}]},
+      "15:7": {classes: [{name: "FullAutonomous", fields: [{type: "RobotHardware"}]}]}
+    };
+    return rules[unit + ":" + index] || null;
+  }
+
+  function criterionDescriptor(unit, check, index) {
+    const fixtureIds = {
+      "2:0": ["telemetry-init"],
+      "2:2": ["telemetry-loop"],
+      "4:2": ["mecanum-drive"],
+      "5:4": ["intake-transfer-controls"],
+      "9:2": ["launcher-trigger-edge"],
+      "11:4": ["storage-full-interlock"]
+    };
+    return Object.freeze({
+      id: "unit-" + String(unit).padStart(2, "0") + "-criterion-" + String(index + 1).padStart(2, "0"),
+      label: check[0],
+      structural: Object.freeze({patterns: Object.freeze(check.slice(1)), ast: criterionAstRule(unit, index)}),
+      behavioralFixtures: Object.freeze(fixtureIds[unit + ":" + index] || []),
+      diagnostic: "Not yet demonstrated: " + check[0] + "."
+    });
+  }
+
+  Object.keys(DECODE_STAGE_CONFIGS).forEach(function (unit) {
+    Object.assign(CONFIGS[unit], DECODE_STAGE_CONFIGS[unit]);
+    CONFIGS[unit].checks = CONFIGS[unit].checks.map(function (check, index) {
+      return criterionDescriptor(Number(unit), check, index);
+    });
+    delete CONFIGS[unit].starter;
+    delete CONFIGS[unit].starterFiles;
+  });
+
   const ROBOT_PROFILES = Object.freeze({
     2: {name: "KG-SFR competition robot", detail: "Team CAD model driven by student motor commands", accent: 0x22d3ee, driveYaw: 0},
     3: {
@@ -408,16 +951,20 @@
     10: {name: "Encoder distance robot", detail: "Marked drive wheels for measured RUN_TO_POSITION travel", accent: 0x4ade80},
     11: {name: "Multi-sensor intake robot", detail: "Touch, potentiometer, color, and distance sensing around the intake", accent: 0xfbbf24},
     12: {name: "Field-centric mecanum robot", detail: "Four-wheel drive with a visible Control Hub IMU and orientation axes", accent: 0x818cf8},
-    13: {name: "Modular architecture robot", detail: "Color-coded drive, lift, and gripper subsystems composed together", accent: 0xc084fc},
-    14: {name: "Vision-guided robot", detail: "Camera mast facing three autonomous analysis zones", accent: 0x22c55e},
-    15: {name: "Sensor-fused autonomous robot", detail: "Limelight, path follower, and timed scoring arm on one platform", accent: 0x06b6d4}
+    // The uploaded KG assembly is on the simulator's drive axes but faces the
+    // opposite direction. A half-turn preserves forward/strafe axes while
+    // aligning both signs with the visible chassis and intake opening.
+    13: {name: "KG-SFR DECODE robot", detail: "Student code drives the three-stage intake, anti-jam transfer, flywheel, trigger, and mecanum chassis", accent: 0x22d3ee, driveYaw: 0, modelYaw: Math.PI},
+    14: {name: "KG-SFR DECODE · Vision", detail: "The finished TeleOp robot gains a camera and three analysis zones", accent: 0x22c55e, driveYaw: 0, modelYaw: Math.PI},
+    15: {name: "KG-SFR DECODE · Full Autonomous", detail: "The same robot follows a Bézier path with Limelight pose correction", accent: 0x06b6d4, driveYaw: 0, modelYaw: Math.PI}
   });
 
-  const GENERATED_MECHANISM_UNITS = Object.freeze([7, 9, 11, 13]);
+  const GENERATED_MECHANISM_UNITS = Object.freeze([7, 9, 11]);
 
   function cadSourceUnitFor(unit) {
     const numericUnit = Number(unit);
     if (numericUnit < 2 || numericUnit > 15) return null;
+    if (numericUnit >= 13) return 2;
     // These challenges need several independently controlled parts that the
     // flattened imported CAD cannot articulate faithfully. Their dedicated
     // models preserve the exact motor, sensor, and servo behavior being coded.
@@ -427,6 +974,7 @@
   }
 
   function robotProfileForUnit(unit) {
+    if (Number(unit) >= 13) return ROBOT_PROFILES[Number(unit)];
     return ROBOT_PROFILES[cadSourceUnitFor(unit)] || ROBOT_PROFILES[unit];
   }
 
@@ -436,6 +984,15 @@
     {label: "RF", name: "rightFront"},
     {label: "RB", name: "rightBack"}
   ]);
+  const DECODE_MECHANISM_HARDWARE = Object.freeze([
+    {label: "Intake", name: "intake"},
+    {label: "Transfer", name: "transfer"},
+    {label: "Flywheel motor", name: "launcher"},
+    {label: "Trigger servo", name: "launcher_trigger"},
+    {label: "Intake sensor", name: "intake_sensor"},
+    {label: "Storage sensor", name: "storage_sensor"}
+  ]);
+  const DECODE_HARDWARE = Object.freeze(DRIVE_HARDWARE.concat(DECODE_MECHANISM_HARDWARE));
   const HARDWARE_PROFILES = Object.freeze({
     2: [],
     3: [{label: "Front slide motor", name: "intake_slide"}],
@@ -473,9 +1030,13 @@
       {label: "Distance sensor", name: "intake_range"}
     ],
     12: DRIVE_HARDWARE.concat([{label: "IMU", name: "imu"}]),
-    13: [{label: "Intake servo", name: "intake"}, {label: "Lift motor", name: "lift"}],
-    14: [{label: "Camera", name: "Webcam 1"}],
-    15: [{label: "Intake servo", name: "intake"}, {label: "Lift motor", name: "lift"}, {label: "Vision", name: "limelight"}]
+    13: DECODE_HARDWARE.concat([{label: "IMU", name: "imu"}]),
+    14: DECODE_HARDWARE.concat([{label: "IMU", name: "imu"}, {label: "Camera", name: "Webcam 1"}]),
+    15: DECODE_HARDWARE.concat([
+      {label: "IMU", name: "imu"},
+      {label: "Camera", name: "Webcam 1"},
+      {label: "Vision", name: "limelight"}
+    ])
   });
 
   const CAD_WHEEL_ORDER = Object.freeze(["left-front", "left-back", "right-front", "right-back"]);
@@ -630,11 +1191,13 @@
     });
   }
 
-  function loadKgRobot(THREE, robot, onLoad) {
+  function loadKgRobot(THREE, robot, onLoad, destinationUnit) {
     loadImportedRobot(THREE, robot, {
       name: "KG-SFR model",
       url: KG_ROBOT_MODEL_URL,
-      footprint: 2.15,
+      // The DECODE field is rendered at twice its real dimensions, so the
+      // 18-inch robot uses the same scale instead of the enlarged lesson view.
+      footprint: Number(destinationUnit) >= 13 ? 1.18 : 2.15,
       groundClearance: 0,
       loadedMessage: "Optimized team CAD model · real wheels driven by student code",
       onLoad: onLoad
@@ -704,8 +1267,8 @@
     });
   }
 
-  function loadCadRobotForUnit(sourceUnit, THREE, robot, onLoad) {
-    if (sourceUnit === 2) return loadKgRobot(THREE, robot, onLoad);
+  function loadCadRobotForUnit(sourceUnit, THREE, robot, onLoad, destinationUnit) {
+    if (sourceUnit === 2) return loadKgRobot(THREE, robot, onLoad, destinationUnit);
     if (sourceUnit === 3) return loadQuixilverRobot(THREE, robot, onLoad);
     if (sourceUnit === 4) return load2025FtcRobot(THREE, robot, onLoad);
     if (sourceUnit === 5) return load2024CenterstageRobot(THREE, robot, onLoad);
@@ -963,6 +1526,39 @@
       return rigged.length === CAD_WHEEL_ORDER.length;
     }
 
+    function rigDecodeMechanisms(model) {
+      const rig = {};
+      const intakeStages = ["intake-stage-1", "intake-stage-2", "intake-stage-3"];
+      const mechanismNames = intakeStages.concat(["transfer", "flywheel", "trigger"]);
+      mechanismNames.forEach(function (name) {
+        const part = model.getObjectByName && model.getObjectByName("telemark-cad-" + name);
+        if (!part) return;
+        robot.updateMatrixWorld(true);
+        const storedPivot = part.userData && part.userData.telemarkCadPivot;
+        let center = importedCadCenter(THREE, part);
+        if (Array.isArray(storedPivot) && storedPivot.length === 3) {
+          part.updateWorldMatrix(true, false);
+          center = part.localToWorld(new THREE.Vector3(storedPivot[0], storedPivot[1], storedPivot[2]));
+        }
+        const pivot = new THREE.Group();
+        pivot.name = "telemark-cad-" + name + "-pivot";
+        robot.add(pivot);
+        pivot.position.copy(robot.worldToLocal(center.clone()));
+        robot.updateMatrixWorld(true);
+        pivot.attach(part);
+        rig[name] = {
+          object: pivot,
+          axis: part.userData && part.userData.spinAxis || "x"
+        };
+      });
+      if (mechanismNames.some(function (name) { return !rig[name]; })) {
+        setImportedRobotStatus("The optimized KG-SFR CAD is missing an animated DECODE mechanism.");
+        return null;
+      }
+      rig.intakeStages = intakeStages.map(function (name) { return rig[name]; });
+      return rig;
+    }
+
     const wheels = [];
     if (!cadSourceUnit) {
       // The generated challenge robots share a competition-scale chassis.
@@ -983,6 +1579,7 @@
 
     let animation = null;
     let motionReadout = null;
+    let decodeGameView = null;
 
     function generatedMotionText() {
       const power = Number(motion.state.primaryPower || 0);
@@ -994,8 +1591,7 @@
       }
       if (unit === 11) return "Intake " + direction + " · power " + power.toFixed(2);
       if (unit === 13) {
-        const lift = Math.round(THREE.MathUtils.clamp((motion.state.armAngle + 0.55) / 1.1, 0, 1) * 100);
-        return "Intake " + direction + " · lift " + lift + "%";
+        return "DECODE mechanisms " + direction + " · coordinated by RobotHardware";
       }
       return "Student hardware output drives this model";
     }
@@ -1007,7 +1603,7 @@
       const sinYaw = Math.sin(driveYaw);
       robot.position.x = cosYaw * motion.state.x + sinYaw * motion.state.z;
       robot.position.z = -sinYaw * motion.state.x + cosYaw * motion.state.z;
-      robot.rotation.y = -motion.state.heading;
+      robot.rotation.y = (profile.modelYaw || 0) - motion.state.heading;
       wheels.forEach(function (wheel, index) {
         const object = wheel.object || wheel;
         const axis = wheel.axis || "x";
@@ -1017,24 +1613,95 @@
       });
     }
 
+    let decodeMechanisms = null;
+
+    let visionCameraHead = null;
+    let limelightIndicator = null;
+    let autonomousPath = null;
+    if (unit === 14) {
+      box([0.1, 0.92, 0.1], [0, 1.08, -0.12], frameMat);
+      visionCameraHead = new THREE.Group();
+      visionCameraHead.name = "telemark-cad-vision-camera";
+      visionCameraHead.position.set(0, 1.55, -0.12);
+      robot.add(visionCameraHead);
+      box([0.52, 0.28, 0.3], [0, 0, 0], darkMat, visionCameraHead);
+      cylinder(0.1, 0.08, [0, 0, -0.19], blueMat, [Math.PI / 2, 0, 0], visionCameraHead);
+      [-1.45, 0, 1.45].forEach(function (x, index) {
+        const zoneMat = index === 0 ? redMat : index === 1 ? warningMat : greenMat;
+        const zone = box([0.9, 0.025, 0.9], [x, 0.025, -2.05], zoneMat, visual);
+        zone.name = "telemark-vision-zone-" + ["left", "center", "right"][index];
+        box([0.42, 0.65, 0.06], [x, 0.34, -2.47], sensorMat, visual);
+        box([0.24, 0.24, 0.025], [x, 0.38, -2.51], zoneMat, visual);
+      });
+    }
+    if (unit === 15) {
+      box([0.1, 0.72, 0.1], [-0.45, 1.0, -0.02], frameMat);
+      limelightIndicator = box(
+        [0.42, 0.25, 0.28],
+        [-0.45, 1.4, -0.02],
+        material(0x18232d, {emissive: 0x064e3b, emissiveIntensity: 0.18})
+      );
+      limelightIndicator.name = "telemark-cad-limelight";
+      cylinder(0.09, 0.08, [-0.45, 1.4, -0.2], greenMat, [Math.PI / 2, 0, 0]);
+      autonomousPath = new THREE.QuadraticBezierCurve3(
+        new THREE.Vector3(-2.55, 0.04, 2.1),
+        new THREE.Vector3(2.6, 0.04, 1.4),
+        new THREE.Vector3(1.9, 0.04, -2.25)
+      );
+      const pathLine = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(autonomousPath.getPoints(48)),
+        new THREE.LineBasicMaterial({color: profile.accent, transparent: true, opacity: 0.75})
+      );
+      pathLine.name = "telemark-autonomous-path";
+      visual.add(pathLine);
+    }
+
+    function animateDecodeMechanisms() {
+      if (!decodeMechanisms) return;
+      decodeMechanisms.intakeStages.forEach(function (stage) {
+        stage.object.rotation[stage.axis] = motion.state.intakeAngle;
+      });
+      decodeMechanisms.transfer.object.rotation[decodeMechanisms.transfer.axis] = motion.state.transferAngle;
+      decodeMechanisms.flywheel.object.rotation[decodeMechanisms.flywheel.axis] = motion.state.flywheelAngle;
+      decodeMechanisms.trigger.object.rotation[decodeMechanisms.trigger.axis] = motion.state.triggerAngle;
+    }
+
     if (cadSourceUnit) {
       let cadMechanism = null;
       let glutenFreeLift = null;
       loadCadRobotForUnit(cadSourceUnit, THREE, robot, function (model, modelScale) {
         rigCadChassis(model);
+        if (unit >= 13) decodeMechanisms = rigDecodeMechanisms(model);
+        if (unit >= 13 && !decodeMechanisms) return;
         if (cadSourceUnit === 8) glutenFreeLift = rig11115Lift(model, modelScale);
         if (cadSourceUnit === 8 && !glutenFreeLift) return;
         modelReady = true;
         const button = document.getElementById('sim-btn-run');
         if (button) { button.disabled = false; button.textContent = 'Init'; }
+        if (unit >= 13) {
+          setImportedRobotStatus("Optimized team CAD · real wheels, three-stage intake, anti-jam transfer, flywheel, and trigger driven by student code");
+        }
         if (model.getObjectByName && model.getObjectByName("telemark-cad-mechanism")) {
           if (cadSourceUnit === 3) cadMechanism = rigCadTranslation(model);
           if (cadSourceUnit === 5) cadMechanism = rigCadMechanism(model, [0.46, 0.505, 0.5]);
           if (cadSourceUnit === 6) cadMechanism = rigCadMechanism(model, [0.5, 0.455, 0.356]);
         }
-      });
+      }, unit);
       animation = function () {
-        applyDriveState();
+        if (unit === 15 && autonomousPath && (motion.state.pathProgress > 0 || motion.state.followerActive)) {
+          const point = autonomousPath.getPoint(motion.state.pathProgress);
+          robot.position.set(point.x, 0, point.z);
+        } else {
+          applyDriveState();
+        }
+        if (unit >= 13) {
+          animateDecodeMechanisms();
+          if (visionCameraHead) visionCameraHead.rotation.y = motion.state.cameraAngle;
+          if (limelightIndicator) {
+            limelightIndicator.material.emissiveIntensity = motion.state.visionActive ? 0.52 : 0.08;
+          }
+          return;
+        }
         if (cadSourceUnit === 8) {
           if (glutenFreeLift) animate11115Lift(glutenFreeLift);
           return;
@@ -1149,79 +1816,6 @@
         box([0.05, 0.36, 0.08], [wheel.position.x, wheel.position.y, wheel.position.z], accentMat, null, [0.65, 0, index % 2 ? 0.65 : -0.65]);
       });
       animation = applyDriveState;
-    } else if (unit === 13) {
-      box([0.52, 0.34, 0.46], [-0.58, 0.77, 0.12], blueMat);
-      box([0.52, 0.34, 0.46], [0.58, 0.77, 0.12], greenMat);
-      [-0.36, 0.36].forEach(function (x) {
-        box([0.1, 1.72, 0.12], [x, 1.35, 0.28], frameMat);
-      });
-      const liftCarriage = box([0.94, 0.22, 0.48], [0, 0.72, 0.28], accentMat);
-      const intake = visibleRoller(0.17, 1.38, [0, 0.33, -0.79], warningMat, [0, 0, Math.PI / 2]);
-      const intakeSample = sphere(0.16, [0, 0.2, -1.48], blueMat);
-      animation = function (_time, dt) {
-        applyDriveState();
-        intake.rotation.y = motion.state.primaryAngle;
-        intakeSample.position.z = THREE.MathUtils.clamp(
-          intakeSample.position.z + motion.state.primaryPower * dt * 0.95,
-          -1.55,
-          -0.48
-        );
-        const liftProgress = THREE.MathUtils.clamp((motion.state.armAngle + 0.55) / 1.1, 0, 1);
-        liftCarriage.position.y = 0.72 + liftProgress * 1.42;
-      };
-    } else if (unit === 14) {
-      box([0.1, 0.92, 0.1], [0, 1.08, -0.12], frameMat);
-      const cameraHead = new THREE.Group();
-      cameraHead.position.set(0, 1.55, -0.12);
-      robot.add(cameraHead);
-      box([0.52, 0.28, 0.3], [0, 0, 0], darkMat, cameraHead);
-      cylinder(0.1, 0.08, [0, 0, -0.19], blueMat, [Math.PI / 2, 0, 0], cameraHead);
-      [-1.45, 0, 1.45].forEach(function (x, index) {
-        const zoneMat = index === 0 ? redMat : index === 1 ? warningMat : greenMat;
-        box([0.9, 0.025, 0.9], [x, 0.025, -2.05], zoneMat, visual);
-        box([0.42, 0.65, 0.06], [x, 0.34, -2.47], sensorMat, visual);
-        box([0.24, 0.24, 0.025], [x, 0.38, -2.51], zoneMat, visual);
-      });
-      robot.position.z = 0.65;
-      animation = function () {
-        applyDriveState();
-        cameraHead.rotation.y = motion.state.cameraAngle;
-      };
-    } else if (unit === 15) {
-      box([0.1, 0.72, 0.1], [-0.45, 1.0, -0.02], frameMat);
-      const limelight = box(
-        [0.42, 0.25, 0.28],
-        [-0.45, 1.4, -0.02],
-        material(0x18232d, {emissive: 0x064e3b, emissiveIntensity: 0.18})
-      );
-      cylinder(0.09, 0.08, [-0.45, 1.4, -0.2], greenMat, [Math.PI / 2, 0, 0]);
-      const scoringArm = new THREE.Group();
-      scoringArm.position.set(0.5, 0.68, 0.12);
-      robot.add(scoringArm);
-      box([0.13, 0.9, 0.13], [0, 0.4, 0], frameMat, scoringArm, [0, 0, -0.28]);
-      box([0.42, 0.16, 0.3], [0.12, 0.83, 0], accentMat, scoringArm);
-      const path = new THREE.QuadraticBezierCurve3(
-        new THREE.Vector3(-2.55, 0.04, 2.1),
-        new THREE.Vector3(2.6, 0.04, 1.4),
-        new THREE.Vector3(1.9, 0.04, -2.25)
-      );
-      const pathLine = new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints(path.getPoints(48)),
-        new THREE.LineBasicMaterial({color: profile.accent, transparent: true, opacity: 0.75})
-      );
-      visual.add(pathLine);
-      animation = function () {
-        if (motion.state.pathProgress > 0 || motion.state.followerActive) {
-          const point = path.getPoint(motion.state.pathProgress);
-          robot.position.set(point.x, 0, point.z);
-        } else {
-          applyDriveState();
-        }
-        const servoPosition = motion.servoValues()[0] || 0;
-        scoringArm.rotation.z = -0.38 + servoPosition * 0.7;
-        limelight.material.emissive = new THREE.Color(0x064e3b);
-        limelight.material.emissiveIntensity = motion.state.visionActive ? 0.52 : 0.08;
-      };
     }
 
     const sceneContainer = document.getElementById("sim-scene-container");
@@ -1256,17 +1850,28 @@
     }
 
     if (typeof global.setCameraOrbit === "function") {
-      const groundView = unit === 2;
+      const groundView = unit === 2 || unit === 13;
       global.setCameraOrbit({
         theta: groundView ? 0.82 : 0.56,
-        phi: groundView ? 1.2 : 0.78,
-        radius: unit === 8 ? 8.0 : (unit >= 14 ? 6.8 : 5.2),
+        phi: unit === 13 ? 0.92 : (groundView ? 1.2 : 0.78),
+        radius: unit === 8 ? 8.0 : (unit === 13 ? 11.0 : (unit >= 14 ? 6.8 : 5.2)),
         target: {
           x: 0,
           y: unit === 8 ? 1.5 : (groundView ? 0.42 : 0.72),
           z: unit >= 14 ? -0.35 : 0
         }
       });
+    }
+    if (unit === 13 && global.TelemarkDecodeGameView) {
+      decodeGameView = global.TelemarkDecodeGameView.mount({
+        THREE: THREE,
+        visual: visual,
+        robot: robot,
+        motion: motion,
+        hardwareMap: global.hardwareMap,
+        getGamepad: function () { return global.gamepad || {}; }
+      });
+      visual.userData.decodeGameView = decodeGameView;
     }
     if (animation && typeof global.addAnimationCallback === "function") {
       let previousTime = Date.now() * 0.001;
@@ -1275,11 +1880,14 @@
         const dt = currentTime - previousTime;
         previousTime = currentTime;
         if (!modelReady) return;
-        if (global.hardwareMap && typeof global.hardwareMap.tick === "function") {
-          global.hardwareMap.tick(dt);
-        }
         motion.step(dt);
+        const imu = global.hardwareMap && global.hardwareMap._devices && global.hardwareMap._devices.imu;
+        // motion.heading is clockwise-positive in the Three.js field; FTC IMU
+        // yaw is counterclockwise-positive. Expose it once with no joystick
+        // sign conversion so student field-centric math does not get doubled.
+        if (imu && typeof imu._setHeading === "function") imu._setHeading(-motion.state.heading);
         animation(currentTime, dt);
+        if (decodeGameView) decodeGameView.update(dt);
         if (motionReadout) motionReadout.textContent = generatedMotionText();
       });
     }
@@ -1296,100 +1904,27 @@
   function checksForUnit(unit) {
     const config = CONFIGS[unit];
     if (!config) return [];
-    const isAutonomous = [6, 10, 14, 15].indexOf(unit) >= 0;
-    const registrationCheck = isAutonomous
-      ? [
-          "Keep the supplied FTC SDK autonomous class shell intact",
-          /import\s+com\.qualcomm\.robotcore\.eventloop\.opmode\.(?:LinearOpMode|\*)\s*;/,
-          /import\s+com\.qualcomm\.robotcore\.eventloop\.opmode\.(?:Autonomous|\*)\s*;/,
-          /@Autonomous\s*\([^)]*\)/,
-          /\bclass\s+\w+\s+extends\s+LinearOpMode\b/,
-        ]
-      : [
-          "Keep the supplied FTC SDK TeleOp class shell intact",
-          /import\s+com\.qualcomm\.robotcore\.eventloop\.opmode\.(?:OpMode|\*)\s*;/,
-          /import\s+com\.qualcomm\.robotcore\.eventloop\.opmode\.(?:TeleOp|\*)\s*;/,
-          /@TeleOp\s*\([^)]*\)/,
-          /\bclass\s+\w+\s+extends\s+OpMode\b/,
-        ];
-    return [registrationCheck].concat(config.checks);
-  }
-
-  // Run an isolated, deterministic hardware fixture; never move the student's robot.
-  function evaluateHardwareProject(source) {
-    const results = checksForUnit(7).map(() => false);
-    const code = sourceWithoutComments(source);
-    results[0] = checksForUnit(7)[0].slice(1).every(p => p.test(code));
-    const java = global.TelemarkJava;
-    if (!java) return results;
-    let digitalState = true;
-    let voltageReads = 0;
-    const mappings = [];
-    const runtime = java.createRuntime({
-      gamepad1: {left_stick_y: 0},
-      getDigitalState: () => digitalState,
-      getVoltage: () => { voltageReads++; return 1.65; }
+    if (!config.registration) return config.checks.slice();
+    const autonomous = config.registration === "autonomous";
+    const className = autonomous ? "FullAutonomous" : "CompetitionTeleOp";
+    const annotation = autonomous ? "Autonomous" : "TeleOp";
+    const parent = autonomous ? "LinearOpMode" : "OpMode";
+    const registrationCheck = Object.freeze({
+      id: "unit-" + String(unit).padStart(2, "0") + "-registration",
+      label: autonomous
+        ? "Keep FullAutonomous registered as an FTC autonomous OpMode"
+        : "Keep CompetitionTeleOp registered as an iterative FTC TeleOp",
+      structural: Object.freeze({
+        patterns: Object.freeze([
+          new RegExp("import\\s+com\\.qualcomm\\.robotcore\\.eventloop\\.opmode\\.(?:" + parent + "|\\*)\\s*;"),
+          new RegExp("import\\s+com\\.qualcomm\\.robotcore\\.eventloop\\.opmode\\.(?:" + annotation + "|\\*)\\s*;"),
+        ]),
+        ast: {classes: [{name: className, superClass: parent, annotations: [annotation], modifiers: ["public"]}]}
+      }),
+      behavioralFixtures: Object.freeze([]),
+      diagnostic: className + " needs its public @" + annotation + " registration and " + parent + " inheritance."
     });
-    const expected = {mechanism: 'DcMotor', mechanism_limit: 'DigitalChannel', mechanism_pot: 'AnalogInput'};
-    const get = runtime.hardwareMap.get;
-    runtime.hardwareMap.get = function (type, name) {
-      if (expected[name] !== type) throw new Error('Hardware configuration name or type mismatch: ' + name);
-      mappings.push({type, name});
-      return get(type, name);
-    };
-    const program = java.compile(source, runtime, {loopLimit: 1000});
-    if (!program.ok || program.kind !== 'iterative') return results;
-    const main = program.ast.classes.find(c => c.name === program.className);
-    const helpers = program.ast.classes.filter(c => c !== main);
-    const mechanism = helpers.find(c => c.methods.some(m => m.name === 'init' && /\binit\s*\(\s*(?:final\s+)?HardwareMap\s+\w+\s*\)/.test(sourceWithoutComments(source.slice(c.bodyStart, c.bodyEnd))) && m.params.length === 1));
-    const init = main.methods.find(m => m.name === 'init');
-    const loop = main.methods.find(m => m.name === 'loop');
-    results[2] = Boolean(mechanism);
-    results[3] = Boolean(mechanism && /\binit\s*\(\s*(?:final\s+)?HardwareMap\s+\w+\s*\)/.test(code));
-    // Accept constants in the mechanism or a separate config class, with any identifier spelling.
-    const constants = program.ast.classes.flatMap(c => c.fields.filter(f => f.static && f.final && f.type === 'String' && f.initializer).map(f => ({owner: c.name, name: f.name})));
-    const mappingBodies = helpers.flatMap(c => c.methods).map(m => m.body).join('\n');
-    results[1] = ['DcMotor', 'DigitalChannel', 'AnalogInput'].every(type => constants.some(f =>
-      new RegExp('\\.\\s*get\\s*\\(\\s*' + type + '\\s*\\.\\s*class\\s*,\\s*(?:' + f.owner + '\\s*\\.\\s*)?' + f.name + '\\s*\\)').test(mappingBodies)
-    ));
-    const delegatesInit = Boolean(init && /\.\s*init\s*\(\s*hardwareMap\s*\)/.test(init.body));
-    const delegatesLoop = Boolean(loop && /\.\s*\w+\s*\(/.test(loop.body) && /gamepad1\s*\./.test(loop.body));
-    try {
-      if (!program.methods.init || !program.methods.loop) return results;
-      program.methods.init();
-      const initMappings = mappings.length;
-      const mappedOnce = name => mappings.filter(m => m.name === name).length === 1;
-      results[4] = mappedOnce('mechanism');
-      const limit = runtime.devices.get('DigitalChannel:mechanism_limit');
-      results[5] = mappedOnce('mechanism_limit') && limit._state.mode === 'INPUT';
-      if (program.methods.init_loop) program.methods.init_loop();
-      if (program.methods.start) program.methods.start();
-      const motor = runtime.devices.get('DcMotor:mechanism');
-      const outputs = [];
-      for (const input of [-0.7, 0, 0.7]) {
-        runtime.gamepad1.left_stick_y = input;
-        digitalState = true;
-        program.methods.loop();
-        outputs.push(motor ? motor.getPower() : NaN);
-      }
-      results[6] = mappedOnce('mechanism_pot') && voltageReads > 0;
-      results[8] = delegatesLoop && outputs.every(Number.isFinite) && Math.abs(outputs[0]) > 0 && outputs[1] === 0 && outputs[0] * outputs[2] < 0;
-      const blocked = [];
-      for (const input of [-0.7, 0.7]) {
-        runtime.gamepad1.left_stick_y = input;
-        digitalState = false;
-        program.methods.loop();
-        blocked.push(motor ? motor.getPower() : NaN);
-      }
-      // A limit may block both directions or only travel toward the switch.
-      results[9] = results[8] && blocked.some(power => power === 0);
-      if (program.methods.stop) program.methods.stop();
-      results[7] = delegatesInit && initMappings === 3 && mappings.length === initMappings;
-      if (!results[7]) results[4] = results[5] = results[6] = false;
-    } catch (_) {
-      return results;
-    }
-    return results;
+    return [registrationCheck].concat(config.checks);
   }
 
   function namedClassBody(code, className) {
@@ -1409,26 +1944,198 @@
   function hasNoRawMechanismAccess(opModeBody) {
     return Boolean(opModeBody)
       && /\bRobotHardware\b/.test(opModeBody)
-      && !/hardwareMap\s*\.\s*get\s*\(\s*(?:DcMotor|CRServo|Servo)\s*\.\s*class/.test(opModeBody)
-      && !/\b(?:DcMotor|CRServo|Servo)\s+\w+/.test(opModeBody);
+      && !/hardwareMap\s*\.\s*get\s*\(\s*(?:DcMotor|DcMotorEx|CRServo|Servo|IMU)\s*\.\s*class/.test(opModeBody)
+      && !/\b(?:DcMotor|DcMotorEx|CRServo|Servo|IMU)\s+\w+/.test(opModeBody);
   }
 
-  function evaluate(unit, source) {
-    if (unit === 7) return evaluateHardwareProject(source);
+  function astMatches(ast, rule) {
+    if (!rule) return true;
+    function classMatches(spec) {
+      const classNode = (ast.classes || []).find(function (candidate) { return candidate.name === spec.name; });
+      if (!classNode) return false;
+      if (spec.superClass && classNode.superClass !== spec.superClass) return false;
+      if ((spec.modifiers || []).some(function (modifier) { return (classNode.modifiers || []).indexOf(modifier) < 0; })) return false;
+      if ((spec.annotations || []).some(function (annotation) { return (classNode.annotations || []).indexOf(annotation) < 0; })) return false;
+      if ((spec.methods || []).some(function (name) { return !(classNode.methods || []).some(function (method) { return method.name === name; }); })) return false;
+      const calls = (classNode.methods || []).reduce(function (all, method) { return all.concat(method.calls || []); }, []);
+      if ((spec.calls || []).some(function (name) { return !calls.some(function (call) { return call.name === name; }); })) return false;
+      return (spec.fields || []).every(function (fieldSpec) {
+        return (classNode.fields || []).some(function (field) {
+          if (fieldSpec.type && field.type !== fieldSpec.type) return false;
+          if (fieldSpec.static != null && field.static !== fieldSpec.static) return false;
+          if (fieldSpec.final != null && field.final !== fieldSpec.final) return false;
+          return (fieldSpec.modifiers || []).every(function (modifier) { return (field.modifiers || []).indexOf(modifier) >= 0; });
+        });
+      });
+    }
+    if (!(rule.classes || []).every(classMatches)) return false;
+    if (rule.anyClass) {
+      return (ast.classes || []).some(function (classNode) {
+        return rule.anyClass.names.indexOf(classNode.name) >= 0
+          && classNode.superClass === rule.anyClass.superClass;
+      });
+    }
+    return true;
+  }
+
+  function createGradingRuntime() {
+    const rows = [];
+    const runtime = global.TelemarkJava.createRuntime({
+      onTelemetryUpdate: function (data) { rows.push.apply(rows, data || []); }
+    });
+    runtime.__gradingRows = rows;
+    return runtime;
+  }
+
+  function prepareFixture(program, runtime) {
+    resetFixtureGamepad(runtime);
+    if (runtime.__gradingRows) runtime.__gradingRows.length = 0;
+    if (runtime.devices && typeof runtime.devices.clear === "function") runtime.devices.clear();
+    if (typeof runtime.resetRuntime === "function") runtime.resetRuntime();
+    if (program.methods.init) program.methods.init();
+    if (program.methods.start) program.methods.start();
+  }
+
+  function resetFixtureGamepad(runtime) {
+    ["left_stick_x", "left_stick_y", "right_stick_x", "right_stick_y", "left_trigger", "right_trigger"].forEach(function (key) {
+      runtime.gamepad1[key] = 0;
+    });
+    ["a", "b", "x", "y", "left_bumper", "right_bumper", "dpad_up", "dpad_down", "dpad_left", "dpad_right"].forEach(function (key) {
+      runtime.gamepad1[key] = false;
+    });
+    Object.keys(runtime.gamepad1 || {}).forEach(function (key) {
+      runtime.gamepad1[key] = typeof runtime.gamepad1[key] === "boolean" ? false : 0;
+    });
+  }
+
+  function runBehavioralFixture(id, program, runtime) {
+    try {
+      prepareFixture(program, runtime);
+      const rows = runtime.__gradingRows || [];
+      if (id === "telemetry-init") {
+        runtime.updateTelemetry();
+        return rows.length > 0;
+      }
+      if (!program.methods.loop) return false;
+      resetFixtureGamepad(runtime);
+      if (id === "telemetry-loop") {
+        rows.length = 0;
+        runtime.gamepad1.left_stick_y = 0.42;
+        program.methods.loop();
+        runtime.updateTelemetry();
+        return rows.length > 0;
+      }
+      if (id === "mecanum-drive") {
+        const names = ["leftFront", "rightFront", "leftBack", "rightBack"];
+        const motors = names.map(function (name) { return runtime.devices.get("DcMotor:" + name); });
+        if (motors.some(function (motor) { return !motor; })) return false;
+        function drive(input) {
+          resetFixtureGamepad(runtime);
+          Object.assign(runtime.gamepad1, input);
+          program.methods.loop();
+          return motors.map(function (motor) { return motor.getPower(); });
+        }
+        const forward = drive({left_stick_y: -1});
+        const strafe = drive({left_stick_x: 1});
+        const turn = drive({right_stick_x: 1});
+        const combined = drive({left_stick_y: -1, left_stick_x: 1, right_stick_x: 1});
+        const moves = function (values) { return values.every(Number.isFinite) && values.some(function (value) { return Math.abs(value) > 0.05; }); };
+        return moves(forward) && forward.every(function (value) { return value * forward[0] > 0; })
+          && moves(strafe) && strafe[0] * strafe[1] < 0 && strafe[0] * strafe[2] < 0 && strafe[0] * strafe[3] > 0
+          && moves(turn) && turn[0] * turn[1] < 0 && turn[0] * turn[2] > 0 && turn[1] * turn[3] > 0
+          && Math.max.apply(Math, combined.map(Math.abs)) <= 1.0001;
+      }
+      if (id === "intake-transfer-controls") {
+        runtime.gamepad1.right_bumper = true;
+        program.methods.loop();
+        const intake = runtime.devices.get("DcMotor:intake");
+        const transfer = runtime.devices.get("DcMotor:transfer");
+        const forward = intake && transfer && intake.getPower() > 0 && transfer.getPower() > 0;
+        resetFixtureGamepad(runtime);
+        runtime.gamepad1.left_bumper = true;
+        program.methods.loop();
+        const reverse = intake && transfer && intake.getPower() < 0 && transfer.getPower() < 0;
+        resetFixtureGamepad(runtime);
+        program.methods.loop();
+        return Boolean(forward && reverse && intake.getPower() === 0 && transfer.getPower() === 0);
+      }
+      if (id === "launcher-trigger-edge") {
+        program.methods.loop();
+        const servoEntry = Array.from(runtime.devices.entries()).find(function (entry) { return entry[0].indexOf("Servo:") === 0; });
+        if (!servoEntry) return false;
+        const resting = servoEntry[1].getPosition();
+        runtime.gamepad1.a = true;
+        program.methods.loop();
+        return servoEntry[1].getPosition() !== resting;
+      }
+      if (id === "storage-full-interlock") {
+        Array.from(runtime.devices.entries()).forEach(function (entry) {
+          if (entry[0].indexOf("DigitalChannel:") === 0 && entry[1]._setState) entry[1]._setState(false);
+        });
+        runtime.gamepad1.right_bumper = true;
+        program.methods.loop();
+        const motors = [runtime.devices.get("DcMotor:intake"), runtime.devices.get("DcMotor:transfer")].filter(Boolean);
+        return motors.length === 2 && motors.every(function (motor) { return motor.getPower() === 0; });
+      }
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function grade(unit, source, compilation, runtime) {
     const code = sourceWithoutComments(source);
-    const results = checksForUnit(unit).map(function (check) {
-      return check.slice(1).every(function (pattern) {
+    const gradingRuntime = runtime || createGradingRuntime();
+    const program = compilation || global.TelemarkJava.compile(source, gradingRuntime, {loopLimit: 2000});
+    const criteria = checksForUnit(unit);
+    if (!program.ok) {
+      const message = program.diagnostics && program.diagnostics[0] && program.diagnostics[0].message || "The complete Java project must compile.";
+      return criteria.map(function (criterion) {
+        return {id: criterion.id, label: criterion.label, automatic: false, evidence: message};
+      });
+    }
+    const results = criteria.map(function (criterion) {
+      const patternsPass = criterion.structural.patterns.every(function (pattern) {
         pattern.lastIndex = 0;
         return pattern.test(code);
       });
+      const astPass = patternsPass && astMatches(program.ast, criterion.structural.ast);
+      const failedFixtures = [];
+      const behaviorPass = astPass && criterion.behavioralFixtures.every(function (fixture) {
+        const passed = runBehavioralFixture(fixture, program, gradingRuntime);
+        if (!passed) failedFixtures.push(fixture);
+        return passed;
+      });
+      let evidence = "Automatic structural and behavioral checks passed.";
+      if (!patternsPass || !astPass) evidence = criterion.diagnostic;
+      else if (!behaviorPass) evidence = "Behavior check did not pass: " + failedFixtures.join(", ") + ". " + criterion.diagnostic;
+      return {
+        id: criterion.id,
+        label: criterion.label,
+        automatic: Boolean(patternsPass && astPass && behaviorPass),
+        evidence: evidence
+      };
     });
+    if (unit === 7) {
+      const passed = !/hardwareMap\s*\.\s*get\s*\(/.test(namedClassBody(code, "CompetitionTeleOp"));
+      results[results.length - 1].automatic = passed;
+      if (!passed) results[results.length - 1].evidence = "CompetitionTeleOp still maps hardware directly; delegate mapping to subsystem init(HardwareMap) methods.";
+    }
     if (unit === 13) {
-      results[results.length - 1] = hasNoRawMechanismAccess(namedClassBody(code, "Unit13Mastery"));
+      const passed = hasNoRawMechanismAccess(namedClassBody(code, "CompetitionTeleOp"));
+      results[results.length - 1].automatic = passed;
+      if (!passed) results[results.length - 1].evidence = "CompetitionTeleOp must coordinate RobotHardware without declaring or mapping raw mechanisms.";
     }
     if (unit === 15) {
-      results[results.length - 1] = hasNoRawMechanismAccess(namedClassBody(code, "Unit15Mastery"));
+      const passed = hasNoRawMechanismAccess(namedClassBody(code, "FullAutonomous"));
+      results[results.length - 1].automatic = passed;
+      if (!passed) results[results.length - 1].evidence = "FullAutonomous must coordinate RobotHardware without declaring or mapping raw mechanisms.";
     }
     return results;
+  }
+
+  function evaluate(unit, source, compilation, runtime) {
+    return grade(unit, source, compilation, runtime).map(function (result) { return result.automatic; });
   }
 
   function injectChallengeStyles() {
@@ -1548,6 +2255,8 @@
     if (!config) throw new Error("Unknown mastery simulator unit: " + unit);
     const checks = checksForUnit(unit);
     let challengeMotion = null;
+    let cumulativeProject = null;
+    const projectOptions = decodeProjectOptions(unit, config);
 
     global.onSimulatorReady = function () {
       if (!global.TelemarkMasteryMotion) {
@@ -1559,11 +2268,16 @@
       global.__telemarkMasteryMotion = challengeMotion;
       injectChallengeStyles();
       setTelemetryStudentOnly(true);
-      setCode(config.starter);
+      const activeScaffold = projectOptions.initialFiles.find(function (file) {
+        return file.name === projectOptions.preferredActiveFile;
+      });
+      setCode(activeScaffold ? activeScaffold.source : config.starter);
       setChallenge({
         title: config.title,
         scenario: config.scenario,
-        requirements: checks.map(function (check) { return check[0]; }),
+        requirements: checks.map(function (criterion) { return {id: criterion.id, label: criterion.label}; }),
+        projectKey: DECODE_PROJECT_KEY,
+        lessonId: projectOptions.stage.id,
         successMessage: "All challenge checks passed. Review the simulator behavior before continuing to the next unit."
       });
       setBadges([
@@ -1580,20 +2294,34 @@
       function validate() {
         clearHints();
         const source = getCode();
-        const compilation = global.TelemarkSimulatorBase.compileStudentSource(source);
+        const gradingRuntime = createGradingRuntime();
+        const compilation = global.TelemarkSimulatorBase.compileStudentSource(source, gradingRuntime, {loopLimit: 2000});
+        const compilationMessage = compilation.ok ? "Project compiles." : String(compilation.diagnostics[0] && compilation.diagnostics[0].message || "Unable to compile Java");
+        if (typeof global.setChallengeCompilation === "function") {
+          global.setChallengeCompilation(compilation.ok, compilationMessage);
+        }
         if (!compilation.ok) {
           const diagnostic = compilation.diagnostics[0] || {};
           const message = String(diagnostic.message || "Unable to compile Java").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
           addHint("Java compile error: " + message, "error");
         }
-        const results = compilation.ok ? evaluate(unit, source) : checks.map(function () { return false; });
+        if (cumulativeProject) {
+          cumulativeProject.prerequisiteDiagnostics().forEach(function (diagnostic) {
+            addHint("<i class=\"fa-solid fa-diagram-project\"></i> " + diagnostic.message, "warn");
+          });
+        }
+        const graded = grade(unit, source, compilation, gradingRuntime);
+        const results = graded.map(function (result) { return result.automatic; });
         const forbiddenFailures = (config.forbidden || []).filter(function (rule) {
           rule[1].lastIndex = 0;
           return rule[1].test(sourceWithoutComments(source));
         });
 
         results.forEach(function (passed, index) {
-          setRequirement(index, passed && forbiddenFailures.length === 0);
+          const evidence = forbiddenFailures.length
+            ? forbiddenFailures.map(function (rule) { return rule[0]; }).join(" ")
+            : graded[index].evidence;
+          setRequirement(index, passed && forbiddenFailures.length === 0, evidence);
         });
         forbiddenFailures.forEach(function (rule) {
           addHint("<i class=\"fa-solid fa-triangle-exclamation\"></i> " + rule[0], "error");
@@ -1611,6 +2339,9 @@
           addHint('Wait for the robot model to load before initializing.', 'info');
           return false;
         }
+        if (challengeVisual && challengeVisual.userData.decodeGameView) {
+          challengeVisual.userData.decodeGameView.initialize();
+        }
         challengeMotion.setLifecyclePhase("initialized");
         return transpileAndRun(
           getCode(),
@@ -1625,11 +2356,17 @@
       };
       global.onStart = function () {
         challengeMotion.setLifecyclePhase("running");
+        if (challengeVisual && challengeVisual.userData.decodeGameView) {
+          challengeVisual.userData.decodeGameView.start();
+        }
         validate();
         updateTelemetry();
       };
       global.onStop = function () {
         challengeMotion.setLifecyclePhase("stopped");
+        if (challengeVisual && challengeVisual.userData.decodeGameView) {
+          challengeVisual.userData.decodeGameView.stop();
+        }
         updateTelemetry();
         if (global.hardwareMap && typeof global.hardwareMap.stopAll === "function") {
           global.hardwareMap.stopAll();
@@ -1637,20 +2374,23 @@
       };
       global.onReset = function () {
         clearHints();
+        if (challengeVisual && challengeVisual.userData.decodeGameView) {
+          challengeVisual.userData.decodeGameView.reset();
+        }
         checks.forEach(function (_check, index) { setRequirement(index, false); });
       };
 
-      if ((unit === 7 || unit === 13 || unit === 15) && global.TelemarkProject) {
+      if (global.TelemarkProject) {
         const editor = document.getElementById("sim-code-editor");
-        const options = config.starterFiles
-          ? {
-              initialFiles: config.starterFiles.map(function (file, index) {
-                return index === 0 ? {name: file.name, source: editor.value} : file;
-              }),
-              addMissingInitialFiles: true
-            }
-          : undefined;
-        global.TelemarkProject.attach(editor, null, options);
+        projectOptions.initialFiles = projectOptions.initialFiles.map(function (file) {
+          return file.name === projectOptions.preferredActiveFile
+            ? {name: file.name, source: editor.value}
+            : file;
+        });
+        cumulativeProject = global.TelemarkProject.attach(editor, null, projectOptions);
+        global.onChallengeComplete = function () {
+          cumulativeProject.saveSnapshot(projectOptions.stage);
+        };
       }
       clearHints();
       checks.forEach(function (_check, index) { setRequirement(index, false); });
@@ -1661,11 +2401,15 @@
   const selectedUnit = Number(script && script.dataset ? script.dataset.unit : 0);
   global.TelemarkMasteryChallenge = Object.freeze({
     configs: CONFIGS,
+    decodeProjectKey: DECODE_PROJECT_KEY,
+    decodeProjectFiles: DECODE_FILE_STAGES,
+    decodeProjectOptions: decodeProjectOptions,
     robotProfiles: ROBOT_PROFILES,
     robotProfileForUnit: robotProfileForUnit,
     cadSourceUnitFor: cadSourceUnitFor,
     checksForUnit: checksForUnit,
     createChallengeRobot: createChallengeRobot,
+    grade: grade,
     evaluate: evaluate,
     install: install
   });

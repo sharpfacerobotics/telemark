@@ -33,6 +33,16 @@
   display: flex;
   flex: 0 0 auto;
   min-width: 0;
+  cursor: grab;
+}
+.telemark-project-tab-shell[data-dragging] {
+  opacity: .55;
+}
+.telemark-project-tab-shell[data-drop-position='before'] {
+  box-shadow: -3px 0 0 var(--project-accent);
+}
+.telemark-project-tab-shell[data-drop-position='after'] {
+  box-shadow: 3px 0 0 var(--project-accent);
 }
 .telemark-project-tab {
   position: relative;
@@ -41,7 +51,7 @@
   gap: 8px;
   min-height: 38px;
   max-width: 220px;
-  padding: 8px 34px 10px 12px;
+  padding: 8px 60px 10px 12px;
   overflow: hidden;
   border: 1px solid transparent;
   border-bottom: 0;
@@ -51,6 +61,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.telemark-project-tab-shell:not([data-deletable]) .telemark-project-tab { padding-right: 34px; }
 .telemark-project-tab::before {
   content: '{}';
   flex: 0 0 auto;
@@ -77,11 +88,11 @@
   border-radius: 2px 2px 0 0;
   background: var(--project-accent);
 }
+.telemark-project-tab-rename,
 .telemark-project-tab-delete {
   position: absolute;
   z-index: 1;
   top: 50%;
-  right: 7px;
   display: grid;
   width: 22px;
   height: 22px;
@@ -97,10 +108,25 @@
   opacity: 0;
   pointer-events: none;
 }
+.telemark-project-tab-rename {
+  right: 31px;
+  font-size: 14px;
+}
+.telemark-project-tab-shell:not([data-deletable]) .telemark-project-tab-rename { right: 7px; }
+.telemark-project-tab-delete {
+  right: 7px;
+  font-size: 18px;
+}
+.telemark-project-tab-shell:hover .telemark-project-tab-rename,
+.telemark-project-tab-shell:focus-within .telemark-project-tab-rename,
 .telemark-project-tab-shell:hover .telemark-project-tab-delete,
 .telemark-project-tab-shell:focus-within .telemark-project-tab-delete {
   opacity: 1;
   pointer-events: auto;
+}
+.telemark-project-tab-rename:hover {
+  background: color-mix(in srgb, var(--project-accent) 15%, transparent);
+  color: var(--project-accent);
 }
 .telemark-project-tab-delete:hover {
   background: color-mix(in srgb, var(--project-danger) 15%, transparent);
@@ -322,8 +348,19 @@
   background: var(--code-bg, #05080d);
   font-size: 12px;
 }
+.telemark-project-snapshot-preview {
+  min-height: 180px;
+  white-space: pre;
+}
+.telemark-project-snapshot-status {
+  min-height: 21px;
+  margin: 5px 0 0;
+  color: var(--text-secondary, #94a3b8);
+  font-size: 12px;
+}
 @media (hover: none) {
   .telemark-project-new { opacity: .6; }
+  .telemark-project-tab-rename,
   .telemark-project-tab-delete { opacity: .65; pointer-events: auto; }
 }
 @media (prefers-reduced-motion: reduce) {

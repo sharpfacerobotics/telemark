@@ -96,7 +96,13 @@
     'getTargetPosition()', 'getCurrentPosition()', 'isBusy()']);
   const TYPE_COMPLETIONS = {
     DcMotor: MOTOR_COMPLETIONS,
-    DcMotorEx: MOTOR_COMPLETIONS.concat(methods(['setVelocity(0.0)', 'getVelocity()', 'setTargetPositionTolerance(10)', 'isOverCurrent()'])),
+    DcMotorEx: MOTOR_COMPLETIONS.concat(methods([
+      'setVelocity(0.0)',
+      'getVelocity()',
+      'setVelocityPIDFCoefficients(10.0, 0.0, 0.0, 0.004)',
+      'setTargetPositionTolerance(10)',
+      'isOverCurrent()',
+    ])),
     Servo: methods(['setPosition(0.0)', 'getPosition()', 'scaleRange(0.0, 1.0)', 'setDirection(Servo.Direction.REVERSE)', 'getDirection()']),
     CRServo: methods(['setPower(0.0)', 'getPower()', 'setDirection(DcMotorSimple.Direction.REVERSE)', 'getDirection()']),
     DigitalChannel: methods(['getState()', 'setMode(DigitalChannel.Mode.INPUT)', 'getMode()', 'setState(true)']),

@@ -256,8 +256,7 @@
           } else imports.push({path, token: start});
         }
         const classes = ast.classes.map(c => {
-          const before = tokens.filter(t => t.end <= c.start);
-          const publicClass = before.at(-1)?.value === 'public' || before.slice(-3).some(t => t.value === 'public') && before.at(-1)?.value === 'final';
+          const publicClass = (c.modifiers || []).includes('public');
           if (publicClass && file.name.split('/').pop() !== c.name + '.java') throw new TelemarkJavaError('Public class ' + c.name + ' must be in ' + c.name + '.java.', {line: 1});
           return {...c, public: publicClass, qualifiedName: packageName ? packageName + '.' + c.name : c.name};
         });
@@ -446,11 +445,19 @@
       if (close < 0) throw new TelemarkJavaError(`Class ${name.value} is missing '}'`, name);
       const bodyStart = tokens[cursor].end;
       const bodyEnd = tokens[close].start;
+      let declarationStart = i;
+      while (declarationStart > 0 && ![";", "{", "}"].includes(tokens[declarationStart - 1].value)) declarationStart -= 1;
+      const declarationTokens = tokens.slice(declarationStart, i);
       classes.push({
         type: "ClassDeclaration",
         name: name.value,
         superClass,
-        start: tokens[i].start,
+        modifiers: declarationTokens.filter((token) => MODIFIERS.has(token.value)).map((token) => token.value),
+        annotations: declarationTokens.reduce((names, token, index) => {
+          if (token.value === "@" && declarationTokens[index + 1]?.type === "identifier") names.push(declarationTokens[index + 1].value);
+          return names;
+        }, []),
+        start: declarationTokens[0]?.start ?? tokens[i].start,
         end: tokens[close].end,
         bodyStart,
         bodyEnd,
@@ -486,6 +493,7 @@
 
       const isStatic = statement.some((part) => part.value === "static");
       const isFinal = statement.some((part) => part.value === "final");
+      const modifiers = statement.filter((part) => MODIFIERS.has(part.value)).map((part) => part.value);
       const useful = statement.filter((part) => !MODIFIERS.has(part.value));
       statement = [];
       const assignment = useful.findIndex((part) => part.value === "=");
@@ -523,6 +531,7 @@
           type: useful[0]?.value || "Object",
           static: isStatic,
           final: isFinal,
+          modifiers,
           initialValue: literalValue(initializer),
           initializer: initializerSource,
           line: nameToken.line,
@@ -587,6 +596,10 @@
       if (tokens[bodyOpen]?.value !== "{") continue;
       const bodyClose = matchingToken(tokens, bodyOpen);
       if (bodyClose < 0) throw new TelemarkJavaError(`Method ${nameToken.value} is missing '}'`, nameToken);
+      let declarationStart = i - 1;
+      while (declarationStart > 0 && ![";", "{", "}"].includes(tokens[declarationStart - 1].value)) declarationStart -= 1;
+      const declarationTokens = tokens.slice(declarationStart, i - 1);
+      const bodyTokens = tokens.slice(bodyOpen + 1, bodyClose);
       methods.push({
         type: "MethodDeclaration",
         name: nameToken.value,
@@ -596,6 +609,12 @@
           return parts;
         }, [[]]).filter(p => p.length).map(p => p.filter(v => v !== 'final').slice(0, -1).join('')),
         static: tokens.slice(Math.max(0, i - 5), i - 1).some(t => t.value === 'static'),
+        modifiers: declarationTokens.filter((token) => MODIFIERS.has(token.value)).map((token) => token.value),
+        annotations: declarationTokens.reduce((names, token, index) => {
+          if (token.value === "@" && declarationTokens[index + 1]?.type === "identifier") names.push(declarationTokens[index + 1].value);
+          return names;
+        }, []),
+        calls: extractMethodCalls(bodyTokens),
         body: source.slice(tokens[bodyOpen].end, tokens[bodyClose].start),
         bodyStart: tokens[bodyOpen].end,
         bodyLine: sourceLocation(source, tokens[bodyOpen].end).line,
@@ -606,6 +625,23 @@
       i = bodyClose;
     }
     return methods;
+  }
+
+  function extractMethodCalls(tokens) {
+    const calls = [];
+    for (let index = 0; index < tokens.length - 1; index += 1) {
+      const token = tokens[index];
+      if (token.type !== "identifier" || tokens[index + 1]?.value !== "(" || CONTROL_WORDS.has(token.value)) continue;
+      const qualified = tokens[index - 1]?.value === "." && tokens[index - 2]?.type === "identifier";
+      calls.push({
+        type: "MethodInvocation",
+        name: token.value,
+        qualifier: qualified ? tokens[index - 2].value : null,
+        line: token.line,
+        column: token.column,
+      });
+    }
+    return calls;
   }
 
   function parseParameters(tokens) {
@@ -1204,11 +1240,110 @@
     });
   }
 
+  const BATTERY_MODEL_DEFAULTS = Object.freeze({
+    initialVoltage: 13,
+    finalVoltage: 11,
+    drainSeconds: 120,
+    maximumSag: 0.55,
+    minimumVoltage: 10.5,
+    motorsAtMaximumSag: 4,
+    warningLoss: 0.08,
+    warningSeconds: 3,
+  });
+
+  function clampNumber(value, minimum, maximum) {
+    return Math.max(minimum, Math.min(maximum, Number(value) || 0));
+  }
+
+  function createBatteryModel(options = {}) {
+    const settings = Object.assign({}, BATTERY_MODEL_DEFAULTS, options.settings || {});
+    let active = false;
+    let activeSeconds = 0;
+    let openCircuitVoltage = settings.initialVoltage;
+    let terminalVoltage = settings.initialVoltage;
+    let sagVoltage = 0;
+    let warningDuration = 0;
+    let warningShown = false;
+
+    function snapshot() {
+      return Object.freeze({
+        active,
+        activeSeconds,
+        openCircuitVoltage,
+        terminalVoltage,
+        sagVoltage,
+        warningDuration,
+        warningShown,
+      });
+    }
+
+    function reset() {
+      active = false;
+      activeSeconds = 0;
+      openCircuitVoltage = settings.initialVoltage;
+      terminalVoltage = settings.initialVoltage;
+      sagVoltage = 0;
+      warningDuration = 0;
+      warningShown = false;
+      options.onChange?.(snapshot());
+      return snapshot();
+    }
+
+    function tick(seconds, demands = []) {
+      const numericSeconds = Number(seconds);
+      const dt = Number.isFinite(numericSeconds) ? Math.max(0, numericSeconds) : 0;
+      if (active) activeSeconds += dt;
+      const drainProgress = Math.min(1, activeSeconds / settings.drainSeconds);
+      openCircuitVoltage = settings.initialVoltage
+        + (settings.finalVoltage - settings.initialVoltage) * drainProgress;
+      const totalDemand = demands.reduce(function (sum, demand) {
+        return sum + clampNumber(demand && demand.demand, 0, 1);
+      }, 0);
+      sagVoltage = settings.maximumSag * Math.min(1, totalDemand / settings.motorsAtMaximumSag);
+      terminalVoltage = clampNumber(
+        openCircuitVoltage - sagVoltage,
+        settings.minimumVoltage,
+        settings.initialVoltage,
+      );
+
+      const openLoopHigh = demands.some(function (demand) {
+        return demand && demand.mode === "power" && Math.abs(Number(demand.requestedPower) || 0) > 0.5;
+      });
+      const batteryLoss = 1 - terminalVoltage / settings.initialVoltage;
+      warningDuration = active && openLoopHigh && batteryLoss >= settings.warningLoss
+        ? warningDuration + dt
+        : 0;
+      if (!warningShown && warningDuration >= settings.warningSeconds) {
+        warningShown = true;
+        options.onWarning?.(snapshot());
+      }
+      options.onChange?.(snapshot());
+      return snapshot();
+    }
+
+    return Object.freeze({
+      reset,
+      tick,
+      start() { active = true; return snapshot(); },
+      stop() { active = false; warningDuration = 0; return snapshot(); },
+      snapshot,
+      settings: Object.freeze(Object.assign({}, settings)),
+    });
+  }
+
   function createRuntime(options = {}) {
     const devices = new Map();
     const telemetry = [];
     const gamepad1 = createGamepad(options.gamepad1 || options.gamepad || {});
     const gamepad2 = createGamepad(options.gamepad2 || {});
+    const maximumVelocityAt12V = Math.max(1, Number(options.maximumMotorVelocity) || 2800);
+    const acceleration = Math.max(1, Number(options.motorAcceleration) || 9000);
+    const deceleration = Math.max(1, Number(options.motorDeceleration) || 11000);
+    const battery = createBatteryModel({
+      settings: options.batterySettings,
+      onChange: options.onBatteryChange,
+      onWarning: options.onBatteryWarning,
+    });
 
     function device(type, name) {
       const key = `${type}:${name}`;
@@ -1217,6 +1352,12 @@
         type,
         name,
         power: 0,
+        requestedPower: 0,
+        requestedVelocity: 0,
+        measuredVelocity: 0,
+        effectiveOutput: 0,
+        controlMode: "power",
+        pidf: {p: 10, i: 0, d: 0, f: 12 / maximumVelocityAt12V},
         position: 0,
         direction: "FORWARD",
         mode: "RUN_WITHOUT_ENCODER",
@@ -1225,10 +1366,23 @@
       };
       const value = {
         setPower(power) {
-          state.power = Number(power) || 0;
+          state.requestedPower = clampNumber(power, -1, 1);
+          state.power = state.requestedPower;
+          state.controlMode = "power";
           options.onPower?.(state.power, state);
         },
-        getPower: () => state.power,
+        getPower: () => state.requestedPower,
+        setVelocity(velocity) {
+          state.requestedVelocity = Number(velocity) || 0;
+          state.controlMode = "velocity";
+          options.onVelocityCommand?.(state.requestedVelocity, state);
+        },
+        getVelocity: () => state.measuredVelocity,
+        setVelocityPIDFCoefficients(p, i, d, f) {
+          state.pidf = {p: Number(p) || 0, i: Number(i) || 0, d: Number(d) || 0, f: Number(f) || 0};
+          options.onPIDF?.(Object.assign({}, state.pidf), state);
+        },
+        getVelocityPIDFCoefficients: () => Object.assign({}, state.pidf),
         setPosition(position) {
           state.position = Number(position) || 0;
           options.onPosition?.(state.position, state);
@@ -1262,13 +1416,58 @@
         red: () => options.getColor?.("red", state) ?? 0,
         green: () => options.getColor?.("green", state) ?? 0,
         blue: () => options.getColor?.("blue", state) ?? 0,
+        _demand() {
+          const demand = state.controlMode === "velocity"
+            ? Math.abs(state.requestedVelocity) / maximumVelocityAt12V
+            : Math.abs(state.requestedPower);
+          return {
+            mode: state.controlMode,
+            requestedPower: state.requestedPower,
+            demand: clampNumber(demand, 0, 1),
+          };
+        },
+        _tick(seconds, terminalVoltage) {
+          if (type !== "DcMotor" && type !== "DcMotorEx") return;
+          const dt = clampNumber(seconds, 0, 0.25);
+          const availableVelocity = maximumVelocityAt12V * terminalVoltage / 12;
+          let targetVelocity;
+          if (state.mode === "RUN_TO_POSITION") {
+            const remaining = state.targetPosition - state.currentPosition;
+            targetVelocity = Math.sign(remaining) * Math.abs(state.requestedPower) * availableVelocity;
+          } else if (state.controlMode === "velocity") {
+            targetVelocity = clampNumber(state.requestedVelocity, -availableVelocity, availableVelocity);
+          } else {
+            targetVelocity = state.requestedPower * availableVelocity;
+          }
+          const rate = Math.abs(targetVelocity) > Math.abs(state.measuredVelocity) ? acceleration : deceleration;
+          const maximumChange = rate * dt;
+          const difference = targetVelocity - state.measuredVelocity;
+          state.measuredVelocity += Math.abs(difference) <= maximumChange
+            ? difference
+            : Math.sign(difference) * maximumChange;
+          state.effectiveOutput = availableVelocity > 0
+            ? clampNumber(state.measuredVelocity / availableVelocity, -1, 1)
+            : 0;
+          if (state.mode === "RUN_TO_POSITION") {
+            const remaining = state.targetPosition - state.currentPosition;
+            const step = state.measuredVelocity * dt;
+            if (Math.abs(remaining) <= Math.abs(step)) {
+              state.currentPosition = state.targetPosition;
+              state.measuredVelocity = 0;
+              state.effectiveOutput = 0;
+            } else state.currentPosition += step;
+          } else {
+            state.currentPosition += state.measuredVelocity * dt;
+          }
+          options.onVelocity?.(state.measuredVelocity, state);
+        },
         _state: state,
       };
       devices.set(key, value);
       return value;
     }
 
-    return {
+    const runtime = {
       gamepad1,
       gamepad2,
       devices,
@@ -1314,7 +1513,22 @@
       opModeIsActive: options.opModeIsActive || (() => true),
       waitForStart: options.waitForStart || (() => Promise.resolve()),
       sleep: options.sleep || ((ms) => new Promise((resolve) => setTimeout(resolve, Number(ms) || 0))),
+      battery,
+      resetBattery: battery.reset,
+      start() { battery.start(); },
+      stop() { battery.stop(); },
+      tick(seconds) {
+        const motorDevices = Array.from(devices.values()).filter(function (entry) {
+          return entry._state.type === "DcMotor" || entry._state.type === "DcMotorEx";
+        });
+        const batteryState = battery.tick(seconds, motorDevices.map(function (entry) { return entry._demand(); }));
+        motorDevices.forEach(function (entry) { entry._tick(seconds, batteryState.terminalVoltage); });
+        return batteryState;
+      },
+      getBatteryState: battery.snapshot,
     };
+    battery.reset();
+    return runtime;
   }
 
   function methodBodyLocation(method, token) {
@@ -1817,6 +2031,8 @@ with(scope){${js}}`
     compile,
     createLifecycle,
     createGamepad,
+    createBatteryModel,
+    batteryDefaults: BATTERY_MODEL_DEFAULTS,
     createRuntime,
   };
 });
