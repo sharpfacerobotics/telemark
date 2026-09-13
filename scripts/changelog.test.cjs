@@ -108,6 +108,8 @@ assert.match(cardCss, /position:\s*fixed/);
 assert.match(cardCss, /place-items:\s*center/);
 assert.match(cardCss, /grid-template-columns:\s*minmax\(0, 1\.08fr\)/);
 assert.match(cardCss, /background:\s*rgba\(0, 0, 0, 0\.76\)/);
+assert.match(cardCss, /object-fit:\s*contain/, 'release artwork remains fully visible');
+assert.doesNotMatch(cardCss, /object-fit:\s*cover/, 'release artwork is never cropped');
 
 const changelogPage = fs.readFileSync(path.join(root, 'src/pages/changelog.tsx'), 'utf8');
 assert.equal((changelogPage.match(/<h1/g) || []).length, 1);
