@@ -29,11 +29,11 @@ export default function WhatsNew(): React.JSX.Element | null {
   const [isOpen, setIsOpen] = React.useState(false);
   const dialogRef = React.useRef<HTMLElement>(null);
   const dismissRef = React.useRef<HTMLButtonElement>(null);
-  const lightImageSrc = useBaseUrl(LATEST_RELEASE.image ?? '/img/releases/1.9.png');
+  const lightImageSrc = useBaseUrl(LATEST_RELEASE.image ?? '/img/releases/1.10.png');
   const darkImageSrc = useBaseUrl(
     LATEST_RELEASE.darkImage
       ?? LATEST_RELEASE.image
-      ?? '/img/releases/1.9(black).png',
+      ?? '/img/releases/1.10(black).png',
   );
   const imageSrc = colorMode === 'light' ? lightImageSrc : darkImageSrc;
   const changelogHref = useBaseUrl('/changelog');
@@ -141,7 +141,7 @@ export default function WhatsNew(): React.JSX.Element | null {
           <div className={styles.actions}>
             {LATEST_RELEASE.href && (
               <Link className={styles.primary} to={LATEST_RELEASE.href}>
-                Try multi-file projects
+                {LATEST_RELEASE.actionLabel ?? 'Open this addition'}
               </Link>
             )}
             <Link className={styles.all} to={changelogHref}>

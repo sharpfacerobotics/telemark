@@ -13,15 +13,15 @@ new Function('exports', 'require', 'module', outputText)(mod, require, {exports:
 
 const {CHANGELOG, LATEST_RELEASE, formatChangeDate} = mod;
 
-assert.equal(CHANGELOG.length, 10, 'versions 1.0 through 1.9 are present');
+assert.equal(CHANGELOG.length, 11, 'versions 1.0 through 1.10 are present');
 assert.deepEqual(
   CHANGELOG.map((entry) => entry.version),
-  ['1.9', '1.8', '1.7', '1.6', '1.5', '1.4', '1.3', '1.2', '1.1', '1.0'],
+  ['1.10', '1.9', '1.8', '1.7', '1.6', '1.5', '1.4', '1.3', '1.2', '1.1', '1.0'],
   'versions count down from the current release',
 );
 assert.equal(LATEST_RELEASE, CHANGELOG[0]);
-assert.equal(LATEST_RELEASE.version, '1.9');
-assert.equal(LATEST_RELEASE.date, '2026-09-06');
+assert.equal(LATEST_RELEASE.version, '1.10');
+assert.equal(LATEST_RELEASE.date, '2026-09-13');
 
 const dates = CHANGELOG.map((entry) => entry.date);
 assert.deepEqual([...dates].sort().reverse(), dates, 'release dates run newest first');
@@ -57,13 +57,14 @@ assert.deepEqual(
   'the first three releases follow deployed history',
 );
 
-assert.ok(LATEST_RELEASE.body.toLowerCase().includes('teamcode'));
-assert.ok(LATEST_RELEASE.additions[0].toLowerCase().includes('java files'));
-assert.ok(LATEST_RELEASE.additions.some((item) => item.includes('highlighted')));
-assert.ok(LATEST_RELEASE.additions.some((item) => item.includes('case-sensitive')));
-assert.ok(LATEST_RELEASE.additions.some((item) => item.includes('Java keywords')));
+assert.ok(LATEST_RELEASE.body.includes('DECODE field'));
+assert.ok(LATEST_RELEASE.additions.some((item) => item.includes('three intake stages')));
+assert.ok(LATEST_RELEASE.additions.some((item) => item.includes('trigger servo')));
+assert.ok(LATEST_RELEASE.additions.some((item) => item.includes('drag their tabs')));
+assert.ok(LATEST_RELEASE.additions.some((item) => item.includes('gamepad axis values')));
+assert.equal(LATEST_RELEASE.actionLabel, 'Try the DECODE challenge');
 
-assert.equal(formatChangeDate('2026-09-06'), 'September 6, 2026');
+assert.equal(formatChangeDate('2026-09-13'), 'September 13, 2026');
 assert.equal(formatChangeDate('not-a-date'), 'not-a-date');
 
 assert.ok(LATEST_RELEASE.image, 'the current release has an image');
@@ -76,12 +77,13 @@ assert.ok(
   fs.existsSync(path.join(root, 'static', LATEST_RELEASE.darkImage)),
   'the current release dark image exists',
 );
-assert.equal(LATEST_RELEASE.image, '/img/releases/1.9.png');
-assert.equal(LATEST_RELEASE.darkImage, '/img/releases/1.9(black).png');
+assert.equal(LATEST_RELEASE.image, '/img/releases/1.10.png');
+assert.equal(LATEST_RELEASE.darkImage, '/img/releases/1.10(black).png');
 
 const cardSource = fs.readFileSync(path.join(root, 'src/components/ui/WhatsNew.tsx'), 'utf8');
 const cardCss = fs.readFileSync(path.join(root, 'src/components/ui/WhatsNew.module.css'), 'utf8');
 assert.match(cardSource, /telemark\.whatsNew\.dismissedVersion/);
+assert.notEqual('1.9', LATEST_RELEASE.version, 'a 1.9 dismissal does not hide the 1.10 release');
 assert.match(cardSource, /readDismissedVersion\(\) !== LATEST_RELEASE\.version/);
 assert.match(cardSource, /useState\(false\)/, 'the announcement never flashes before dismissal is checked');
 assert.doesNotMatch(cardSource, /useLayoutEffect/);
