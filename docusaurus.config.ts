@@ -174,6 +174,11 @@ const config: Config = {
           position: 'left',
         },
         {
+          to: '/coaches',
+          label: 'Coaches',
+          position: 'left',
+        },
+        {
           to: '/simulator',
           label: 'Tools',
           position: 'left',

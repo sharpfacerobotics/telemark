@@ -57,12 +57,13 @@ assert.deepEqual(
   'the first three releases follow deployed history',
 );
 
+assert.equal(LATEST_RELEASE.title, 'Test the full DECODE robot');
 assert.ok(LATEST_RELEASE.body.includes('DECODE field'));
-assert.ok(LATEST_RELEASE.additions.some((item) => item.includes('three intake stages')));
+assert.ok(LATEST_RELEASE.additions.some((item) => item.includes('intake stages')));
 assert.ok(LATEST_RELEASE.additions.some((item) => item.includes('trigger servo')));
-assert.ok(LATEST_RELEASE.additions.some((item) => item.includes('drag their tabs')));
-assert.ok(LATEST_RELEASE.additions.some((item) => item.includes('gamepad axis values')));
-assert.equal(LATEST_RELEASE.actionLabel, 'Try the DECODE challenge');
+assert.ok(LATEST_RELEASE.additions.some((item) => item.includes('reorder their tabs')));
+assert.ok(LATEST_RELEASE.additions.some((item) => item.includes('negative Y')));
+assert.equal(LATEST_RELEASE.actionLabel, 'Open the DECODE challenge');
 
 assert.equal(formatChangeDate('2026-09-13'), 'September 13, 2026');
 assert.equal(formatChangeDate('not-a-date'), 'not-a-date');
@@ -72,13 +73,8 @@ assert.ok(
   fs.existsSync(path.join(root, 'static', LATEST_RELEASE.image)),
   'the current release light image exists',
 );
-assert.ok(LATEST_RELEASE.darkImage, 'the current release has a dark image');
-assert.ok(
-  fs.existsSync(path.join(root, 'static', LATEST_RELEASE.darkImage)),
-  'the current release dark image exists',
-);
-assert.equal(LATEST_RELEASE.image, '/img/releases/1.10.png');
-assert.equal(LATEST_RELEASE.darkImage, '/img/releases/1.10(black).png');
+assert.equal(LATEST_RELEASE.darkImage, undefined, 'one transparent image serves both themes');
+assert.equal(LATEST_RELEASE.image, '/img/releases/1.10(transparent).png');
 
 const cardSource = fs.readFileSync(path.join(root, 'src/components/ui/WhatsNew.tsx'), 'utf8');
 const cardCss = fs.readFileSync(path.join(root, 'src/components/ui/WhatsNew.module.css'), 'utf8');
@@ -103,7 +99,8 @@ assert.match(cardSource, /aria-label=.*Dismiss Telemark version/s);
 assert.match(cardSource, />×<\/span>/);
 assert.match(cardSource, /role="dialog"/);
 assert.match(cardSource, /aria-modal="true"/);
-assert.match(cardSource, /colorMode === 'light' \? lightImageSrc : darkImageSrc/);
+assert.doesNotMatch(cardSource, /useColorMode|colorMode|darkImageSrc/);
+assert.match(cardSource, /LATEST_RELEASE\.image \?\? '\/img\/releases\/1\.10\(transparent\)\.png'/);
 assert.match(cardCss, /position:\s*fixed/);
 assert.match(cardCss, /place-items:\s*center/);
 assert.match(cardCss, /grid-template-columns:\s*minmax\(0, 1\.08fr\)/);

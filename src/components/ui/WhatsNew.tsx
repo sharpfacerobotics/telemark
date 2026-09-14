@@ -1,7 +1,6 @@
 import React from 'react';
 import Link from '@docusaurus/Link';
 import useBaseUrl from '@docusaurus/useBaseUrl';
-import {useColorMode} from '@docusaurus/theme-common';
 import {LATEST_RELEASE} from '@site/src/telemark/changelog';
 import styles from './WhatsNew.module.css';
 
@@ -25,17 +24,12 @@ function rememberDismissal(version: string): void {
 }
 
 export default function WhatsNew(): React.JSX.Element | null {
-  const {colorMode} = useColorMode();
   const [isOpen, setIsOpen] = React.useState(false);
   const dialogRef = React.useRef<HTMLElement>(null);
   const dismissRef = React.useRef<HTMLButtonElement>(null);
-  const lightImageSrc = useBaseUrl(LATEST_RELEASE.image ?? '/img/releases/1.10.png');
-  const darkImageSrc = useBaseUrl(
-    LATEST_RELEASE.darkImage
-      ?? LATEST_RELEASE.image
-      ?? '/img/releases/1.10(black).png',
+  const imageSrc = useBaseUrl(
+    LATEST_RELEASE.image ?? '/img/releases/1.10(transparent).png',
   );
-  const imageSrc = colorMode === 'light' ? lightImageSrc : darkImageSrc;
   const changelogHref = useBaseUrl('/changelog');
 
   React.useEffect(() => {

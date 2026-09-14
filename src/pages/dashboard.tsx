@@ -11,6 +11,12 @@ import {trackEvent} from '../telemark/analytics';
 import {useLearnerProfile} from '../telemark/useLearnerProfile';
 import {BLOCKS_LESSONS, BLOCKS_UNITS} from '../telemark/blocksCurriculum';
 import {FLL_LESSONS, FLL_UNITS} from '../telemark/fllCurriculum';
+import {useTelemarkAccount} from '../telemark/useTelemarkAccount';
+import type {CoachAccount, StudentAccount} from '../telemark/classroom';
+import {
+  CoachDashboard,
+  StudentClassroomPanel,
+} from '../components/classroom/ClassroomDashboard';
 import styles from './dashboard.module.css';
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -18,6 +24,10 @@ import styles from './dashboard.module.css';
 export default function DashboardPage(): React.JSX.Element {
   const { user, loading }          = useAuth();
   const {profile, status: profileStatus} = useLearnerProfile();
+  const {account, status: accountStatus} = useTelemarkAccount();
+  const progressUser = accountStatus === 'ready' && account?.role === 'student'
+    ? user
+    : null;
   const {
     progress,
     loading: progressLoading,
@@ -29,7 +39,7 @@ export default function DashboardPage(): React.JSX.Element {
     reviewMany,
     unmarkMany,
     mergeImportedProgress,
-  } = useProgress(user);
+  } = useProgress(progressUser);
   const [activeTrack, setActiveTrack] = useState<MainTrackId>('software');
   const [blocksSectionOpen, setBlocksSectionOpen] = useState(true);
   const [expandedUnits, setExpandedUnits] = useState<Record<string, boolean>>({});
@@ -225,7 +235,12 @@ export default function DashboardPage(): React.JSX.Element {
     }
   }
 
-  if (loading || progressLoading) {
+  if (
+    loading
+    || accountStatus === 'loading'
+    || (user && profileStatus === 'loading')
+    || (account?.role !== 'coach' && progressLoading)
+  ) {
     return (
       <Layout title="Dashboard · Telemark" noFooter>
         <main className={styles.page}>
@@ -235,6 +250,10 @@ export default function DashboardPage(): React.JSX.Element {
         </main>
       </Layout>
     );
+  }
+
+  if (user && account?.role === 'coach') {
+    return <CoachDashboard user={user} account={account as CoachAccount} />;
   }
 
   return (
@@ -250,7 +269,7 @@ export default function DashboardPage(): React.JSX.Element {
               <h1 className={styles.title}>
                 {user ? (
                   <>Welcome back, <span className={styles.name}>
-                    {user.displayName?.split(' ')[0] ?? 'teammate'}
+                    {account?.username ?? user.displayName?.split(' ')[0] ?? 'teammate'}
                   </span></>
                 ) : 'Your Telemark progress'}
               </h1>
@@ -300,6 +319,10 @@ export default function DashboardPage(): React.JSX.Element {
           </div>
           {transferMessage && (
             <p className={styles.transferMessage} role="status">{transferMessage}</p>
+          )}
+
+          {user && account?.role === 'student' && (
+            <StudentClassroomPanel account={account as StudentAccount} />
           )}
 
           {/* ── Track switcher ── */}

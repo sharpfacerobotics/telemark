@@ -7,7 +7,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "npm run build && node --test lib/metrics.test.js"
+    "test": "npm run build && node --test lib/metrics.test.js lib/classroom.test.js"
   },
   "dependencies": {
     "@google-analytics/data": "^5.2.0",

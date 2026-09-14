@@ -15,6 +15,18 @@ import {
   type MetricsRange,
 } from './metrics';
 
+export {
+  cancelClassroomInvite,
+  createTelemarkClassroom,
+  getTelemarkAccount,
+  getTelemarkClassroomDashboard,
+  inviteStudentToClassroom,
+  leaveTelemarkClassroom,
+  removeStudentFromClassroom,
+  respondToClassroomInvite,
+  saveTelemarkAccount,
+} from './classroomFunctions';
+
 if (getApps().length === 0) initializeApp();
 
 setGlobalOptions({
