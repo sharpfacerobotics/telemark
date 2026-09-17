@@ -265,7 +265,7 @@ body {
   opacity: 1 !important;
   border-color: rgba(34, 211, 238, 0.9) !important;
   background: rgba(34, 211, 238, 0.38) !important;
-  box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.24) !important;
+  box-shadow: none !important;
 }
 
 /* Legacy editor/readout surfaces that used literal dark fills. */
@@ -314,7 +314,7 @@ button,
 
 *::-webkit-scrollbar-thumb {
   border: 3px solid transparent;
-  border-radius: 999px;
+  border-radius: 6px;
   background: var(--tm-border-quiet);
   background-clip: content-box;
 }
@@ -681,7 +681,7 @@ textarea:focus-visible,
   border-color: var(--tm-border) !important;
   background: var(--tm-surface-1) !important;
   color: var(--tm-text-strong) !important;
-  box-shadow: 0 8px 28px rgba(16, 42, 54, 0.18) !important;
+  box-shadow: none !important;
 }
 
 :root:is([data-theme='light'], [data-telemark-theme='light'])
@@ -910,7 +910,7 @@ textarea:focus-visible,
   border-color: var(--tm-border) !important;
   background: rgba(255, 255, 255, 0.94) !important;
   color: var(--tm-text) !important;
-  box-shadow: 0 10px 24px rgba(16, 42, 54, 0.14) !important;
+  box-shadow: none !important;
 }
 
 :root:is([data-theme='light'], [data-telemark-theme='light'])
@@ -935,7 +935,7 @@ textarea:focus-visible,
   border-color: var(--tm-border) !important;
   background: var(--tm-surface-2) !important;
   color: var(--tm-text) !important;
-  box-shadow: 0 10px 24px rgba(16, 42, 54, 0.14) !important;
+  box-shadow: none !important;
 }
 
 :root:is([data-theme='light'], [data-telemark-theme='light'])
@@ -1518,7 +1518,7 @@ textarea:focus-visible,
   border-color: var(--tm-border) !important;
   background: rgba(255, 255, 255, 0.92) !important;
   color: var(--tm-text-strong) !important;
-  box-shadow: 0 6px 18px rgba(16, 42, 54, 0.14) !important;
+  box-shadow: none !important;
   text-shadow: none !important;
 }
 

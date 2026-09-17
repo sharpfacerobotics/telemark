@@ -499,8 +499,8 @@ function setupTrigger(id,k){
 function setupStick(id,xKey,yKey){
   var el=document.getElementById(id);if(!el)return;
   var knob=el.querySelector('.gp-stick-knob'),drag=false,pid=null;
-  function set(x,y){state.gamepad[xKey]=x;state.gamepad[yKey]=y;if(knob){knob.style.left=(50+x*38)+'%';knob.style.top=(50-y*38)+'%'}}
-  function upd(e){var r=el.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,max=Math.min(r.width,r.height)*.34,dx=e.clientX-cx,dy=e.clientY-cy,len=Math.sqrt(dx*dx+dy*dy);if(len>max){dx=dx/len*max;dy=dy/len*max}set(Math.max(-1,Math.min(1,dx/max)),Math.max(-1,Math.min(1,-dy/max)))}
+  function set(x,y){state.gamepad[xKey]=x;state.gamepad[yKey]=y;if(knob){knob.style.left=(50+x*38)+'%';knob.style.top=(50+y*38)+'%'}}
+  function upd(e){var r=el.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,max=Math.min(r.width,r.height)*.34,dx=e.clientX-cx,dy=e.clientY-cy,len=Math.sqrt(dx*dx+dy*dy);if(len>max){dx=dx/len*max;dy=dy/len*max}set(Math.max(-1,Math.min(1,dx/max)),Math.max(-1,Math.min(1,dy/max)))}
   el.addEventListener('pointerdown',function(e){e.preventDefault();drag=true;pid=e.pointerId;el.setPointerCapture(pid);el.classList.add('active');upd(e)});
   el.addEventListener('pointermove',function(e){if(drag&&e.pointerId===pid)upd(e)});
   function up(){drag=false;pid=null;el.classList.remove('active');set(0,0)}
