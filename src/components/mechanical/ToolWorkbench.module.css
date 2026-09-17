@@ -7,7 +7,7 @@
   min-height: 620px;
   margin: var(--tm-sp-5) 0;
   border: 1px solid var(--tm-border);
-  border-radius: var(--tm-r-lg);
+  border-radius: var(--tm-r-sm);
   background: var(--tm-surface-2);
   overflow: hidden;
 }
@@ -124,7 +124,7 @@
 .toolChip {
   padding: 3px 9px;
   border: 1px solid var(--tm-border);
-  border-radius: var(--tm-r-pill);
+  border-radius: var(--tm-r-sm);
   color: var(--tm-accent);
   font-family: var(--tm-font-label);
   font-size: var(--tm-fs-2xs);
@@ -155,10 +155,6 @@
   min-height: 0;
   padding: var(--tm-sp-5);
   background-color: var(--tm-bg);
-  background-image:
-    linear-gradient(rgba(34, 211, 238, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(34, 211, 238, 0.045) 1px, transparent 1px);
-  background-size: 32px 32px;
   overflow-y: auto;
 }
 

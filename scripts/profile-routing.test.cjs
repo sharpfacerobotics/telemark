@@ -76,7 +76,13 @@ for (const route of ['/docs', '/blocks', '/mechanical', '/simulator', '/dashboar
 }
 assert.ok(!curriculumRoutes.includes('changelog'), 'the changelog never starts curriculum personalization');
 const loginSource = fs.readFileSync(path.join(root, 'src/pages/login.tsx'), 'utf8');
-assert.match(loginSource, /profileStatus === 'absent' \? '\/' : '\/dashboard'/, 'sign-in alone does not start personalization');
+assert.match(loginSource, /profileStatus === 'absent' \|\| accountStatus === 'absent'/);
+assert.match(
+  loginSource,
+  /needsSetup \? '\/personalize' : '\/dashboard'/,
+  'new accounts choose a role and username before opening a dashboard',
+);
+assert.match(gateSource, /accountStatus !== 'absent'/, 'account setup is enforced on curriculum routes');
 
 const rules = fs.readFileSync(path.join(root, 'firestore.rules'), 'utf8');
 assert.match(rules, /request\.auth\.uid == userId/);

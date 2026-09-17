@@ -7,21 +7,24 @@ import { signInWithGoogle } from '../telemark/googleAuth';
 import styles from './login.module.css';
 import {useBasePath} from '@site/src/telemark/useBasePath';
 import {useLearnerProfile} from '@site/src/telemark/useLearnerProfile';
+import {useTelemarkAccount} from '@site/src/telemark/useTelemarkAccount';
 
 export default function LoginPage(): React.JSX.Element {
   const { user, loading } = useAuth();
   const {status: profileStatus} = useLearnerProfile();
+  const {status: accountStatus} = useTelemarkAccount();
   const [error, setError] = useState<string | null>(null);
   const history           = useHistory();
   const basePath = useBasePath();
 
-  // A new account stays on the general site until the learner chooses a
-  // curriculum destination. That click is what starts personalization.
+  // New accounts choose a username and student/coach role before entering a
+  // dashboard. Returning accounts skip directly to their role-specific view.
   useEffect(() => {
-    if (!loading && user && ['absent', 'ready', 'error'].includes(profileStatus)) {
-      history.push(basePath(profileStatus === 'absent' ? '/' : '/dashboard'));
-    }
-  }, [user, loading, profileStatus, history, basePath]);
+    if (loading || !user || profileStatus === 'loading' || accountStatus === 'loading') return;
+    if (profileStatus === 'signed-out' || accountStatus === 'signed-out') return;
+    const needsSetup = profileStatus === 'absent' || accountStatus === 'absent';
+    history.push(basePath(needsSetup ? '/personalize' : '/dashboard'));
+  }, [user, loading, profileStatus, accountStatus, history, basePath]);
 
   async function handleSignIn() {
     setError(null);
@@ -46,8 +49,6 @@ export default function LoginPage(): React.JSX.Element {
               aria-hidden="true"
             />
           </div>
-
-          <p className={styles.eyebrow}>Powered by</p>
           <h1 className={styles.brand}>Telemark</h1>
           <p className={styles.sub}>
             The curriculum works without an account. Sign in only when you want
@@ -67,7 +68,8 @@ export default function LoginPage(): React.JSX.Element {
           {error && <p className={styles.error} role="alert">{error}</p>}
 
           <p className={styles.privacy}>
-            Progress already saved in this browser will be merged into your account.
+            Google provides a verified email. Progress already saved in this browser
+            will be merged into your account.
           </p>
         </div>
       </main>

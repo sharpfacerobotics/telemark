@@ -181,7 +181,6 @@ export default function AdminPage(): React.JSX.Element {
   if (!user) {
     return shell(
       <section className={styles.loginCard}>
-        <p className={styles.eyebrow}>// telemark.admin</p>
         <h1>Analytics Console</h1>
         <p>Sign in with the authorized Sharp Face Robotics Google account.</p>
         <button className={styles.googleButton} onClick={handleAdminSignIn}>
@@ -196,7 +195,6 @@ export default function AdminPage(): React.JSX.Element {
   if (!isAdmin) {
     return shell(
       <section className={styles.loginCard}>
-        <p className={styles.eyebrow}>// access.denied</p>
         <h1>Not Authorized</h1>
         <p>This Google account does not have access to Telemark analytics.</p>
         <button className={styles.secondaryButton} onClick={() => signOut(auth)}>
@@ -210,7 +208,6 @@ export default function AdminPage(): React.JSX.Element {
     <div className={styles.content}>
       <header className={styles.header}>
         <div>
-          <p className={styles.eyebrow}>// telemark.admin.analytics</p>
           <h1>Usage Intelligence</h1>
           <p className={styles.headerSub}>
             Anonymous traffic and aggregate curriculum progress. No learner identities are exposed.

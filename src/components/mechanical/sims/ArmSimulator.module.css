@@ -35,10 +35,6 @@
   min-width: 0;
   padding: var(--tm-sp-4);
   background-color: var(--tm-bg);
-  background-image:
-    linear-gradient(rgba(34, 211, 238, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(34, 211, 238, 0.045) 1px, transparent 1px);
-  background-size: 32px 32px;
 }
 
 .svg { display: block; width: 100%; height: auto; }

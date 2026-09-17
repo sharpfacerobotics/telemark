@@ -10,22 +10,21 @@
   border: 1px solid rgba(34, 211, 238, 0.17);
   border: 1px solid var(--tm-border-hair);
   background: var(--tm-blue-a10);
-  border-radius: var(--tm-r-hand);
+  border-radius: var(--tm-r-sm);
   background: var(--tm-surface-2);
   color: var(--tm-text-soft);
   font-size: var(--tm-fs-sm);
   line-height: 1.5;
-  transition: border-color 180ms ease, transform 180ms ease;
+  transition: border-color 150ms ease;
 }
 
 .step:nth-child(even) {
-  border-radius: var(--tm-r-hand);
+  border-radius: var(--tm-r-sm);
 }
 
 .step:hover {
   border-color: rgba(96, 165, 250, 0.46);
   border-left-color: var(--tm-accent);
-  transform: translateY(-2px);
 }
 
 .step strong {
@@ -46,10 +45,6 @@
 @media (prefers-reduced-motion: reduce) {
   .step {
     transition: none;
-  }
-
-  .step:hover {
-    transform: none;
   }
 }
 

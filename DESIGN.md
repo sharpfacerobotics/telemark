@@ -60,24 +60,20 @@ between adjacent steps. Body measure is capped at 68ch by
 
 4px base scale, `--tm-sp-1` through `--tm-sp-8`.
 
-Radii are `--tm-r-sm` 8px, `--tm-r-md` 12px, `--tm-r-lg` 16px, and
-`--tm-r-pill`. Plus `--tm-r-hand`, a deliberately uneven four-value corner
-used on cards and figures, with an alternate so adjacent cards do not look
-mechanically identical. It is the one signature flourish and it is used
-sparingly.
+Use the existing small corner token for controls. The legacy pill token now
+resolves to 6px. Keep rounded diagrams and status marks where their shape has meaning.
 
 ## Motion
 
-All durations come from `--tm-dur-fast`, `--tm-dur`, `--tm-dur-slow`, which
-collapse to near zero under `prefers-reduced-motion`, so the entire motion
-layer disables itself from one place.
-
-Animation is explanatory: an arm sweeping its range shows the cosine
-relationship, a gear train turns at true relative speeds. Nothing autoplays.
-Entrance reveals fire once and disconnect their observer.
+Interaction transitions last at most 150ms and respect reduced motion.
+Page entrances, scroll reveals, floating ornaments and animated numbers are removed.
+Keep instructional robot and mechanism motion, with its existing playback controls.
 
 ## Components
 
-Cards are used for units and modules because the content genuinely is a
-repeated set of peers. Everywhere else, prefer plain sections with rules.
-Never nest a card in a card.
+Preserve the homepage sections, original typography, imagery and routes.
+Use grouped lists for units and search results. Separate lesson introductions and
+progress summaries with spacing instead of nested surfaces. Keep bounded editors,
+inputs, menus, dialogs, tables and focus indicators where the boundary helps use.
+Use existing blue and aqua accents sparingly, with semantic colors for results.
+Do not add gradients, glow, pill buttons, decorative code labels or hover movement.

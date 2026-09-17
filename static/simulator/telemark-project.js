@@ -135,12 +135,25 @@
     function importFiles(incoming) {
       save();
       const added = normalizeProjectFiles(incoming);
-      const duplicates = added.filter(f => files.some(existing => existing.name === f.name));
-      if (duplicates.length) throw new Error('Already in this project: ' + duplicates.map(f => f.name).join(', ') + '. Rename or delete the existing file first.');
-      files = validateFiles(files.concat(added));
-      active = files.length - added.length;
+      const nextFiles = files.map(file => ({...file}));
+      let replaced = 0;
+      let firstImportedIndex = -1;
+      added.forEach(file => {
+        const existingIndex = nextFiles.findIndex(existing => existing.name === file.name);
+        if (existingIndex >= 0) {
+          nextFiles[existingIndex] = file;
+          replaced += 1;
+          if (firstImportedIndex < 0) firstImportedIndex = existingIndex;
+        } else {
+          if (firstImportedIndex < 0) firstImportedIndex = nextFiles.length;
+          nextFiles.push(file);
+        }
+      });
+      files = validateFiles(nextFiles);
+      active = firstImportedIndex;
+      try { if (entry && !entries().some(c => c.name === entry)) entry = ''; } catch (_) {}
       show(true); save();
-      report('Imported ' + added.length + ' file(s) into ' + TEAM_PACKAGE + '.');
+      report('Imported ' + added.length + ' file(s) into ' + TEAM_PACKAGE + (replaced ? ', replacing ' + replaced + ' existing file(s).' : '.'));
     }
     function chooseFiles(incoming, title) {
       const checked = normalizeProjectFiles(incoming);
@@ -148,12 +161,13 @@
       dialog.className = 'telemark-project-dialog';
       dialog.setAttribute('aria-label', title);
       const heading = document.createElement('h3'); heading.textContent = title; dialog.appendChild(heading);
-      const hint = document.createElement('p'); hint.textContent = 'Choose the files to add. Your current files will be kept. Import a mechanism or configuration class to reuse it in this lesson.'; dialog.appendChild(hint);
+      const hint = document.createElement('p'); hint.textContent = 'Choose the files to import. A selected file replaces an existing file with the same name; all other current files are kept.'; dialog.appendChild(hint);
       const choices = checked.map(f => {
         const label = document.createElement('label');
         const input = document.createElement('input'); input.type = 'checkbox';
-        input.checked = !/extends\s+(?:OpMode|LinearOpMode)\b/.test(f.source);
-        label.appendChild(input); label.appendChild(document.createTextNode(f.name)); dialog.appendChild(label);
+        const replacesExisting = files.some(existing => existing.name === f.name);
+        input.checked = replacesExisting || !/extends\s+(?:OpMode|LinearOpMode)\b/.test(f.source);
+        label.appendChild(input); label.appendChild(document.createTextNode(f.name + (replacesExisting ? ' (replace existing)' : ''))); dialog.appendChild(label);
         return {file: f, input};
       });
       const preview = document.createElement('pre'); preview.textContent = checked[0].source; dialog.appendChild(preview);
@@ -216,6 +230,16 @@
       const focus = () => bar.querySelector('.telemark-project-tab[aria-pressed="true"]')?.focus();
       if (typeof global.requestAnimationFrame === 'function') global.requestAnimationFrame(focus); else setTimeout(focus, 0);
     }
+    function deleteFile(index) {
+      if (files.length <= 1 || index < 0 || index >= files.length) return false;
+      const filename = files[index].name;
+      save(); files.splice(index, 1);
+      if (index < active) active -= 1;
+      else if (index === active) active = Math.min(index, files.length - 1);
+      try { if (entry && !entries().some(c => c.name === entry)) entry = ''; } catch (_) {}
+      show(true); save(); report('Deleted ' + filename + '.');
+      return true;
+    }
     function openDeleteDialog(index) {
       const filename = files[index].name;
       const dialog = document.createElement('dialog'); dialog.className = 'telemark-project-dialog telemark-project-confirm';
@@ -227,11 +251,7 @@
       const cancel = document.createElement('button'); cancel.textContent = 'Cancel'; cancel.className = 'telemark-project-dialog-cancel'; cancel.addEventListener('click', () => closeDialog(dialog));
       const remove = document.createElement('button'); remove.textContent = 'Delete file'; remove.className = 'telemark-project-dialog-danger';
       remove.addEventListener('click', () => {
-        save(); files.splice(index, 1);
-        if (index < active) active -= 1;
-        else if (index === active) active = Math.min(index, files.length - 1);
-        try { if (entry && !entries().some(c => c.name === entry)) entry = ''; } catch (_) {}
-        closeDialog(dialog); show(true); save(); report('Deleted ' + filename + '.');
+        closeDialog(dialog); deleteFile(index); focusActiveTab();
       });
       buttons.appendChild(cancel); buttons.appendChild(remove); dialog.appendChild(buttons); showDialog(dialog, cancel);
     }
@@ -331,6 +351,13 @@
       const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'}));
       const link = document.createElement('a'); link.href = url; link.download = filename; link.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+    function currentSnapshot() {
+      save();
+      return {
+        files: files.map(file => ({...file})),
+        entry,
+      };
     }
     function openSnapshotsDialog() {
       const snapshots = listSnapshots();
@@ -444,10 +471,15 @@
           bar.querySelectorAll('[data-dragging]').forEach(tab => tab.removeAttribute('data-dragging'));
           bar.querySelectorAll('[data-drop-position]').forEach(tab => delete tab.dataset.dropPosition);
         });
-        const button = document.createElement('button'); button.type = 'button'; button.textContent = file.name; button.setAttribute('role', 'tab'); button.setAttribute('aria-pressed', String(index === active)); button.setAttribute('aria-selected', String(index === active)); button.setAttribute('aria-keyshortcuts', 'F2 Alt+ArrowLeft Alt+ArrowRight'); button.className = 'telemark-project-tab'; button.title = file.name + ' (drag to move, double-click to rename)';
+        const button = document.createElement('button'); button.type = 'button'; button.textContent = file.name; button.setAttribute('role', 'tab'); button.setAttribute('aria-pressed', String(index === active)); button.setAttribute('aria-selected', String(index === active)); button.setAttribute('aria-keyshortcuts', 'F2 Alt+ArrowLeft Alt+ArrowRight Shift+Delete'); button.className = 'telemark-project-tab'; button.title = file.name + ' (drag to move, double-click to rename, Shift+Delete to delete)';
         button.addEventListener('click', () => { if (index === active) return; save(); active = index; show(false); save(); });
         button.addEventListener('dblclick', () => openRenameDialog(index));
         button.addEventListener('keydown', event => {
+          if (event.shiftKey && event.key === 'Delete' && files.length > 1) {
+            event.preventDefault();
+            if (!event.repeat && deleteFile(index)) focusActiveTab();
+            return;
+          }
           if (event.key === 'F2') { event.preventDefault(); openRenameDialog(index); return; }
           if (!event.altKey || !['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
           const destination = index + (event.key === 'ArrowLeft' ? -1 : 1);
@@ -459,8 +491,12 @@
         const rename = document.createElement('button'); rename.type = 'button'; rename.className = 'telemark-project-tab-rename'; rename.textContent = '\u270e'; rename.title = 'Rename ' + file.name; rename.setAttribute('aria-label', 'Rename ' + file.name); rename.draggable = false;
         rename.addEventListener('click', event => { event.stopPropagation(); openRenameDialog(index); }); shell.appendChild(rename);
         if (files.length > 1) {
-          const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'telemark-project-tab-delete'; remove.textContent = '\u00d7'; remove.title = 'Delete ' + file.name; remove.setAttribute('aria-label', 'Delete ' + file.name); remove.draggable = false;
-          remove.addEventListener('click', event => { event.stopPropagation(); openDeleteDialog(index); }); shell.appendChild(remove);
+          const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'telemark-project-tab-delete'; remove.textContent = '\u00d7'; remove.title = 'Delete ' + file.name + ' (Shift-click to skip confirmation)'; remove.setAttribute('aria-label', 'Delete ' + file.name); remove.draggable = false;
+          remove.addEventListener('click', event => {
+            event.stopPropagation();
+            if (event.shiftKey) { if (deleteFile(index)) focusActiveTab(); }
+            else openDeleteDialog(index);
+          }); shell.appendChild(remove);
         }
         tabs.appendChild(shell);
       });
@@ -484,11 +520,10 @@
       }
       const download = document.createElement('button'); download.type = 'button'; download.textContent = 'Export'; download.className = 'telemark-project-tool';
       download.addEventListener('click', () => {
-        save();
-        downloadProject({files, entry}, 'telemark-project.json');
+        downloadProject(currentSnapshot(), 'telemark-project.json');
       });
       utility.appendChild(download);
-      const note = document.createElement('p'); note.className = 'telemark-project-note'; note.textContent = 'Saved on this browser \u00b7 Drag tabs to reorder \u00b7 Double-click or use \u270e to rename \u00b7 Export to move code to another device.'; bar.appendChild(note);
+      const note = document.createElement('p'); note.className = 'telemark-project-note'; note.textContent = 'Saved on this browser \u00b7 Drag tabs to reorder \u00b7 Double-click or use \u270e to rename \u00b7 Shift+Delete removes a file immediately \u00b7 Export to move code to another device.'; bar.appendChild(note);
       bar.appendChild(status);
     }
     editor.addEventListener('input', save);

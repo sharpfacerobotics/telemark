@@ -2,10 +2,7 @@
 
 .hero {
   margin: 0 0 1.75rem;
-  padding: 1.4rem 1.5rem 1.6rem;
-  border: 1px solid var(--tm-border);
-  border-radius: var(--tm-r-hand);
-  background: linear-gradient(160deg, var(--tm-surface-2) 0%, var(--tm-bg) 100%);
+  padding: 0 0 1rem;
 }
 
 .eyebrow {
@@ -42,9 +39,6 @@
 
 .stat {
   padding: 0.7rem 0.8rem;
-  border: 1px solid var(--tm-border);
-  border-radius: var(--tm-r-hand);
-  background: var(--tm-surface-3);
 }
 
 .statValue {
@@ -154,8 +148,8 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(255px, 1fr));
-  gap: 0.85rem;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
 }
 
 .card {
@@ -163,22 +157,19 @@
   flex-direction: column;
   gap: 0.4rem;
   padding: 1rem 1.05rem 1.05rem;
-  border: 1px solid var(--tm-border);
-  border-radius: var(--tm-r-hand);
-  background: var(--tm-surface-3);
   color: inherit;
-  transition: border-color 0.2s ease, transform 0.2s ease;
+  transition: border-color 150ms ease;
 }
 
 .card:nth-child(even) {
-  border-radius: var(--tm-r-hand-alt);
+  border-radius: var(--tm-r-sm);
 }
 
 .card:hover {
   border-color: var(--tm-accent-a55);
   color: inherit;
   text-decoration: none;
-  transform: translateY(-2px);
+  background: var(--tm-surface-2);
 }
 
 .cardNum {
@@ -215,7 +206,7 @@
   align-items: center;
   gap: 0.3rem;
   padding: 4px 9px;
-  border-radius: var(--tm-r-lg);
+  border-radius: var(--tm-r-sm);
   font-family: var(--tm-font-label);
   font-size: var(--tm-fs-2xs);
   letter-spacing: 0.05em;
@@ -223,41 +214,28 @@
 }
 
 .tagBeginner {
-  border: 1px solid var(--tm-blue-a32);
-  background: var(--tm-blue-a10);
   color: var(--tm-blue-soft);
 }
 
 .tagIntermediate {
-  border: 1px solid var(--tm-border-strong);
-  background: var(--tm-accent-a08);
   color: var(--tm-accent);
 }
 
 .tagAdvanced {
-  border: 1px solid var(--tm-blue-a32);
-  background: var(--tm-blue-a10);
   color: var(--tm-blue);
 }
 
 .tagProgress {
-  border: 1px solid var(--tm-border-quiet);
-  background: var(--tm-surface-3);
   color: var(--tm-text-muted);
 }
 
 .tagDone {
-  border: 1px solid var(--tm-accent-a55);
-  background: var(--tm-border);
   color: var(--tm-text-strong);
 }
 
 .switcher {
   margin-top: 2.25rem;
   padding: 1rem 1.15rem;
-  border: 1px dashed var(--tm-accent-a20);
-  border-radius: var(--tm-r-hand);
-  background: var(--tm-surface-1);
 }
 
 .switcherTitle {
@@ -285,8 +263,6 @@
 }
 
 .tagLocked {
-  border: 1px solid var(--tm-border-quiet);
-  background: var(--tm-surface-3);
   color: var(--tm-text-muted);
 }
 
@@ -327,7 +303,7 @@
     margin-top: var(--tm-sp-4);
     padding: 0.8rem 1rem;
     border: 1px solid var(--tm-border-strong);
-    border-radius: var(--tm-r-pill);
+    border-radius: var(--tm-r-sm);
     background: var(--tm-surface-2);
     color: var(--tm-text-strong);
     cursor: pointer;

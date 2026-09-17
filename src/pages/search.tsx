@@ -47,7 +47,6 @@ export default function SearchPage(): React.JSX.Element {
     <Layout title="Search · Telemark" description="Search Telemark FTC software and engineering lessons.">
       <main className={styles.page}>
         <div className={styles.shell}>
-          <p className={styles.eyebrow}>// curriculum.search</p>
           <h1 className={styles.title}>Find a Telemark lesson</h1>
           <p className={styles.intro}>
             Search lesson titles and text across every open Telemark curriculum.

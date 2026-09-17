@@ -40,8 +40,9 @@ assert.deepEqual([...dialog.querySelectorAll('input')].map(i=>i.checked),[false,
 assert.equal(project.files().length,2);
 assert.equal(w.document.querySelector('dialog'),null);
 assert.match(project.files()[0].source,/My work/,'import keeps current work');
-assert.throws(()=>project.importFiles([lessonFiles[1]]),/Already in this project/);
-assert.equal(project.files().length,2,'failed import is atomic');
+project.importFiles([{name:'Mechanism.java',source:'public class Mechanism {public int value(){return 99;}}'}]);
+assert.equal(project.files().length,2,'same-named imports replace instead of duplicating a file');
+assert.match(project.files().find(file=>file.name==='Mechanism.java').source,/return 99/,'an imported file can override existing code');
 assert.throws(()=>project.importFiles([{name:'../../Escape.java',source:'class Escape{}'}]),/40 Java files/);
 
 const mergeDom = new JSDOM('<div><div><textarea id="merge-editor"></textarea></div></div>', {url:'https://telemark.test/simulator/unit13.project.html?lesson=lift', runScripts:'outside-only'});
@@ -79,6 +80,16 @@ mergeDom.window.close();
   assert.ok(localDialog.textContent.includes('Names.java'));
   [...localDialog.querySelectorAll('button')].find(b=>b.textContent==='Import selected').click();
   assert.equal(project.files().length,3,'local Java files can be selected and imported');
+  editor.value += '\n// Latest unswitched edit';
+  let exportedJson='';
+  w.Blob=class Blob { constructor(parts){ exportedJson=parts.join(''); } };
+  w.URL.createObjectURL=()=> 'blob:telemark-project';
+  w.URL.revokeObjectURL=()=>{};
+  w.HTMLAnchorElement.prototype.click=function(){};
+  click('Export');
+  const exported=JSON.parse(exportedJson);
+  assert.match(exported.files.find(file=>file.name==='Names.java').source,/Latest unswitched edit/,'export synchronizes the current editor before creating the backup');
+  assert.match(editor.value,/Latest unswitched edit/,'export leaves the edited code visible and unchanged');
   assert.equal(w.document.querySelectorAll('.telemark-project-tab-rename').length,3,'every file tab has an obvious rename control');
   assert.ok([...w.document.querySelectorAll('.telemark-project-tab-shell')].every(tab=>tab.draggable),'file tabs can be dragged like browser tabs');
   assert.equal(project.moveFile(2,0),true);

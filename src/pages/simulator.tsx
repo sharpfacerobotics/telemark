@@ -70,7 +70,6 @@ export default function SimulatorPage(): React.JSX.Element {
 
       <main className={pageStyles.lp}>
         <section className={pageStyles.section}>
-          <p className={pageStyles.sectionLabel}>// tools.live[]</p>
           <h1 className={pageStyles.sectionTitle}>Telemark Tools</h1>
           <p className={pageStyles.sectionDesc}>
             Run lesson code in the Java simulator, or use {TOOL_CATALOG.length}{' '}

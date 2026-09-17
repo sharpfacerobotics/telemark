@@ -28,7 +28,7 @@
   width: 20px;
   height: 20px;
   border: 1px solid var(--tm-accent-a55);
-  border-radius: var(--tm-r-pill);
+  border-radius: var(--tm-r-sm);
   color: var(--tm-accent);
   font-family: var(--tm-font-mono);
   font-size: 11px;

@@ -59,11 +59,12 @@ Projects and the completed-lesson library stay in browser storage, for guests
 and signed-in learners alike. `SimulatorFrame` supplies lesson identity and
 completion state; skipped and placement-completed lessons do not appear in the
 library. Existing drafts enter the library when their lesson is opened. Local
-`.java`/project JSON imports preview selected files and reject collisions without
-overwriting current work; project exports move code between devices. The tab
-strip reveals create/import and per-file delete controls on hover or keyboard
-focus, while Export remains visible. Files created or imported through this UI
-use `package org.firstinspires.ftc.teamcode;`.
+`.java`/project JSON imports preview selected files and replace same-named files
+while keeping the rest of the current project; project exports move code between
+devices. The tab strip reveals create/import and per-file delete controls on
+hover or keyboard focus, while Export remains visible. Shift+Delete removes a
+focused file without confirmation. Files created or imported through this UI use
+`package org.firstinspires.ftc.teamcode;`.
 
 Run `npm run test:simulator` and `npm run test:simulator:audit` when changing this
 layer. Unit 7 mastery and Units 8.1–8.5/9.1 use isolated hardware behavior checks

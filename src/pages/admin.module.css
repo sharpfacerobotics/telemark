@@ -33,7 +33,7 @@
 .page::-webkit-scrollbar-thumb,
 .page *::-webkit-scrollbar-thumb {
   border: 2px solid var(--tm-bg);
-  border-radius: var(--tm-r-lg);
+  border-radius: var(--tm-r-sm);
   background: var(--tm-accent);
 }
 
@@ -41,7 +41,6 @@
   width: min(1440px, calc(100% - 3rem));
   margin: 0 auto;
   padding: 3.5rem 0 5rem;
-  animation: contentEnter 480ms ease-out both;
 }
 
 .centerCard,
@@ -49,12 +48,10 @@
   margin: 15vh auto 0;
   width: min(440px, calc(100% - 2rem));
   border: 1px solid var(--tm-accent-a20);
-  border-radius: var(--tm-r-hand-alt);
+  border-radius: var(--tm-r-sm);
   background: var(--tm-surface-2);
   padding: 2.5rem;
   text-align: center;
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.36);
-  animation: cardEnter 440ms ease-out both;
 }
 
 .loginCard h1,
@@ -84,11 +81,11 @@
 .secondaryButton,
 .errorBanner button {
   border: 0;
-  border-radius: var(--tm-r-lg);
+  border-radius: var(--tm-r-sm);
   cursor: pointer;
   font: 700 0.8rem/1 'Exo 2', system-ui, sans-serif;
   letter-spacing: 0.04em;
-  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+  transition: border-color 150ms ease, background 150ms ease;
 }
 
 .googleButton {
@@ -108,12 +105,6 @@
   background: transparent;
   border: 1px solid rgba(96, 165, 250, 0.42);
   color: var(--tm-text-strong);
-}
-
-.googleButton:hover,
-.secondaryButton:hover,
-.errorBanner button:hover {
-  transform: translateY(-2px);
 }
 
 .secondaryButton:hover {
@@ -162,19 +153,19 @@
   gap: 0.2rem;
   padding: 0.25rem;
   border: 1px solid var(--tm-accent-a20);
-  border-radius: var(--tm-r-lg);
+  border-radius: var(--tm-r-sm);
   background: var(--tm-surface-2);
 }
 
 .rangePicker button {
   border: 0;
-  border-radius: var(--tm-r-lg);
+  border-radius: var(--tm-r-sm);
   padding: 0.64rem 0.9rem;
   background: transparent;
   color: var(--tm-text-soft);
   cursor: pointer;
   font-family: var(--tm-font-label);
-  transition: color 160ms ease, background 160ms ease;
+  transition: color 150ms ease, background 150ms ease;
 }
 
 .rangePicker .rangeActive {
@@ -187,7 +178,7 @@
   margin-top: 1rem;
   padding: 0.85rem 1rem;
   border: 1px solid var(--tm-warn);
-  border-radius: var(--tm-r-hand-alt);
+  border-radius: var(--tm-r-sm);
   background: var(--tm-warn-wash);
   color: var(--tm-warn);
   font-size: var(--tm-fs-sm);
@@ -213,22 +204,20 @@
 .panel {
   margin-top: 1.5rem;
   border: 1px solid var(--tm-accent-a20);
-  border-radius: var(--tm-r-hand-alt);
+  border-radius: var(--tm-r-sm);
   background: var(--tm-surface-2);
   padding: 1.4rem;
-  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.2);
-  transition: border-color 180ms ease, transform 180ms ease;
+  transition: border-color 150ms ease;
 }
 
 .section:nth-of-type(even),
 .panel:nth-of-type(even) {
-  border-radius: var(--tm-r-hand);
+  border-radius: var(--tm-r-sm);
 }
 
 .section:hover,
 .panel:hover {
   border-color: var(--tm-border-strong);
-  transform: translateY(-2px);
 }
 
 .sectionHeading {
@@ -274,22 +263,21 @@
   border: 1px solid var(--tm-blue-a10);
   border: 1px solid var(--tm-accent);
   background: var(--tm-accent-a08);
-  border-radius: var(--tm-r-hand);
+  border-radius: var(--tm-r-sm);
   background: var(--tm-surface-4);
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  transition: transform 180ms ease, border-color 180ms ease;
+  transition: border-color 150ms ease;
 }
 
 .statCard:nth-child(even) {
   border-left-color: var(--tm-blue-soft);
-  border-radius: var(--tm-r-hand-alt);
+  border-radius: var(--tm-r-sm);
 }
 
 .statCard:hover {
   border-color: rgba(34, 211, 238, 0.36);
-  transform: translateY(-3px);
 }
 
 .statLabel {
@@ -355,7 +343,7 @@
   gap: 4px;
   border-bottom: 1px solid var(--tm-accent-a20);
   background: var(--tm-surface-4);
-  border-radius: var(--tm-r-hand-alt);
+  border-radius: var(--tm-r-sm);
   padding: 0.75rem 0.65rem 0;
 }
 
@@ -379,8 +367,8 @@
   flex: 1;
   min-height: 2px;
   opacity: 0.88;
-  border-radius: var(--tm-r-hand);
-  transition: opacity 160ms ease;
+  border-radius: var(--tm-r-sm);
+  transition: opacity 150ms ease;
 }
 
 .chartDay:hover .chartBar {
@@ -420,7 +408,7 @@
 }
 
 .tableWrap tbody tr {
-  transition: background 160ms ease;
+  transition: background 150ms ease;
 }
 
 .tableWrap tbody tr:hover {
@@ -476,7 +464,7 @@
 .unitTrack {
   height: 6px;
   overflow: hidden;
-  border-radius: var(--tm-r-lg);
+  border-radius: var(--tm-r-sm);
   background: rgba(96, 165, 250, 0.14);
 }
 
@@ -502,16 +490,6 @@
   text-align: right;
   padding-top: 1.5rem;
   font-family: var(--tm-font-label);
-}
-
-@keyframes contentEnter {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes cardEnter {
-  from { opacity: 0; transform: translateY(18px) rotate(-0.4deg); }
-  to { opacity: 1; transform: translateY(0) rotate(0); }
 }
 
 @media (max-width: 1050px) {
@@ -565,11 +543,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .content,
-  .centerCard,
-  .loginCard {
-    animation: none;
-  }
 
   .section,
   .panel,
@@ -578,14 +551,5 @@
   .secondaryButton,
   .errorBanner button {
     transition: none;
-  }
-
-  .section:hover,
-  .panel:hover,
-  .statCard:hover,
-  .googleButton:hover,
-  .secondaryButton:hover,
-  .errorBanner button:hover {
-    transform: none;
   }
 }

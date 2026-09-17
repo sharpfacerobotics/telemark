@@ -6,7 +6,7 @@
   margin: 1.75rem 0;
   padding: 1.1rem 1.15rem 1.25rem;
   border: 1px solid var(--tm-border);
-  border-radius: var(--tm-r-hand);
+  border-radius: var(--tm-r-sm);
   background: var(--tm-surface-1);
   color: var(--tm-text-strong);
 }
@@ -48,7 +48,7 @@
   gap: 0.3rem;
   padding: 0.7rem 0.75rem;
   border: 1px solid var(--tm-border);
-  border-radius: var(--tm-r-hand);
+  border-radius: var(--tm-r-sm);
   background: var(--tm-surface-3);
 }
 
@@ -93,7 +93,7 @@
 .result {
   padding: 0.7rem 0.75rem;
   border: 1px solid var(--tm-border);
-  border-radius: var(--tm-r-hand);
+  border-radius: var(--tm-r-sm);
   background: var(--tm-surface-3);
 }
 
@@ -269,14 +269,14 @@
 
 .range::-webkit-slider-runnable-track {
   height: 4px;
-  border-radius: var(--tm-r-lg);
-  background: linear-gradient(90deg, var(--tm-accent-a55), rgba(96, 165, 250, 0.45));
+  border-radius: var(--tm-r-sm);
+  background: var(--tm-surface-2);
 }
 
 .range::-moz-range-track {
   height: 4px;
-  border-radius: var(--tm-r-lg);
-  background: linear-gradient(90deg, var(--tm-accent-a55), rgba(96, 165, 250, 0.45));
+  border-radius: var(--tm-r-sm);
+  background: var(--tm-surface-2);
 }
 
 .range::-webkit-slider-thumb {
@@ -288,7 +288,6 @@
   background: var(--tm-accent);
   -webkit-appearance: none;
   appearance: none;
-  transition: transform 0.12s ease;
 }
 
 .range::-moz-range-thumb {
@@ -299,8 +298,6 @@
   background: var(--tm-accent);
 }
 
-.range:hover::-webkit-slider-thumb { transform: scale(1.18); }
-
 .range:focus-visible::-webkit-slider-thumb {
   outline: 2px solid rgba(34, 211, 238, 0.8);
   outline-offset: 2px;
@@ -308,7 +305,7 @@
 
 /* Result values ease between states so a changed number is noticed. */
 .resultValue {
-  transition: color 0.2s ease;
+  transition: color 150ms ease;
 }
 
 /* Preset scenario buttons */
@@ -332,7 +329,7 @@
 .preset {
   padding: 0.32rem 0.7rem;
   border: 1px solid var(--tm-blue-a32);
-  border-radius: var(--tm-r-lg);
+  border-radius: var(--tm-r-sm);
   background: transparent;
   color: var(--tm-blue-soft);
   cursor: pointer;
@@ -358,7 +355,6 @@
   .preset {
     transition: none;
   }
-  .range:hover::-webkit-slider-thumb { transform: none; }
 }
 
 /* Wide tables (morphological chart, requirements list) scroll inside their own

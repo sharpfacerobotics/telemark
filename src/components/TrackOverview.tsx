@@ -4,7 +4,6 @@ import {useAuth} from '@site/src/telemark/useAuth';
 import {useProgress} from '@site/src/telemark/useProgress';
 import {getTrack, type TrackId} from '@site/src/telemark/tracks';
 import type {Tier} from '@site/src/telemark/curriculum';
-import Reveal from '@site/src/components/ui/Reveal';
 import {useLearnerProfile} from '@site/src/telemark/useLearnerProfile';
 import {BLOCKS_LESSONS, BLOCKS_UNITS} from '@site/src/telemark/blocksCurriculum';
 import {FLL_LESSONS, FLL_UNITS} from '@site/src/telemark/fllCurriculum';
@@ -59,7 +58,6 @@ export default function TrackOverview({
   return (
     <>
       <section className={styles.hero}>
-        <p className={styles.eyebrow}>// {track.id}.track</p>
         <h1 className={styles.title}>{track.label}</h1>
         <p className={styles.subtitle}>{track.tagline}</p>
 
@@ -176,9 +174,8 @@ export default function TrackOverview({
           );
 
           return (
-            <Reveal
+            <div
               key={unit.id}
-              delayMs={Math.min(index, 8) * 45}
               className={
                 index >= MOBILE_UNIT_PREVIEW_COUNT && !showAllMobile
                   ? styles.mobileCurriculumExtra
@@ -191,7 +188,7 @@ export default function TrackOverview({
               >
                 {body}
               </Link>
-            </Reveal>
+            </div>
           );
         })}
       </div>

@@ -4,6 +4,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const GamepadControls = require('../static/simulator/gamepad-controls.js');
+const TelemarkJava = require('../static/simulator/telemark-java.js');
 
 class FakeEventTarget {
   constructor() {
@@ -451,6 +452,99 @@ function testPointerStickSnapbackAndArrowVisuals() {
   installed.destroy();
 }
 
+function testUnit82UsesFtcYAxisExactlyOnce() {
+  const source = fs.readFileSync(
+    path.resolve(__dirname, '../static/simulator/unit8.2.html'),
+    'utf8',
+  );
+  const controlsScript = source.indexOf('<script src="./gamepad-controls.js"></script>');
+  const baseScript = source.indexOf('<script src="./simulator_base.js" data-telemark-mode="legacy"></script>');
+  const legacyInstall = source.indexOf('window.TelemarkSimulatorBase.installLegacy({');
+
+  assert.ok(controlsScript >= 0 && controlsScript < baseScript && baseScript < legacyInstall);
+  assert.equal(
+    (source.match(/TelemarkSimulatorBase\.installLegacy\(/g) || []).length,
+    1,
+    'Unit 8.2 must install one shared gamepad owner',
+  );
+  assert.doesNotMatch(
+    source,
+    /function\s+(?:setupStick|updateStickFromPointer)\b/,
+    'Unit 8.2 must not add a second lesson-specific stick transform',
+  );
+
+  const starterMatch = source.match(
+    /<textarea id="code-editor"[^>]*>([\s\S]*?)<\/textarea>/,
+  );
+  assert.ok(starterMatch, 'Unit 8.2 starter Java must be present');
+
+  const document = new FakeDocument();
+  const eventTarget = new FakeEventTarget();
+  const state = {left_stick_x: 0, left_stick_y: 0, right_stick_x: 0};
+  const stick = new FakeElement('div');
+  const observedY = [];
+  const controls = GamepadControls.install({
+    state,
+    document,
+    eventTarget,
+    elementMap: {
+      left_stick_x: stick,
+      left_stick_y: stick,
+    },
+    discoverControls: false,
+    addMissingOverlays: false,
+    injectStyles: false,
+    legend: false,
+    onInput(gamepad) {
+      observedY.push(gamepad.left_stick_y);
+    },
+  });
+
+  const motorPowers = new Map();
+  const runtime = TelemarkJava.createRuntime({
+    gamepad1: state,
+    onPower(power, device) {
+      motorPowers.set(device.name, power);
+    },
+  });
+  const program = TelemarkJava.compile(starterMatch[1], runtime);
+  assert.equal(program.ok, true, program.diagnostics?.[0]?.message);
+  program.methods.init();
+
+  stick.dispatch('pointerdown', {
+    pointerId: 82,
+    clientX: 50,
+    clientY: 0,
+    preventDefault() {},
+  });
+  assert.equal(state.left_stick_y, -1, 'Unit 8.2 stick-up must reach gamepad1 as -1');
+  assert.equal(observedY.at(-1), -1, 'Unit 8.2 readout must display stick-up as -1');
+  program.methods.loop();
+  assert.deepEqual(
+    [...motorPowers.values()],
+    [1, 1, 1, 1],
+    'the starter Java must negate FTC Y once to command positive forward power',
+  );
+
+  stick.dispatch('pointerup', {pointerId: 82});
+  stick.dispatch('pointerdown', {
+    pointerId: 83,
+    clientX: 50,
+    clientY: 100,
+    preventDefault() {},
+  });
+  assert.equal(state.left_stick_y, 1, 'Unit 8.2 stick-down must reach gamepad1 as +1');
+  assert.equal(observedY.at(-1), 1, 'Unit 8.2 readout must display stick-down as +1');
+  program.methods.loop();
+  assert.deepEqual(
+    [...motorPowers.values()],
+    [-1, -1, -1, -1],
+    'the starter Java must negate FTC Y once to command negative reverse power',
+  );
+
+  controls.destroy();
+}
+
 function testEverySimulatorUsesFtcYAxisSign() {
   const simulatorRoot = path.resolve(__dirname, '../static/simulator');
   const simulatorSources = fs.readdirSync(simulatorRoot)
@@ -467,6 +561,16 @@ function testEverySimulatorUsesFtcYAxisSign() {
     simulatorSources,
     /setValues\([^\n]*-c(?:lampedD|d)y/,
     'pointer-up must remain negative throughout legacy simulator paths',
+  );
+  assert.doesNotMatch(
+    simulatorSources,
+    /\bny\s*=\s*-\s*dy\s*\//,
+    'legacy joystick helpers must not negate screen-space Y',
+  );
+  assert.doesNotMatch(
+    simulatorSources,
+    /\bset\([^\n;]*,\s*Math\.max\([^\n;]*-\s*dy\s*\//,
+    'legacy compact joystick helpers must pass screen-space Y through once',
   );
   const simulatorBase = fs.readFileSync(path.join(simulatorRoot, 'simulator_base.js'), 'utf8');
   assert.match(simulatorBase, /const ny = Math\.max\(-1, Math\.min\(1, dy \/ maxR\)\)/, 'the Unit 13 controller must report pointer-up as negative Y');
@@ -519,6 +623,7 @@ testFallbackOverlaySynthesis();
 testInstalledKeyboardLifecycleAndLegend();
 testLegacyDpadBecomesPointerInteractive();
 testPointerStickSnapbackAndArrowVisuals();
+testUnit82UsesFtcYAxisExactlyOnce();
 testEverySimulatorUsesFtcYAxisSign();
 testInputCallbackFailureDoesNotAbortInstall();
 

@@ -1,24 +1,8 @@
 .hero {
-  border: 1px solid var(--tm-accent-a20);
-  border-radius: var(--tm-r-hand-alt);
-  background: var(--tm-surface-1);
-  box-shadow: var(--tm-shadow-md);
-  padding: 2rem;
+  padding: 1rem 0;
   margin-bottom: 2rem;
   position: relative;
   overflow: hidden;
-}
-
-.hero::before {
-  content: '';
-  position: absolute;
-  top: -5rem;
-  right: -3rem;
-  width: 13rem;
-  height: 11rem;
-  border-radius: 58% 42% 52% 48% / 43% 61% 39% 57%;
-  background: var(--tm-accent-a08);
-  animation: overview-drift 12s ease-in-out infinite alternate;
 }
 
 .hero > * {
@@ -64,9 +48,6 @@
 .tag {
   align-self: flex-start;
   padding: 0.45rem 0.85rem;
-  border: 1px solid var(--tm-blue-a32);
-  border-radius: var(--tm-r-lg);
-  background: var(--tm-blue-a10);
   color: var(--tm-blue-soft);
   font-family: var(--tm-font-mono);
   font-size: var(--tm-fs-xs);
@@ -82,9 +63,6 @@
 }
 
 .stat {
-  border: 1px solid var(--tm-border);
-  border-radius: var(--tm-r-md);
-  background: var(--tm-surface-2);
   padding: 1rem 1.1rem;
 }
 
@@ -110,7 +88,7 @@
 .progressTrack {
   margin-top: 1rem;
   height: 6px;
-  border-radius: var(--tm-r-lg);
+  border-radius: var(--tm-r-sm);
   background: var(--tm-accent-a12);
   overflow: hidden;
 }
@@ -119,7 +97,7 @@
   height: 100%;
   border-radius: inherit;
   background: var(--tm-accent);
-  transition: width 300ms ease;
+  transition: width 150ms ease;
 }
 
 .actions {
@@ -144,7 +122,7 @@
   color: var(--tm-text-on-accent) !important;
   font-family: var(--tm-font-display);
   font-weight: 700;
-  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+  transition: background 150ms ease, border-color 150ms ease;
 }
 
 .secondaryAction {
@@ -155,21 +133,19 @@
   color: var(--tm-text-soft) !important;
   font-family: var(--tm-font-mono);
   font-size: var(--tm-fs-sm);
-  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+  transition: background 150ms ease, border-color 150ms ease;
 }
 
 .primaryAction:hover,
 .primaryAction:focus-visible {
   border-color: var(--tm-blue-soft);
   background: var(--tm-blue-soft);
-  transform: translateY(-1px);
 }
 
 .secondaryAction:hover,
 .secondaryAction:focus-visible {
   border-color: var(--tm-accent);
   background: var(--tm-accent-a08);
-  transform: translateY(-1px);
 }
 
 .primaryAction:focus-visible,
@@ -186,10 +162,7 @@
 }
 
 .panel {
-  border: 1px solid var(--tm-border);
-  border-radius: var(--tm-r-lg);
-  background: var(--tm-surface-2);
-  padding: 1.35rem;
+  padding: 1rem 0;
 }
 
 .panelTitle {
@@ -210,17 +183,13 @@
   gap: 0.9rem;
   align-items: center;
   padding: 0.9rem 1rem;
-  border: 1px solid var(--tm-accent-a12);
-  border-radius: var(--tm-r-md);
-  background: var(--tm-surface-3);
   text-decoration: none !important;
-  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+  transition: background 150ms ease, border-color 150ms ease;
 }
 
 .lessonCard:hover {
   border-color: var(--tm-blue-a32);
   background: var(--tm-surface-4);
-  transform: translateX(2px);
 }
 
 .lessonIndex {
@@ -228,8 +197,6 @@
   height: 2rem;
   display: grid;
   place-items: center;
-  border: 1px solid var(--tm-border-strong);
-  border-radius: 50%;
   font-family: var(--tm-font-mono);
   font-size: var(--tm-fs-xs);
   color: var(--tm-accent);
@@ -291,20 +258,8 @@
 .coachNote {
   margin-top: 1rem;
   padding: 0.9rem 1rem;
-  border: 1px solid var(--tm-border-hair);
-  background: var(--tm-blue-a10);
-  border-radius: 10px;
   color: var(--tm-text-soft);
   line-height: 1.6;
-}
-
-@keyframes overview-drift {
-  from {
-    transform: translate3d(0, 0, 0) rotate(-2deg);
-  }
-  to {
-    transform: translate3d(-1rem, 0.65rem, 0) rotate(3deg);
-  }
 }
 
 @media (max-width: 996px) {
@@ -315,7 +270,7 @@
 
 @media (max-width: 640px) {
   .hero {
-    padding: 1.35rem;
+    padding: 1rem 0;
   }
 
   .titleRow {
@@ -351,7 +306,7 @@
   }
 
   .panel {
-    padding: 1rem;
+    padding: 1rem 0;
   }
 
   .lessonCard {
@@ -364,22 +319,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero::before {
-    animation: none;
-  }
 
   .progressFill,
   .primaryAction,
   .secondaryAction,
   .lessonCard {
     transition: none;
-  }
-
-  .primaryAction:hover,
-  .primaryAction:focus-visible,
-  .secondaryAction:hover,
-  .secondaryAction:focus-visible,
-  .lessonCard:hover {
-    transform: none;
   }
 }

@@ -107,6 +107,10 @@ assert.ok(!page.project.source().includes('public class LinearSlide'), 'deleted 
 const restored = editorPage(saved);
 assert.equal(restored.editor.value, files[1]);
 assert.ok(restored.project.source().includes(files[0]));
+const restoredHelperTab=[...restored.w.document.querySelectorAll('.telemark-project-tab')].find(b=>b.textContent==='LinearSlide.java');
+restoredHelperTab.dispatchEvent(new restored.w.KeyboardEvent('keydown',{key:'Delete',shiftKey:true,bubbles:true}));
+assert.equal(restored.w.document.querySelector('dialog'),null,'Shift+Delete skips the confirmation dialog');
+assert.ok(!restored.project.source().includes('public class LinearSlide'),'Shift+Delete immediately removes the focused file');
 restored.project.reset(files[0]);
 assert.ok(!restored.project.source().includes('public class LinearSlide'));
 assert.equal(restored.w.document.querySelectorAll('.telemark-project-tab').length, 1);

@@ -111,7 +111,7 @@
   --tm-r-sm:            8px;
   --tm-r-md:            12px;
   --tm-r-lg:            16px;
-  --tm-r-pill:          999px;
+  --tm-r-pill:          6px;
   /* The slightly irregular corner is a Telemark signature. Two variants so
      alternating cards do not look mechanically identical. */
   /* Was an asymmetric wobble on every card. Quirk without a reason reads as
@@ -122,12 +122,12 @@
   /* ── Elevation ────────────────────────────────────────────────────── */
   --tm-shadow-sm:       0 1px 2px rgba(0, 0, 0, 0.4);
   --tm-shadow-md:       0 6px 18px rgba(0, 0, 0, 0.35);
-  --tm-shadow-glow:     0 0 0 1px var(--tm-accent-a20), 0 8px 24px rgba(34, 211, 238, 0.08);
+  --tm-shadow-glow:     none;
 
   /* ── Motion ───────────────────────────────────────────────────────── */
   --tm-dur-fast:        0.12s;
-  --tm-dur:             0.18s;
-  --tm-dur-slow:        0.3s;
+  --tm-dur:             0.15s;
+  --tm-dur-slow:        0.15s;
   --tm-ease:            cubic-bezier(0.4, 0, 0.2, 1);
 
   /* ── Layout ───────────────────────────────────────────────────────── */
@@ -224,7 +224,7 @@
      dark theme leans on borders instead. */
   --tm-shadow-sm:       0 1px 2px rgba(15, 32, 47, 0.07);
   --tm-shadow-md:       0 6px 20px rgba(15, 32, 47, 0.1);
-  --tm-shadow-glow:     0 0 0 1px rgba(14, 116, 144, 0.18);
+  --tm-shadow-glow:     none;
 
   --ifm-color-primary: var(--tm-accent);
   --ifm-background-color: var(--tm-bg);
@@ -325,7 +325,7 @@
 
 .navbar-auth-link {
   border: 1px solid var(--telemark-color-aqua);
-  border-radius: var(--tm-r-lg);
+  border-radius: var(--tm-r-sm);
   background: transparent;
   color: var(--telemark-color-aqua);
   font-family: var(--telemark-font-label);
@@ -333,25 +333,21 @@
   text-transform: none;
   letter-spacing: 0;
   padding: 8px 22px !important;
-  transition: background-color 0.2s ease, border-color 0.2s ease,
-    transform 0.2s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .navbar-auth-link:hover {
   background: var(--tm-accent-a12);
   color: var(--telemark-color-aqua);
-  transform: translateY(-1px);
 }
 
 /* ---- SIDEBAR ---- */
 .menu {
   background: var(--tm-surface-2);
-  border-right: 1px solid var(--tm-accent-a12);
 }
 
 .menu__link--active {
   color: var(--telemark-color-aqua) !important;
-  border: 1px solid var(--telemark-color-blue-light);
   background: var(--tm-blue-a10);
   background: var(--tm-accent-a08);
 }
@@ -368,9 +364,7 @@
 
 article {
   background: var(--telemark-color-surface);
-  border-radius: var(--tm-r-hand);
   padding: 2rem;
-  border: 1px solid var(--tm-accent-a12);
 }
 
 /* ---- HEADINGS ---- */
@@ -387,7 +381,6 @@ article {
 .theme-doc-markdown h2 {
   color: var(--tm-text-strong);
   font-family: var(--tm-font-display);
-  border-bottom: 1px solid var(--tm-accent-a20);
   padding-bottom: 0.3rem;
 }
 
@@ -416,15 +409,13 @@ code {
   border-radius: var(--tm-r-hand);
   box-shadow: none;
   color: var(--tm-text-on-accent);
-  transition: background-color 0.2s ease, border-color 0.2s ease,
-    transform 0.2s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .button--primary:hover {
   background: var(--telemark-color-blue-light);
   border-color: var(--telemark-color-blue-light);
   color: var(--tm-text-on-accent);
-  transform: translateY(-1px);
 }
 
 /* ---- ADMONITIONS ----
@@ -572,7 +563,7 @@ code {
   aspect-ratio: auto;
   max-width: 100%;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
-  transition: height 0.2s ease;
+  transition: height 0.15s ease;
 }
 
 .simulator-wrapper {
@@ -704,7 +695,6 @@ code {
   color: var(--tm-text-strong);
   margin-top: var(--tm-sp-7);
   padding-bottom: var(--tm-sp-2);
-  border-bottom: 1px solid var(--tm-border-hair);
 }
 
 .theme-doc-markdown h3 {
@@ -827,13 +817,11 @@ a code {
   border: 1px solid var(--tm-border);
   border-radius: var(--tm-r-md);
   background: var(--tm-surface-1);
-  transition: border-color var(--tm-dur) var(--tm-ease),
-              transform var(--tm-dur) var(--tm-ease);
+  transition: border-color var(--tm-dur) var(--tm-ease);
 }
 
 .pagination-nav__link:hover {
   border-color: var(--tm-border-strong);
-  transform: translateY(-2px);
 }
 
 .pagination-nav__sublabel {
@@ -885,7 +873,7 @@ summary:focus-visible,
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pagination-nav__link:hover { transform: none; }
+  .pagination-nav__link:hover { }
 }
 
 /* ── Quick search launcher placement ─────────────────────────────────── */
@@ -910,19 +898,6 @@ summary:focus-visible,
    ════════════════════════════════════════════════════════════════════════ */
 
 /* Cards lift slightly and their border warms on hover */
-.theme-doc-markdown a:not(.button):not([class*='card']) {
-  background-image: linear-gradient(var(--tm-accent), var(--tm-accent));
-  background-position: 0 100%;
-  background-repeat: no-repeat;
-  background-size: 0% 1px;
-  transition: background-size var(--tm-dur) var(--tm-ease), color var(--tm-dur) var(--tm-ease);
-  text-decoration: none;
-}
-
-.theme-doc-markdown a:not(.button):not([class*='card']):hover {
-  background-size: 100% 1px;
-  text-decoration: none;
-}
 
 /* Buttons acknowledge the press, not just the hover */
 button,
@@ -930,24 +905,19 @@ button,
   transition:
     background var(--tm-dur) var(--tm-ease),
     border-color var(--tm-dur) var(--tm-ease),
-    color var(--tm-dur) var(--tm-ease),
-    transform var(--tm-dur-fast) var(--tm-ease);
+    color var(--tm-dur) var(--tm-ease);
 }
 
 button:active:not(:disabled),
 .button:active {
-  transform: translateY(1px);
 }
 
 /* Sidebar items slide a touch toward the reader on hover */
 .menu__link {
   transition:
     background var(--tm-dur) var(--tm-ease),
-    color var(--tm-dur) var(--tm-ease),
-    padding-left var(--tm-dur) var(--tm-ease);
+    color var(--tm-dur) var(--tm-ease);
 }
-
-.menu__link:hover { padding-left: calc(var(--tm-sp-4) + 3px); }
 
 /* Table rows and details summaries respond */
 .theme-doc-markdown details > summary {
@@ -970,13 +940,7 @@ button:active:not(:disabled),
 
 @media (prefers-reduced-motion: reduce) {
   button:active:not(:disabled),
-  .button:active { transform: none; }
-  .menu__link:hover { padding-left: var(--tm-sp-4); }
-  .theme-doc-markdown a:not(.button):not([class*='card']) {
-    background-size: 100% 1px;
-    background-image: none;
-    text-decoration: underline;
-  }
+  .button:active { }
 }
 
 /* ── Mobile touch targets ──────────────────────────────────────────────────
@@ -1033,3 +997,6 @@ button:active:not(:disabled),
     padding-inline: var(--tm-sp-3);
   }
 }
+.theme-doc-markdown a:not(.button):not([class*="card"]) { text-decoration: underline; text-underline-offset: 0.2em; }
+
+@media (prefers-reduced-motion: reduce) { :is(a, button, input, summary, [role="tab"]) { transition: none; } }

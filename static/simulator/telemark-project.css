@@ -39,10 +39,10 @@
   opacity: .55;
 }
 .telemark-project-tab-shell[data-drop-position='before'] {
-  box-shadow: -3px 0 0 var(--project-accent);
+  box-shadow: none;
 }
 .telemark-project-tab-shell[data-drop-position='after'] {
-  box-shadow: 3px 0 0 var(--project-accent);
+  box-shadow: none;
 }
 .telemark-project-tab {
   position: relative;

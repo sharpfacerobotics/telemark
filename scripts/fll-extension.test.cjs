@@ -100,7 +100,7 @@ for (const required of ['telemark:fll:workspace:v1:', 'Download', 'Import', 'req
 for (const required of ['OrbitControls', 'WebGLRenderer', 'disposeObject', 'ResizeObserver', '3D practice field', 'WebGL is unavailable']) assert.ok(scene.includes(required));
 
 const homepage = fs.readFileSync(path.join(root, 'src/pages/index.tsx'), 'utf8');
-assert.match(homepage, /Master FTC/);
+assert.match(homepage, /Learn FTC/);
 assert.match(homepage, /Begin Software/);
 assert.match(homepage, /Begin Mechanical/);
 assert.doesNotMatch(homepage, /FLL Challenge Extension/);

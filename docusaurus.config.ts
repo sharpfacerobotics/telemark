@@ -105,6 +105,17 @@ const config: Config = {
           onInlineAuthors: 'warn',
           onUntruncatedBlogPosts: 'warn',
         },
+        pages: {
+          // Keep the unfinished coach assessments in source control without
+          // publishing a /coaches route until the section is ready.
+          exclude: [
+            '**/_*.{js,jsx,ts,tsx,md,mdx}',
+            '**/_*/**',
+            '**/*.test.{js,jsx,ts,tsx}',
+            '**/__tests__/**',
+            '**/coaches.{js,jsx,ts,tsx,md,mdx}',
+          ],
+        },
         theme: {
           customCss: './src/css/custom.css',
         },

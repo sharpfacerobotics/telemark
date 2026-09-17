@@ -73,16 +73,20 @@ assert.ok(
   fs.existsSync(path.join(root, 'static/video/telemark-hero-light.mp4')),
   'homepage light-mode hero video must live in the static video directory',
 );
-assert.match(heroVideo, /\bautoPlay\b/, 'homepage hero video must autoplay');
+assert.match(heroVideo, /\bautoPlay\b/, 'the hero preview starts automatically');
 assert.match(heroVideo, /\bmuted\b/, 'homepage hero video must default to muted');
-assert.match(heroVideo, /\bloop\b/, 'homepage hero video must loop');
+assert.match(heroVideo, /\bloop\b/, 'the hero preview loops automatically');
 assert.match(heroVideo, /\bplaysInline\b/, 'homepage hero video must play inline on mobile');
-assert.doesNotMatch(heroVideo, /\scontrols(?:=|\s|>)/, 'homepage hero video must hide native controls');
+assert.doesNotMatch(heroVideo, /\scontrols(?:=|\s|>)/, 'the hero preview hides native playback controls');
 assert.match(homepage, /useBaseUrl\('\/video\/telemark-hero\.mp4'\)/);
 assert.match(homepage, /useBaseUrl\('\/video\/telemark-hero-light\.mp4'\)/);
 assert.match(homepage, /colorMode === 'light' \? lightSrc : darkSrc/);
 assert.match(heroVideo, /<source src=\{src\} type="video\/mp4"/);
-assert.match(homepage, /video\.play\(\)/, 'homepage must retry hero playback after hydration');
+assert.match(heroVideo, /poster=\{poster\}/, 'the paused reel has a theme-aware poster');
+assert.doesNotMatch(homepage, /CountUp|SpotlightCard|<Masonry|<WhatsNew/, 'the homepage avoids decorative animations and automatic overlays');
+for (const section of ['HeroSection', 'StatsBar', 'CurriculumSection', 'SimulatorSection', 'ToolsSection', 'ShowcaseSection', 'CtaSection']) {
+  assert.ok(homepage.includes(`<${section}`), `${section} must survive the conservative refinement`);
+}
 
 for (let unit = 2; unit <= 15; unit += 1) {
   const simulatorComponent = read(`src/components/Unit${unit}Simulator.tsx`);
@@ -216,8 +220,8 @@ assert.match(customCss, /\.footer[\s\S]*padding: 0\.85rem 1\.5rem/);
 
 // Light mode must use the same shared surfaces and readable action colours on
 // the exact pages that previously retained hard-coded dark styling.
-assert.match(unitOverviewCss, /\.hero[\s\S]{0,220}background: var\(--tm-surface-1\)/);
-assert.match(unitOverviewCss, /\.lessonCard[\s\S]{0,320}background: var\(--tm-surface-3\)/);
+assert.doesNotMatch(unitOverviewCss.match(/\.hero\s*\{([^}]+)\}/)?.[1] || '', /background:|box-shadow:|border:/, 'unit introductions use the surrounding document surface');
+assert.match(unitOverviewCss, /\.lessonLabel[\s\S]{0,120}color: var\(--tm-text-strong\)/, 'lesson links retain theme-aware text');
 assert.match(markCompleteCss, /\.unmarkBtn[\s\S]{0,180}border-radius: var\(--tm-r-pill\)/);
 assert.match(dashboardCss, /\.resumeBtn[\s\S]{0,260}color: var\(--tm-text-on-accent\) !important/);
 assert.match(loginCss, /\[data-theme='light'\] \.card\s*\{\s*background: #fff/);

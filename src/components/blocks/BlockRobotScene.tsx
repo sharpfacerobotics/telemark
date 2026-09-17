@@ -118,6 +118,11 @@ export default function BlockRobotScene({
           preserveAspectRatio="none"
           aria-hidden="true"
         >
+          <g stroke="var(--grid-line)" strokeWidth="0.015">
+            {Array.from({length: GRID_SIZE + 1}, (_, i) => (
+              <path key={i} d={`M ${i} 0 V ${GRID_SIZE} M 0 ${i} H ${GRID_SIZE}`} />
+            ))}
+          </g>
           {path.length > 1 && <polyline points={pathPoints} />}
           {path.map((point, index) => (
             <circle

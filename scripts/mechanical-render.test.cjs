@@ -320,9 +320,7 @@ assert.ok(withPresets.length >= 3, `expected presets on at least 3 calculators, 
 // ── Site interactivity ──────────────────────────────────────────────────────
 
 const uiDir = path.join(root, 'src/components/ui');
-const revealSource = fs.readFileSync(path.join(uiDir, 'useReveal.ts'), 'utf8');
-assert.match(revealSource, /usePrefersReducedMotion/, 'reveal must honour reduced motion');
-assert.match(revealSource, /observer\.disconnect\(\)/, 'reveal must stop observing after firing');
+assert.equal(fs.existsSync(path.join(uiDir, 'useReveal.ts')), false, 'removed scroll reveals must not return');
 
 const rootSource = fs.readFileSync(path.join(root, 'src/theme/Root.tsx'), 'utf8');
 assert.doesNotMatch(rootSource, /ReadingProgress/, 'lesson pages must not render a scroll progress bar');

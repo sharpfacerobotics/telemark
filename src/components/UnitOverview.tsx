@@ -38,14 +38,13 @@ export default function UnitOverview({
   return (
     <>
       <section className={styles.hero}>
-        <div className={styles.eyebrow}>{unit.id} // course overview</div>
         <div className={styles.titleRow}>
           <div className={styles.titleBlock}>
             <h1 className={styles.title}>
               {unit.label}: {unit.title}
             </h1>
             <p className={styles.subtitle}>
-              {unit.overview} {unit.desc}
+              {unit.overview}
             </p>
           </div>
           <span className={styles.tag}>{unit.tier}</span>
@@ -54,7 +53,7 @@ export default function UnitOverview({
         <div className={styles.stats}>
           <div className={styles.stat}>
             <span className={styles.statValue}>{lessons.length}</span>
-            <span className={styles.statLabel}>Live Lessons</span>
+            <span className={styles.statLabel}>Lessons</span>
           </div>
           <div className={styles.stat}>
             <span className={styles.statValue}>{completedCount}</span>

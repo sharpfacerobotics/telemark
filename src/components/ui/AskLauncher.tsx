@@ -1,7 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import useBaseUrl from '@docusaurus/useBaseUrl';
-import {animate} from 'animejs';
-import {allowed, DUR, EASE} from '@site/src/telemark/motion';
 import AskPanel from './AskPanel';
 import {OPEN_ASK} from './AskPrompt';
 import styles from './AskLauncher.module.css';
@@ -20,33 +18,6 @@ export default function AskLauncher(): React.JSX.Element {
   const button = useRef<HTMLButtonElement>(null);
   const dock = useRef<HTMLDivElement>(null);
   const logo = useBaseUrl('img/sharp-ai.svg');
-
-  // Arrives a beat after the page settles, so it reads as something the page
-  // offers rather than another element competing with the first paint.
-  useEffect(() => {
-    if (!button.current || !allowed()) return;
-    animate(button.current, {
-      opacity: [0, 1],
-      scale: [0.82, 1],
-      duration: DUR.slow,
-      ease: EASE,
-      delay: 600,
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!dock.current || !open) return;
-    if (!allowed()) return;
-    // Grows from the corner it was summoned from rather than sliding in from
-    // off screen, so the button and the panel read as the same object.
-    animate(dock.current, {
-      opacity: [0, 1],
-      scale: [0.96, 1],
-      translateY: [8, 0],
-      duration: DUR.base,
-      ease: EASE,
-    });
-  }, [open]);
 
   const close = useCallback(() => setOpen(false), []);
 

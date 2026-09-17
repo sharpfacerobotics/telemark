@@ -38,14 +38,6 @@
   border: 1px solid var(--tm-border-strong);
   border-radius: var(--tm-r-sm);
   background-color: var(--tm-bg);
-  background-image:
-    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px),
-    radial-gradient(circle at 50% 38%, var(--tm-accent-a08), transparent 58%);
-  background-size:
-    calc(100% / var(--grid-size)) 100%,
-    100% calc(100% / var(--grid-size)),
-    100% 100%;
 }
 
 .route {
