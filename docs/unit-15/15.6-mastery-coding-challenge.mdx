@@ -18,15 +18,15 @@ Opening this stage loads the same browser project automatically, appends `FullAu
 
 1. Map Limelight 3A as `"limelight"`, select its pipeline, and start it.
 2. Create a Pedro Pathing `Follower` and establish a starting `Pose`.
-3. Build a `PathChain` that uses both a `BezierLine` and a `BezierCurve`.
-4. Create a named `enum` state machine for path and mechanism phases.
-5. Call `follower.update()` on every active loop before state logic.
+3. Build a compound Pedro 3 `Path` with both `line()` and `curve()`.
+4. Compose path and mechanism actions with an Ivy `Command` group.
+5. Call `follower.update()`, `robot.update()`, and `Scheduler.execute()` on every active loop.
 6. Validate each `LLResult` before using it, then fuse a valid global pose back into the Follower.
 7. Create and initialize one `RobotHardware` object. Call `robot.update()` every cycle and coordinate launcher, transfer, and intake through public subsystem methods.
 8. Keep raw mechanism hardware access inside subsystem files.
 9. Report path, state, and vision status, then call `robot.stopAll()`, close Vision, and stop the Limelight during cleanup.
 
-No state may block the loop. Vision loss and a busy follower must both be handled as expected operating conditions.
+No command may block the loop. Use Ivy's `waitMs()` or `waitUntil()` instead of `sleep()`. Vision loss and an active follower must both be handled as expected operating conditions.
 
 ## Coding Challenge Simulator
 

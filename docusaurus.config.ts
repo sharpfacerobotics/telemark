@@ -218,7 +218,7 @@ const config: Config = {
         },
       ],
       copyright:
-        '© 2026 Telemark. Built by FTC Team Sharp Face Robotics #30450. Built with Docusaurus. Not affiliated with FIRST®',
+        '© 2026 Telemark. Built with Docusaurus. Not affiliated with FIRST®',
     },
   } satisfies Preset.ThemeConfig,
 };

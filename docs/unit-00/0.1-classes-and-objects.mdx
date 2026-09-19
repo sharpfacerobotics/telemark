@@ -1,19 +1,19 @@
 ---
 id: classes-and-objects
-title: "Lesson 0.1: Blueprints, Houses, Classes, and Objects"
+title: "Lesson 0.1: Classes, and Objects"
 sidebar_label: "0.1 · Classes & Objects"
 sidebar_position: 1
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 0.1: Blueprints, Houses, Classes, and Objects
+# Lesson 0.1: Classes, and Objects
 
-A class describes a kind of object. It doesn't represent one specific object that already exists.
+An object is an instance of a class, meaning that it is a specific thing that is made from the class.
 
-Think about a house blueprint. The blueprint states that each house has a street address, a paint color, and a front door. Builders can use the same blueprint more than once. The finished houses share a design, but each house has its own address, color, and door state.
+To help you understand, think about a house blueprint. The blueprint states that each house has a street address, a paint color, and a front door. Builders can use the same blueprint more than once. The finished houses share a design, but each house has its own address, color, and door state.
 
-Java uses the same split:
+Similarly, in Java:
 
 | House example | Java meaning |
 |---|---|
@@ -22,14 +22,12 @@ Java uses the same split:
 | The house's address and paint color | Field values stored by that object |
 | Opening one house's door | Calling a method on one object |
 
-The analogy gives you a starting point. The Java code gives you the exact rules.
-
-## From a House to a Robot Arm
+## Example: Robot Arm
 
 `RobotArm` is a class. It states what every arm object stores and what every arm object can do.
 
 <AnnotatedCode
-  title="One blueprint, two objects"
+  title="RobotArm example"
   java={String.raw`class RobotArm {
     private double power;
 
@@ -51,9 +49,9 @@ front_arm = RobotArm()
 rear_arm = RobotArm()`}
 />
 
-Both languages use one class definition to create two independent objects. The syntax differs, but the blueprint-and-house relationship stays the same.
+Both languages create independent `RobotArm` objects from the class definition. The syntax differs, but the blueprint-and-house relationship stays the same.
 
-## Read the Java Keywords
+## Java Keyword Explanations {#read-the-java-keywords}
 
 Java reserves certain words for the language itself. These **keywords** have fixed meanings, so you cannot use them as the name of a class, field, or method.
 
@@ -92,34 +90,32 @@ public class RobotArm {
 }
 ```
 
-This code defines the blueprint. It doesn't create an arm yet.
+This code essentially makes the blueprint. It doesn't create a real arm yet.
 
 ```java
 RobotArm frontArm = new RobotArm("front");
 RobotArm rearArm = new RobotArm("rear");
 ```
 
-These two lines create two objects. Both follow the `RobotArm` class, just as two houses can follow one blueprint. Each arm still stores its own `name` and `power`.
+These declarations create separate objects from the `RobotArm` class. Each arm stores its own `name` and `power`.
 
 ```java
 frontArm.move(0.75);
 rearArm.move(-0.40);
 ```
 
-The first call changes only the front arm. The second call changes only the rear arm. Sharing a class does not mean sharing every stored value.
+`frontArm.move(0.75)` changes only the front arm, while `rearArm.move(-0.40)` changes only the rear arm. Sharing a class does not mean sharing every stored value.
 
-## Why Classes Help a Robot Team
+## How Classes Can Help Your Team
 
-A robot can use one arm in TeleOp and the same arm rules in autonomous. If those rules live in a class, both OpModes can call the same methods. A safety fix then has one home instead of several copied versions.
-
-Classes do not remove every repeated line. They give related state and behavior a clear place to live.
+A robot can use one arm in TeleOp and the same arm rules in autonomous. If those rules are defined in a class, both OpModes can call the same methods. One fix or addition can then automatically be implemented without needing other changes.
 
 ## Terms to Keep
 
 | Term | Meaning |
 |---|---|
 | Class | A definition that describes fields and methods. |
-| Object | One working value created from a class while the program runs. |
+| Object | A specific value created from a class while the program runs. |
 | Instance | Another name for an object created from a class. |
 | State | The field values currently stored by an object. |
 | Method | A named operation defined by a class. |
@@ -135,7 +131,7 @@ left.move(0.5);
 <details>
 <summary>How many RobotArm objects exist?</summary>
 
-Two. Java creates one object for each `new RobotArm(...)` expression.
+Two. Every `new RobotArm(...)` expression creates a separate object.
 
 </details>
 

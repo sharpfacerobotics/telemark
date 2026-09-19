@@ -91,9 +91,12 @@ assert.match(homepage, /snapshot\.wasPlaying[\s\S]*video\.play\(\)/, 'a playing 
 assert.match(homepage, /\|\| video\.autoplay/, 'initial theme resolution must preserve intended autoplay');
 assert.match(heroVideo, /poster=\{poster\}/, 'the paused reel has a theme-aware poster');
 assert.doesNotMatch(homepage, /CountUp|SpotlightCard|<Masonry|<WhatsNew/, 'the homepage avoids decorative animations and automatic overlays');
-for (const section of ['HeroSection', 'StatsBar', 'CurriculumSection', 'SimulatorSection', 'ToolsSection', 'ShowcaseSection', 'CtaSection']) {
-  assert.ok(homepage.includes(`<${section}`), `${section} must survive the conservative refinement`);
+assert.ok(homepage.includes('<HeroSection'), 'the homepage must retain its primary hero');
+for (const section of ['StatsBar', 'CurriculumSection', 'SimulatorSection', 'ToolsSection', 'ShowcaseSection', 'CtaSection']) {
+  assert.ok(!homepage.includes(`<${section}`), `${section} must be removed from the reduced homepage`);
 }
+assert.match(homepage, /Learn through experience with integrated lessons featuring software and mechanical simulators\./);
+assert.doesNotMatch(homepage, /Student-built FTC software and mechanical curriculum|Learn to program an FTC robot/);
 
 for (let unit = 2; unit <= 15; unit += 1) {
   const simulatorComponent = read(`src/components/Unit${unit}Simulator.tsx`);
@@ -200,8 +203,7 @@ assert.match(docItem, /trackEvent\('curriculum_start'/);
 assert.match(navbarItem, /to: user \? '\/dashboard' : '\/login'/);
 assert.match(navbarItem, /label: user \? 'Dashboard' : 'Sign in'/);
 assert.doesNotMatch(homepage, /useState<string>\(isNumeric \? '0'/);
-assert.match(homepage, /CURRICULUM_UNIT_COUNT/);
-assert.match(homepage, /CURRICULUM_LESSON_COUNT/);
+assert.doesNotMatch(homepage, /CURRICULUM_UNIT_COUNT|CURRICULUM_LESSON_COUNT|TOTAL_LESSON_COUNT|TOTAL_UNIT_COUNT/);
 assert.doesNotMatch(homepage, /Lessons require account|isProtectedUnit/);
 assert.doesNotMatch(searchPlugin, /isProtected|protected:/);
 assert.match(searchPlugin, /excerpt: cleanExcerpt\(source\)/);
@@ -218,8 +220,9 @@ assert.match(config, /theme: prismThemes\.github/);
 assert.match(config, /darkTheme: prismThemes\.dracula/);
 assert.match(
   config,
-  /© 2026 Telemark\. Built by FTC Team Sharp Face Robotics #30450\. Built with Docusaurus\. Not affiliated with FIRST®/,
+  /© 2026 Telemark\. Built with Docusaurus\. Not affiliated with FIRST®/,
 );
+assert.doesNotMatch(config, /Built by FTC Team Sharp Face Robotics #30450/);
 assert.match(customCss, /\.telemark-navbar-center[\s\S]*left: 50%/);
 assert.equal((curriculum.match(/id: 'unit-\d{2}\/mastery-coding-challenge'/g) || []).length, 14);
 assert.equal((curriculum.match(/id: 'unit-\d{2}\/mastery-quiz'/g) || []).length, 0);
@@ -310,22 +313,18 @@ assert.match(searchPlugin, /\(\?:blocks-unit\|fll-unit\|unit\|module\)-/);
 // Asserted as reachability rather than by component name: what matters is that
 // a visitor can get into either track from the homepage, not which component
 // happens to render the link this month.
-assert.match(homepage, /units=\{SOFTWARE_HOME_UNITS\}/, 'homepage must list blocks before Java units');
-assert.match(homepage, /units=\{MECHANICAL_UNITS\}/, 'homepage must list mechanical modules');
 assert.ok(
-  homepage.includes('/blocks')
-    && homepage.includes('/docs/unit-00/')
-    && homepage.includes('/mechanical/module-00/'),
-  'homepage must link into blocks and both main tracks',
+  homepage.includes('/docs/unit-00/classes-and-objects')
+    && homepage.includes('/mechanical/module-00/design-cycle'),
+  'the reduced homepage must link into both main tracks',
 );
-assert.match(homepage, /MECHANICAL_LESSON_COUNT/);
+assert.match(homepage, /Begin Software/);
+assert.match(homepage, /Begin Mechanical/);
 assert.match(trackOverview, /companionTrackId/);
 assert.match(dashboard, /activeTrack/, 'dashboard must switch between tracks');
 assert.doesNotMatch(trackOverview, /signInWithGoogle/, 'track cards should open public overviews, not sign in');
 assert.doesNotMatch(homepage, /homepage_\$\{id\}_card/, 'homepage unit cards should not trigger sign in');
-assert.match(homepage, /MOBILE_CURRICULUM_PREVIEW_COUNT/);
 assert.match(trackOverview, /MOBILE_UNIT_PREVIEW_COUNT/);
-assert.match(homepageCss, /\.mobileCurriculumExtra\s*\{\s*display: none/);
 assert.match(trackOverviewCss, /\.mobileCurriculumExtra\s*\{\s*display: none !important/);
 
 console.log('Open access, local progress, navbar, search, simulators, and track regression checks passed');

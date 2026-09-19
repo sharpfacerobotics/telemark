@@ -18,11 +18,11 @@
     overflow-y: auto;
     margin: 10px;
     padding: 12px;
-    border: 1px solid #2a2a3a;
-    border-radius: 8px;
-    background: #0b0b0f;
-    color: #e5e7eb;
-    font-family: var(--font-ui, Arial, sans-serif);
+    border: 1px solid #333333;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #1a1a1a, #151515);
+    color: #e8e8e8;
+    font-family: "Poppins", var(--font-ui, sans-serif);
   }
 
   #sim-right-panel .u153-vertical-resizer {
@@ -44,13 +44,13 @@
     width: 72px;
     height: 3px;
     border-radius: 999px;
-    background: #22d3ee;
+    background: #facc15;
   }
 
   #sim-right-panel .u153-vertical-resizer:hover,
   #sim-right-panel .u153-vertical-resizer.active {
-    border-color: #22d3ee;
-    background: #111118;
+    border-color: #facc15;
+    background: #222222;
   }
 
   body.u153-resizing,
@@ -121,10 +121,10 @@
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    border: 1px solid #3f3f46;
+    border: 1px solid #444444;
     border-radius: 8px;
-    background: #111118;
-    color: #f4f4f5;
+    background: #2a2a2a;
+    color: #e8e8e8;
     cursor: pointer;
     font: inherit;
     font-size: 0.78rem;
@@ -133,7 +133,7 @@
   }
 
   #sim-right-panel .u153-button:hover {
-    border-color: #38bdf8;
+    border-color: #facc15;
     color: #ffffff;
   }
 
@@ -196,9 +196,9 @@
   }
 
   #sim-right-panel .u153-visualizer-wrap {
-    border: 1px solid #2a2a3a;
-    border-radius: 8px;
-    background: #050505;
+    border: 1px solid #333333;
+    border-radius: 12px;
+    background: #0a0a0a;
     padding: 8px;
     height: clamp(420px, 52vh, 700px);
     min-height: 320px;
@@ -206,7 +206,7 @@
     overflow: auto;
     resize: vertical;
     scrollbar-width: thin;
-    scrollbar-color: #22d3ee #05080d;
+    scrollbar-color: #facc15 #0a0a0a;
   }
 
   #sim-right-panel .u153-pedro-visualizer {
@@ -216,9 +216,9 @@
     max-width: none;
     height: 100%;
     margin: 0;
-    border: 2px solid #ccc;
-    border-radius: 8px;
-    background: #08080c;
+    border: 1px solid #333333;
+    border-radius: 10px;
+    background: #0a0a0a;
   }
 
   .u153-modal {
@@ -296,14 +296,14 @@
 
   #sim-right-panel .u153-visualizer-wrap::-webkit-scrollbar-thumb,
   .u153-modal-body::-webkit-scrollbar-thumb {
-    background: #22d3ee;
+    background: #facc15;
     border: 2px solid #05080d;
     border-radius: 999px;
   }
 
   #sim-right-panel .u153-visualizer-wrap::-webkit-scrollbar-thumb:hover,
   .u153-modal-body::-webkit-scrollbar-thumb:hover {
-    background: #22d3ee;
+    background: #facc15;
   }
 
   .u153-dock-note {
@@ -369,23 +369,27 @@
 window.onSimulatorReady = function () {
   "use strict";
 
-  const starterCode = `@Autonomous(name="PathChain_Bezier")
-public class PathChainBezier extends LinearOpMode {
+  const starterCode = `@Autonomous(name="Pedro3_Bezier")
+public class Pedro3Bezier extends LinearOpMode {
 
     Follower  follower;
-    PathChain scoringRoutine;
+    Path scoringRoutine;
 
     @Override
     public void runOpMode() {
 
-        follower = new Follower(hardwareMap);
-        follower.setStartingPose(new Pose(0, 0, 0));
+        PoseFactory poseFactory = PoseFactory.degrees();
+        follower = Constants.create(hardwareMap);
 
-        // Build the two-segment PathChain
-        scoringRoutine = follower.pathBuilder()
-            // TODO: Add the straight first segment
-            // TODO: Add the curved second segment through the control point
-            .build();
+        Pose start   = poseFactory.of(0, 0, 0);
+        Pose join    = poseFactory.of(60, 0, 0);
+        Pose control = poseFactory.of(80, 30, 45);
+        Pose end     = poseFactory.of(60, 60, 90);
+
+        follower.setPose(start);
+        follower.update();
+
+        // TODO: Build scoringRoutine with path(line(...), curve(...))
 
         telemetry.addData("Status",   "Path Built");
         telemetry.addData("Segments", 2);
@@ -393,15 +397,15 @@ public class PathChainBezier extends LinearOpMode {
 
         waitForStart();
 
-        follower.followPathChain(scoringRoutine);
+        follower.follow(scoringRoutine);
 
         while (opModeIsActive() && follower.isBusy()) {
             follower.update();
 
-            Pose pose = follower.getPose();
-            telemetry.addData("X",       pose.getX());
-            telemetry.addData("Y",       pose.getY());
-            telemetry.addData("Heading", pose.getHeading());
+            Pose pose = follower.pose();
+            telemetry.addData("X",       pose.x());
+            telemetry.addData("Y",       pose.y());
+            telemetry.addData("Heading", pose.heading());
             telemetry.update();
         }
 
@@ -411,16 +415,16 @@ public class PathChainBezier extends LinearOpMode {
 }`;
 
   const requirements = [
-    "Call follower.pathBuilder()",
-    "Add a BezierLine from (0,0) to (60,0)",
+    "Create poses with PoseFactory.degrees()",
+    "Build a compound path with path(...) ",
+    "Add line(start, join) from (0,0) to (60,0)",
     "Start point is (0,0)",
     "First segment ends at (60,0)",
-    "Add a quadratic Bezier curve",
+    "Add curve(join, control, end)",
     "Second segment starts at (60,0)",
     "Control point is (80,30)",
     "Second segment ends at (60,60)",
-    "Call .build() to create the PathChain",
-    "Assign the built PathChain to scoringRoutine"
+    "Assign the compound Path to scoringRoutine"
   ];
 
   const FIELD_INCHES = 144;
@@ -497,11 +501,11 @@ public class PathChainBezier extends LinearOpMode {
   setCode(starterCode);
   setChallenge(
     "Telemark Unit 15.3 Simulator",
-    "Pedro Pathing PathChain with Bezier Curve",
+    "Pedro 3 compound Path with a Bézier curve",
     requirements
   );
   setBadges([
-    { icon: "fa-route", iconClass: "fa-solid fa-route", label: "PathChain", active: true },
+    { icon: "fa-route", iconClass: "fa-solid fa-route", label: "Compound Path", active: true },
     { icon: "fa-bezier-curve", iconClass: "fa-solid fa-bezier-curve", label: "Bezier", active: true },
     { icon: "fa-location-dot", iconClass: "fa-solid fa-location-dot", label: "Pose", active: true },
     { icon: "fa-display", iconClass: "fa-solid fa-display", label: "Telemetry", active: true }
@@ -510,14 +514,14 @@ public class PathChainBezier extends LinearOpMode {
 
   const banner = el("sim-success-banner");
   if (banner) {
-    banner.innerHTML = '<i class="fa-solid fa-circle-check"></i> Challenge Complete! PathChain with Bezier curve correctly constructed.';
+    banner.innerHTML = '<i class="fa-solid fa-circle-check"></i> Challenge Complete! Pedro 3 compound path correctly constructed.';
   }
 
   followerDevice = hardwareMap.registerFollower("follower");
   hardwareMap.onFollowerUpdate(function (x, y, heading) {
     updateRobotPose(x, y, heading);
   });
-  hardwareMap.onPathChain(function (segments) {
+  hardwareMap.onPath(function (segments) {
     updatePathVisual(segments);
   });
 
@@ -592,12 +596,11 @@ public class PathChainBezier extends LinearOpMode {
       hardwareMap.registerFollower = function (name) {
         const device = {
           _name: name,
-          pathBuilder: function () { return getPathBuilder(); },
-          setStartingPose: function (pose) { setFollowerStartPose(pose); },
-          followPathChain: function (chain) { followPathChain(chain); },
+          setPose: function (pose) { setFollowerStartPose(pose); },
+          follow: function (path) { followPath(path); },
           update: function () { updateFollower(); },
           isBusy: function () { return isFollowerBusy(); },
-          getPose: function () { return getFollowerPose(); }
+          pose: function () { return getFollowerPose(); }
         };
         hardwareMap._devices[name] = device;
         return device;
@@ -614,11 +617,11 @@ public class PathChainBezier extends LinearOpMode {
       };
     }
 
-    if (typeof hardwareMap.onPathChain !== "function") {
-      hardwareMap.onPathChain = function (cb) { pathCallbacks.push(cb); };
+    if (typeof hardwareMap.onPath !== "function") {
+      hardwareMap.onPath = function (cb) { pathCallbacks.push(cb); };
     } else {
-      const originalPath = hardwareMap.onPathChain.bind(hardwareMap);
-      hardwareMap.onPathChain = function (cb) {
+      const originalPath = hardwareMap.onPath.bind(hardwareMap);
+      hardwareMap.onPath = function (cb) {
         pathCallbacks.push(cb);
         originalPath(cb);
       };
@@ -656,7 +659,7 @@ public class PathChainBezier extends LinearOpMode {
     panel.id = "u153-panel";
     panel.className = "u153-panel";
     panel.innerHTML = `
-      <div class="u153-title"><i class="fa-solid fa-route"></i> Path Chain Summary</div>
+      <div class="u153-title"><i class="fa-solid fa-route"></i> Pedro 3 Path Summary</div>
       <div class="u153-grid">
         <div class="u153-card" id="u153-seg1-card"></div>
         <div class="u153-card" id="u153-seg2-card"></div>
@@ -696,9 +699,9 @@ public class PathChainBezier extends LinearOpMode {
 
       <div class="u153-callout">
         <i class="fa-solid fa-circle-info"></i>
-        Use the Pedro Pathing visualizer to experiment with points, then copy the coordinates back into the Java PathChain.
+        This is the live official visualizer. Its Java export uses Pedro 3 PoseFactory and Paths API calls; copy those poses and path methods into the editor.
       </div>
-      <div class="u153-success" id="u153-success"><i class="fa-solid fa-circle-check"></i> Challenge Complete! PathChain with Bezier curve correctly constructed.</div>
+      <div class="u153-success" id="u153-success"><i class="fa-solid fa-circle-check"></i> Challenge Complete! Pedro 3 compound path correctly constructed.</div>
       <div class="u153-warning" id="u153-warning"></div>
     `;
     const verticalResizer = document.createElement("div");
@@ -1035,7 +1038,7 @@ public class PathChainBezier extends LinearOpMode {
         state.pathBuilt = true;
         state.phase = "PATH BUILT";
         updatePathVisual(chain.segments);
-        emitPathChain(chain.segments);
+        emitPath(chain.segments);
         validateCode();
         updatePanel();
         return chain;
@@ -1070,6 +1073,39 @@ public class PathChainBezier extends LinearOpMode {
     return { curve: curve };
   }
 
+  function withHeading(path) {
+    path.linear = function () { return path; };
+    path.constant = function () { return path; };
+    path.tangent = function () { return path; };
+    path.reverseTangent = function () { return path; };
+    path.facingPoint = function () { return path; };
+    return path;
+  }
+
+  function createLinePath(start, end) {
+    return withHeading({ segments: [createBezierLine(start, end)] });
+  }
+
+  function createCurvePath() {
+    const points = Array.prototype.slice.call(arguments);
+    return withHeading({ segments: [{ type: points.length === 3 ? "quadratic" : "bezier", points: points }] });
+  }
+
+  function createCompoundPath() {
+    const paths = Array.prototype.slice.call(arguments);
+    const compound = withHeading({
+      segments: paths.reduce(function (all, path) {
+        return all.concat(path && Array.isArray(path.segments) ? path.segments : []);
+      }, [])
+    });
+    state.scoringRoutineDefined = true;
+    state.pathBuilt = compound.segments.length > 0;
+    state.phase = state.pathBuilt ? "PATH BUILT" : state.phase;
+    updatePathVisual(compound.segments);
+    emitPath(compound.segments);
+    return compound;
+  }
+
   function normalizePath(path) {
     const curve = path && path.curve ? path.curve : path;
     if (!curve || !curve.points) return null;
@@ -1087,10 +1123,10 @@ public class PathChainBezier extends LinearOpMode {
     emitFollowerUpdate();
   }
 
-  function followPathChain(chain) {
+  function followPath(chain) {
     const segments = chain && Array.isArray(chain.segments) ? chain.segments : [];
     if (!segments.length) {
-      throw new Error("followPathChain() received an empty PathChain.");
+      throw new Error("follower.follow() received an empty Path.");
     }
     setPathSegments(segments);
     state.following = true;
@@ -1152,12 +1188,12 @@ public class PathChainBezier extends LinearOpMode {
     });
   }
 
-  function emitPathChain(segments) {
+  function emitPath(segments) {
     pathCallbacks.forEach(function (cb) {
       try {
         cb(segments);
       } catch (err) {
-        console.error("[PathChain callback error]", err);
+        console.error("[Path callback error]", err);
       }
     });
   }
@@ -1225,8 +1261,11 @@ public class PathChainBezier extends LinearOpMode {
         "createPath",
         "createBezierLine",
         "createBezierCurve",
+        "createLinePath",
+        "createCurvePath",
+        "createCompoundPath",
         "setFollowerStartPose",
-        "followPathChain",
+        "followPath",
         "updateFollower",
         "isFollowerBusy",
         "getFollowerPose",
@@ -1255,8 +1294,11 @@ public class PathChainBezier extends LinearOpMode {
         createPath,
         createBezierLine,
         createBezierCurve,
+        createLinePath,
+        createCurvePath,
+        createCompoundPath,
         setFollowerStartPose,
-        followPathChain,
+        followPath,
         updateFollower,
         isFollowerBusy,
         getFollowerPose,
@@ -1282,20 +1324,26 @@ public class PathChainBezier extends LinearOpMode {
   function transpileLinearBody(body) {
     let js = body || "";
     js = js
-      .replace(/\bnew\s+Follower\s*\(\s*hardwareMap\s*\)/g, "createFollower()")
-      .replace(/\bfollower\s*\.\s*pathBuilder\s*\(\s*\)/g, "getPathBuilder()")
+      .replace(/\bConstants\s*\.\s*create\s*\(\s*hardwareMap\s*\)/g, "createFollower()")
+      .replace(/\bPoseFactory\s*\.\s*degrees\s*\(\s*\)/g, "({ of: createPose })")
+      .replace(/\bpath\s*\(/g, "createCompoundPath(")
+      .replace(/\bline\s*\(/g, "createLinePath(")
+      .replace(/\bcurve\s*\(/g, "createCurvePath(")
       .replace(/\bnew\s+Path\s*\(/g, "createPath(")
       .replace(/\bnew\s+(?:BezierLine|LinearBezierCurve)\s*\(/g, "createBezierLine(")
       .replace(/\bnew\s+(?:BezierCurve|QuadraticBezierCurve)\s*\(/g, "createBezierCurve(")
       .replace(/\bnew\s+Point\s*\(/g, "createPoint(")
       .replace(/\bPoint\s*\.\s*CARTESIAN\b/g, '"CARTESIAN"')
       .replace(/\.build\s*\(\s*\)/g, ".buildChain()")
-      .replace(/\bfollower\s*\.\s*followPathChain\s*\(/g, "followPathChain(")
-      .replace(/\bfollower\s*\.\s*setStartingPose\s*\(/g, "setFollowerStartPose(")
+      .replace(/\bfollower\s*\.\s*follow\s*\(/g, "followPath(")
+      .replace(/\bfollower\s*\.\s*setPose\s*\(/g, "setFollowerStartPose(")
       .replace(/\bnew\s+Pose\s*\(/g, "createPose(")
       .replace(/\bfollower\s*\.\s*update\s*\(\s*\)/g, "updateFollower()")
       .replace(/\bfollower\s*\.\s*isBusy\s*\(\s*\)/g, "isFollowerBusy()")
-      .replace(/\bfollower\s*\.\s*getPose\s*\(\s*\)/g, "getFollowerPose()")
+      .replace(/\bfollower\s*\.\s*pose\s*\(\s*\)/g, "getFollowerPose()")
+      .replace(/\.x\s*\(\s*\)/g, ".x")
+      .replace(/\.y\s*\(\s*\)/g, ".y")
+      .replace(/\.heading\s*\(\s*\)/g, ".heading")
       .replace(/\.getX\s*\(\s*\)/g, ".x")
       .replace(/\.getY\s*\(\s*\)/g, ".y")
       .replace(/\.getHeading\s*\(\s*\)/g, ".heading")
@@ -1303,7 +1351,7 @@ public class PathChainBezier extends LinearOpMode {
       .replace(/\btelemetry\s*\.\s*update\s*\(\s*\)/g, "updateTelemetry()")
       .replace(/\bwaitForStart\s*\(\s*\)\s*;/g, "await waitForStart(); if (!opModeIsActive()) return;")
       .replace(/\bsleep\s*\(/g, "await sleep(")
-      .replace(/(^|[;{}\n]\s*)(?:final\s+)?(?:double|int|boolean|String|float|long|byte|short|char|Follower|PathChain|Pose|Path|Point|BezierLine|BezierCurve|LinearBezierCurve|QuadraticBezierCurve)\s+([A-Za-z_$])/gm, "$1let $2");
+      .replace(/(^|[;{}\n]\s*)(?:final\s+)?(?:double|int|boolean|String|float|long|byte|short|char|Follower|PoseFactory|Pose|Path)\s+([A-Za-z_$])/gm, "$1let $2");
     js = addAwaitToWhileLoops(js);
     if (typeof _simTranspile === "function") js = _simTranspile(js);
     return js;
@@ -1586,8 +1634,8 @@ public class PathChainBezier extends LinearOpMode {
     const checks = validateCode(false);
     const seg1Good = checks[1] && checks[2] && checks[3];
     const seg2Good = checks[4] && checks[5] && checks[6] && checks[7];
-    renderCard("u153-seg1-card", '<i class="fa-solid fa-minus"></i> Segment 1<br><strong>BezierLine: (0,0) to (60,0)</strong>', seg1Good ? "good" : "bad");
-    renderCard("u153-seg2-card", '<i class="fa-solid fa-bezier-curve"></i> Segment 2<br><strong>BezierCurve: start (60,0), control (80,30), end (60,60)</strong>', seg2Good ? "good" : "bad");
+    renderCard("u153-seg1-card", '<i class="fa-solid fa-minus"></i> Segment 1<br><strong>line(): (0,0) to (60,0)</strong>', seg1Good ? "good" : "bad");
+    renderCard("u153-seg2-card", '<i class="fa-solid fa-bezier-curve"></i> Segment 2<br><strong>curve(): start (60,0), control (80,30), end (60,60)</strong>', seg2Good ? "good" : "bad");
     renderCard("u153-chain-card", '<i class="fa-solid fa-route"></i> scoringRoutine<br><strong>' + (checks[9] ? "defined" : "missing") + "</strong>", checks[9] ? "good" : "bad");
     renderCard("u153-count-card", '<i class="fa-solid fa-list-ol"></i> Segment count<br><strong>' + state.segments.length + '</strong>', state.segments.length === 2 ? "good" : "bad");
 
@@ -1631,11 +1679,11 @@ public class PathChainBezier extends LinearOpMode {
     if (!list) return;
     const points = state.parsedPoints;
     const rows = [
-      { label: "Start", expected: EXPECTED_POINTS[0], actual: points[0], good: checks[2] },
-      { label: "Line end", expected: EXPECTED_POINTS[1], actual: points[1], good: checks[3] },
-      { label: "Curve start", expected: EXPECTED_POINTS[2], actual: points[2], good: checks[5] },
-      { label: "Control", expected: EXPECTED_POINTS[3], actual: points[3], good: checks[6] },
-      { label: "Curve end", expected: EXPECTED_POINTS[4], actual: points[4], good: checks[7] }
+      { label: "Start", expected: EXPECTED_POINTS[0], actual: points[0], good: checks[3] },
+      { label: "Line end", expected: EXPECTED_POINTS[1], actual: points[1], good: checks[4] },
+      { label: "Curve start", expected: EXPECTED_POINTS[2], actual: points[2], good: checks[6] },
+      { label: "Control", expected: EXPECTED_POINTS[3], actual: points[3], good: checks[7] },
+      { label: "Curve end", expected: EXPECTED_POINTS[4], actual: points[4], good: checks[8] }
     ];
     list.innerHTML = rows.map(function (row) {
       const actual = row.actual ? "(" + row.actual.x + "," + row.actual.y + ")" : "missing";
@@ -1655,19 +1703,19 @@ public class PathChainBezier extends LinearOpMode {
       setPathSegments(parsedSegments);
     }
 
-    const lineBeforeCurve = /new\s+(?:BezierLine|LinearBezierCurve)\s*\(/.test(runBody) &&
-      runBody.search(/new\s+(?:BezierLine|LinearBezierCurve)\s*\(/) < runBody.search(/new\s+(?:BezierCurve|QuadraticBezierCurve)\s*\(/);
+    const lineBeforeCurve = /\bline\s*\(/.test(runBody) && /\bcurve\s*\(/.test(runBody) &&
+      runBody.search(/\bline\s*\(/) < runBody.search(/\bcurve\s*\(/);
     const checks = [
-      /follower\s*\.\s*pathBuilder\s*\(\s*\)/.test(runBody),
+      /PoseFactory\s*\.\s*degrees\s*\(\s*\)/.test(runBody),
+      /\bpath\s*\(/.test(runBody),
       lineBeforeCurve && pointClose(points[0], 0, 0) && pointClose(points[1], 60, 0),
       pointClose(points[0], 0, 0),
       pointClose(points[1], 60, 0),
-      /new\s+(?:BezierCurve|QuadraticBezierCurve)\s*\(/.test(runBody),
+      /\bcurve\s*\(/.test(runBody),
       pointClose(points[2], 60, 0),
       pointClose(points[3], 80, 30),
       pointClose(points[4], 60, 60),
-      /\.build\s*\(\s*\)/.test(runBody),
-      /scoringRoutine\s*=\s*follower\s*\.\s*pathBuilder\s*\(\s*\)[\s\S]*?\.build\s*\(\s*\)/.test(runBody)
+      /scoringRoutine\s*=\s*path\s*\(/.test(runBody)
     ];
 
     if (updateRequirements) {
@@ -1683,21 +1731,22 @@ public class PathChainBezier extends LinearOpMode {
 
   function parsePoints(body) {
     const points = [];
-    const re = /new\s+Point\s*\(\s*([-+]?\d+(?:\.\d+)?)\s*,\s*([-+]?\d+(?:\.\d+)?)/g;
+    const re = /[A-Za-z_$][\w$]*\s*\.\s*of\s*\(\s*([-+]?\d+(?:\.\d+)?)\s*,\s*([-+]?\d+(?:\.\d+)?)/g;
     let match;
     while ((match = re.exec(body)) !== null) {
       points.push({ x: Number(match[1]), y: Number(match[2]) });
     }
+    if (points.length === 4) return [points[0], points[1], points[1], points[2], points[3]];
     return points;
   }
 
   function parseSegments(body) {
     const points = parsePoints(body);
     const segments = [];
-    if (points.length >= 2 && /new\s+(?:BezierLine|LinearBezierCurve)\s*\(/.test(body)) {
+    if (points.length >= 2 && /\bline\s*\(/.test(body)) {
       segments.push(createBezierLine(createPoint(points[0].x, points[0].y, "CARTESIAN"), createPoint(points[1].x, points[1].y, "CARTESIAN")));
     }
-    if (points.length >= 5 && /new\s+(?:BezierCurve|QuadraticBezierCurve)\s*\(/.test(body)) {
+    if (points.length >= 5 && /\bcurve\s*\(/.test(body)) {
       segments.push(createBezierCurve(createPoint(points[2].x, points[2].y, "CARTESIAN"), createPoint(points[3].x, points[3].y, "CARTESIAN"), createPoint(points[4].x, points[4].y, "CARTESIAN")));
     }
     return segments;
@@ -1713,27 +1762,24 @@ public class PathChainBezier extends LinearOpMode {
     let message = "";
     let type = "warn";
 
-    if (/new\s+(?:BezierCurve|QuadraticBezierCurve)\s*\(/.test(runBody) && /new\s+(?:BezierLine|LinearBezierCurve)\s*\(/.test(runBody) &&
-        runBody.search(/new\s+(?:BezierCurve|QuadraticBezierCurve)\s*\(/) < runBody.search(/new\s+(?:BezierLine|LinearBezierCurve)\s*\(/)) {
-      message = "Segment 1 should be a straight BezierLine, then segment 2 should be the curve.";
+    if (/\bcurve\s*\(/.test(runBody) && /\bline\s*\(/.test(runBody) &&
+        runBody.search(/\bcurve\s*\(/) < runBody.search(/\bline\s*\(/)) {
+      message = "Put line(start, join) before curve(join, control, end) inside path(...).";
       type = "error";
-    } else if (!checks[6] && points[3]) {
+    } else if (!checks[7] && points[3]) {
       message = "Control point should be at (80,30), not (" + points[3].x + "," + points[3].y + "). This produces the correct arc around the corner.";
       type = "error";
-    } else if (!checks[5] && points[2]) {
+    } else if (!checks[6] && points[2]) {
       message = "Segment 1 ends at (60,0), so segment 2 must start at (60,0). The segments must connect at the same point.";
       type = "error";
-    } else if (!checks[7] && points[4]) {
+    } else if (!checks[8] && points[4]) {
       message = "Second segment must end at (60,60), not (" + points[4].x + "," + points[4].y + ").";
       type = "error";
-    } else if (!checks[8]) {
-      message = "Call .build() on the path builder to create the PathChain.";
-      type = "error";
     } else if (!checks[9]) {
-      message = "Assign the built PathChain to a variable named scoringRoutine.";
+      message = "Assign path(line(...), curve(...)) to a Path variable named scoringRoutine.";
       type = "error";
-    } else if (!/Point\s*\.\s*CARTESIAN/.test(runBody)) {
-      message = "Specify Point.CARTESIAN for your points so Pedro Pathing treats them as standard x,y coordinates.";
+    } else if (!/PoseFactory\s*\.\s*degrees\s*\(\s*\)/.test(runBody)) {
+      message = "Use PoseFactory.degrees() so the pose headings match the official visualizer output.";
     } else if (!/telemetry\s*\.\s*update\s*\(\s*\)/.test(runBody)) {
       message = "Call telemetry.update() to send data to the Driver Station.";
     }

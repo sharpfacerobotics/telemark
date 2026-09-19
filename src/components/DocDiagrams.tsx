@@ -118,7 +118,7 @@ export function PathFollowingDiagram(): React.JSX.Element {
     <figure className={styles.diagram}>
       <figcaption className={styles.title}>Path Following Feedback Loop</figcaption>
       <div className={styles.cycle}>
-        <FlowNode step="1" title="Path geometry" body="The Path or PathChain defines the desired trajectory." />
+        <FlowNode step="1" title="Path geometry" body="A Pedro 3 Path contains one or more line and curve segments." />
         <FlowNode step="2" title="Target pose" body="The Follower chooses where the robot should be on the path now." />
         <FlowNode step="3" title="Pose error" body="Current odometry pose is compared against the target pose." />
         <FlowNode step="4" title="Motor correction" body="Drive powers are recomputed, the robot moves, and odometry updates again." />

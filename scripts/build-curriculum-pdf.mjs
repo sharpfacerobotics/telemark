@@ -103,7 +103,7 @@ function diagram(name) {
       ['Arrive', 'The mechanism stops near target and may hold position.'],
     ],
     PathFollowingDiagram: [
-      ['Path geometry', 'The Path or PathChain defines the desired trajectory.'],
+      ['Path geometry', 'A Pedro 3 Path defines one segment or combines several line() and curve() segments.'],
       ['Target pose', 'The Follower picks where the robot should be now.'],
       ['Pose error', 'Current odometry pose is compared to target pose.'],
       ['Motor correction', 'Drive powers update, the robot moves, odometry repeats.'],

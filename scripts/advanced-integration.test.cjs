@@ -97,59 +97,55 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.limelightvision.LLResult;
+import com.pedropathing.api.PoseFactory;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.localization.Pose;
-import com.pedropathing.pathgen.BezierCurve;
-import com.pedropathing.pathgen.BezierLine;
-import com.pedropathing.pathgen.PathChain;
-import com.pedropathing.pathgen.Point;
+import com.pedropathing.ivy.Command;
+import com.pedropathing.ivy.Scheduler;
+import com.pedropathing.math.Pose;
+import com.pedropathing.paths.Path;
 @Autonomous(name="DECODE Full Autonomous")
 public class FullAutonomous extends LinearOpMode {
   private final RobotHardware robot = new RobotHardware();
   private final Vision vision = new Vision();
   private Limelight3A limelight;
   private Follower follower;
-  private enum AutoState { START_PATH, FIRE, DONE }
-  private AutoState state = AutoState.START_PATH;
+  private Path route;
+  private Command autoRoutine() {
+    return sequential(
+      follow(follower, route),
+      waitMs(200)
+    );
+  }
   public void runOpMode() {
+    Scheduler.reset();
     robot.init(hardwareMap);
     vision.init(hardwareMap);
     limelight = hardwareMap.get(Limelight3A.class, "limelight");
     limelight.pipelineSwitch(0);
     limelight.start();
-    follower = new Follower(hardwareMap);
-    follower.setStartingPose(new Pose(12, 12, 0));
-    Point start = new Point(12, 12, Point.CARTESIAN);
-    Point middle = new Point(48, 24, Point.CARTESIAN);
-    Point finish = new Point(72, 72, Point.CARTESIAN);
-    PathChain route = follower.pathBuilder()
-      .addPath(new BezierLine(start, middle))
-      .addPath(new BezierCurve(middle, finish, start))
-      .build();
+    follower = Constants.create(hardwareMap);
+    PoseFactory poses = PoseFactory.degrees();
+    Pose start = poses.of(12, 12, 0);
+    Pose middle = poses.of(48, 24, 20);
+    Pose control = poses.of(60, 36, 45);
+    Pose finish = poses.of(72, 72, 90);
+    follower.setPose(start);
+    route = path(line(start, middle), curve(middle, control, finish));
     waitForStart();
-    follower.followPath(route);
+    schedule(autoRoutine());
     while (opModeIsActive()) {
       follower.update();
       robot.update(getRuntime());
+      Scheduler.execute();
+      robot.intake.collect();
+      robot.transfer.forward();
+      robot.launcher.launch(getRuntime());
       LLResult result = limelight.getLatestResult();
       if (result != null && result.isValid()) {
         Pose measured = result.getBotpose();
         if (measured != null) follower.setPose(measured);
       }
-      switch (state) {
-        case START_PATH:
-          robot.intake.collect();
-          robot.transfer.forward();
-          state = AutoState.FIRE;
-          break;
-        case FIRE:
-          robot.launcher.launch(getRuntime());
-          state = AutoState.DONE;
-          break;
-        case DONE:
-          break;
-      }
-      telemetry.addData("State", state);
+      telemetry.addData("Mode", follower.mode());
     }
     robot.stopAll();
     vision.close();
@@ -163,14 +159,14 @@ const unit15Compilation = java.compile(unit15Source);
 assert.equal(unit15Compilation.ok, true, unit15Compilation.diagnostics?.[0]?.message);
 assert.ok(mastery.evaluate(15, unit15Source, unit15Compilation).every(Boolean), 'an alternative non-blocking autonomous must pass Unit 15');
 assert.equal(mastery.evaluate(15, unit15Source.replace('"limelight"', '"camera"'))[1], false, 'the Limelight configuration name must stay exact');
-assert.equal(mastery.evaluate(15, unit15Source.replace('result.isValid()', 'true'))[6], false, 'unvalidated Limelight data must fail');
-assert.equal(mastery.evaluate(15, unit15Source.replace('follower.setPose(measured);', ''))[7], false, 'vision must correct the Follower pose');
+assert.equal(mastery.evaluate(15, unit15Source.replace(/result\s*\.\s*isValid\s*\(\s*\)/, 'true'))[6], false, 'unvalidated Limelight data must fail');
+assert.equal(mastery.evaluate(15, unit15Source.replace(/follower\s*\.\s*setPose\s*\(\s*measured\s*\)\s*;/, ''))[7], false, 'vision must correct the Follower pose');
 assert.ok(!mastery.evaluate(15, unit15Source.replace('follower.update();', 'sleep(100);')).every(Boolean), 'blocking autonomous code must fail');
 assert.equal(
   mastery.evaluate(15, unit15Source.replace('private Follower follower;', 'private Follower follower; private DcMotor rawMotor;')).at(-1),
   false,
   'raw mechanism hardware must stay out of FullAutonomous',
 );
-assert.ok(!mastery.evaluate(15, unit15Source.replace('PathChain route =', 'PathChain route = ;')).every(Boolean), 'invalid Java cannot complete Unit 15');
+assert.ok(!mastery.evaluate(15, unit15Source.replace('route = path(', 'route = ; path(')).every(Boolean), 'invalid Java cannot complete Unit 15');
 
 console.log('Advanced Unit 14 and Unit 15 integration checks passed.');

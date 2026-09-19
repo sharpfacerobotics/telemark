@@ -1,7 +1,7 @@
 ---
 id: pedro-pathing
-title: "Lesson 15.2: Interfacing with Pedro Pathing for Follower Control"
-sidebar_label: "15.2 · Pedro Pathing"
+title: "Lesson 15.2: Controlling a Pedro 3 Follower"
+sidebar_label: "15.2 · Pedro Pathing 3"
 sidebar_position: 2
 ---
 
@@ -9,127 +9,160 @@ import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import Unit15Simulator from '@site/src/components/Unit15Simulator';
 import {PathFollowingDiagram} from '@site/src/components/DocDiagrams';
 
-# Lesson 15.2: Interfacing with Pedro Pathing for Follower Control
+# Lesson 15.2: Controlling a Pedro 3 Follower
 
 ---
 
-## The Limitation of Encoder-Only Navigation
+## Why Use a Path Follower?
 
-Every encoder-based autonomous routine in this curriculum so far has followed the same pattern: command a motor to a tick target, wait for `isBusy()` to return false, then proceed to the next step. This works well for straight lines and simple turns on a clean practice floor. At competition, the combination of wheel slip on textured field tiles, variation in battery voltage between matches, and incidental contact with game elements introduces cumulative positioning errors. Each step in a multi-step autonomous sequence starts slightly off from where the previous step ended, and those offsets compound until the robot misses its final scoring target.
+Encoder-only autonomous routines often drive to one tick target, stop, turn, and repeat. Wheel slip, battery variation, and contact with field elements make every step start with a little error from the step before it.
 
-Pedro Pathing addresses this by maintaining a continuous estimate of the robot's position on the field using a high-frequency localization system, often dead-wheel encoders that are independent of the drivetrain. Because those wheels do not transmit drive torque, their slip behavior can differ from the drive wheels, though they are still affected by contact, geometry, and surface conditions. The Follower compares the pose estimate with the commanded path and adjusts motor power to reduce tracking error.
-
----
-
-## The Follower Class
-
-The central object in Pedro Pathing is the `Follower`. It manages the odometry localizer, the path execution, and the motor power calculations. Its entire public interface is built around three responsibilities:
-
-- **Initialization**: `new Follower(hardwareMap)` wires the Follower to your hardware. `setStartingPose(new Pose(x, y, heading))` tells it where on the field the robot begins, measured in inches from the field origin with heading in radians.
-- **Path execution**: `followPath(path)` commands the Follower to begin tracking a `Path` or `PathChain` object. The Follower takes over motor control for the duration of the path.
-- **Status polling**: `isBusy()` returns `true` while the Follower is actively tracking a path. `update()` must be called every loop iteration to process the latest odometry readings and recompute motor outputs.
-
-Call `follower.update()` consistently in the active loop so localization and path-control calculations continue at a useful rate. An occasional delayed cycle may be tolerable, but repeated gaps or blocking work can make pose and motor corrections stale. Placing `follower.update()` near the start of the loop makes that update easy to audit.
+Pedro Pathing continuously estimates the robot's field pose and corrects its drivetrain while following a geometric path. Pedro 3 combines localization, drivetrain control, and its Foresight following algorithm inside a `Follower`.
 
 <PathFollowingDiagram />
 
-:::info Official reference
-Pedro changes quickly, so use the official docs for current installation, tuning, and API details: [Pedro Pathing Docs](https://pedropathing.com/docs/pathing).
-:::
-
-:::tip Mentor note: path following failures are often mechanical
-Before changing constants, check that localization wheels spin freely, offsets are measured correctly, drive motor directions match the tuning guide, and `follower.update()` is called every active loop.
+:::info Pedro 3 setup comes first
+Use the [Pedro Pathing Quickstart](https://github.com/Pedro-Pathing/Quickstart) or complete the [official installation](https://pedropathing.com/docs/pathing/installation) and tuning guides before running these examples. In Pedro 3, your generated `Constants.create(hardwareMap)` method constructs the correctly configured `Follower`; `new Follower(hardwareMap)` is an older API and is not valid Pedro 3 setup.
 :::
 
 ---
 
-## Pose and Field Coordinates
+## The Pedro 3 Follower Lifecycle
 
-Pedro Pathing uses a field coordinate system where the origin (0, 0) is at one corner of the field, distances are measured in inches, and heading is in radians. Heading 0 points along the positive X-axis. The `Pose` class holds three values: `x`, `y`, and `heading`. It is used both to define the robot's starting position and to specify waypoints along a path.
+The important calls are:
+
+- **Create:** `Constants.create(hardwareMap)` assembles the drivetrain, localizer, and algorithm configured for your robot.
+- **Locate:** `follower.setPose(startPose)` establishes the robot's field pose before it moves.
+- **Follow:** `follower.follow(path)` begins direct path following.
+- **Update:** `follower.update()` must run every active loop so localization and motor commands continue to advance.
+- **Observe:** `follower.pose()` returns the current `Pose`; use `x()`, `y()`, and `heading()` to read it.
+
+Pedro 3 reports four follower modes through `follower.mode()`: `FOLLOW`, `HOLD`, `MANUAL`, and `IDLE`. `follower.following()` tells you whether it is actively tracking a path. `follower.isBusy()` is a stricter completion signal that also accounts for the follower's end conditions.
+
+:::tip Diagnose hardware before retuning software
+If the plotted path looks right but the robot oscillates or cuts corners, first check odometry mounting, wheel offsets, motor directions, and whether `follower.update()` runs every cycle.
+:::
+
+---
+
+## Poses and PoseFactory
+
+A `Pose` stores X and Y in inches and heading in radians. Pedro 3 recommends a `PoseFactory` so headings can be written in degrees and common transformations—such as alliance mirroring—can be applied consistently.
 
 ```java
-// Robot starts at the left side of the field, 12 inches from the back wall,
-// facing toward the opposing alliance wall (heading = 0 radians)
-follower.setStartingPose(new Pose(12, 12, 0));
+private final PoseFactory poseFactory = PoseFactory.degrees();
+
+private final Pose startPose = poseFactory.of(12, 12, 0);
+private final Pose parkPose  = poseFactory.of(60, 12, 0);
+```
+
+`poseFactory.of(x, y, heading)` uses the factory's angle unit. A raw `new Pose(x, y, heading)` always expects radians.
+
+---
+
+## Is Ivy Required?
+
+**No.** Pedro can follow a path directly:
+
+```java
+follower.follow(parkPath());
+
+while (opModeIsActive() && follower.following()) {
+    follower.update();
+}
+```
+
+That is reasonable for a one-path experiment. For a real autonomous routine, Pedro's documentation recommends a command framework instead of a hand-written state machine. [Ivy](https://pedropathing.com/docs/ivy) is the simplest choice because it includes Pedro-aware `follow()` and `hold()` commands.
+
+Use this rule of thumb:
+
+| Situation | Good choice |
+| --- | --- |
+| One path while learning or tuning | Direct `follower.follow(path)` |
+| Several paths plus mechanisms | Ivy commands |
+| Team already uses another command framework | Keep it and write one tested Pedro follow command |
+| Existing, reliable state machine | It can remain, but do not start a new one just to sequence Pedro paths |
+
+Ivy is a separate dependency and is not required by the follower itself:
+
+```gradle
+implementation 'com.pedropathing.ivy:pedro:1.1.1'
 ```
 
 ---
 
-## Annotated Code
-
-:::note
-This is an autonomous program. No gamepad input is used.
-:::
+## Annotated Pedro 3 + Ivy Example
 
 ```java
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.pedropathing.follower.Follower;
-import com.pedropathing.localization.Pose;
-import com.pedropathing.pathgen.BezierLine;
-import com.pedropathing.pathgen.Path;
-import com.pedropathing.pathgen.Point;
+import static com.pedropathing.api.Paths.line;
+import static com.pedropathing.ivy.Scheduler.schedule;
+import static com.pedropathing.ivy.pedro.PedroCommands.follow;
 
-@Autonomous(name="Pedro_Intro_Demo")
-public class PedroIntroDemo extends LinearOpMode {
+import com.pedropathing.api.PoseFactory;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.ivy.Scheduler;
+import com.pedropathing.math.Pose;
+import com.pedropathing.paths.Path;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import org.firstinspires.ftc.teamcode.pedro.Constants;
+
+@Autonomous(name="Pedro_3_Intro")
+public class Pedro3Intro extends LinearOpMode {
 
     private Follower follower;
+    private final PoseFactory poseFactory = PoseFactory.degrees();
+
+    private final Pose startPose = poseFactory.of(12, 12, 0);
+    private final Pose parkPose  = poseFactory.of(60, 12, 0);
+
+    private Path parkPath() {
+        return line(startPose, parkPose).linear(startPose, parkPose);
+    }
 
     @Override
     public void runOpMode() {
-        // Initialize the Follower. It maps its own hardware internally.
-        follower = new Follower(hardwareMap);
-
-        // Declare where the robot starts on the field
-        follower.setStartingPose(new Pose(12, 12, 0));
+        Scheduler.reset();
+        follower = Constants.create(hardwareMap);
+        follower.setPose(startPose);
+        follower.update();
 
         waitForStart();
+        if (isStopRequested()) return;
 
-        // Build a straight-line path from start to a point 48 inches ahead
-        Path straightPath = new Path(
-            new BezierLine(
-                new Point(12, 12, Point.CARTESIAN),
-                new Point(60, 12, Point.CARTESIAN)
-            )
-        );
+        schedule(follow(follower, parkPath()));
 
-        // Hand the path to the Follower to execute
-        follower.followPath(straightPath);
-
-        // Main execution loop. update() must be called every iteration.
-        while (opModeIsActive() && follower.isBusy()) {
+        while (opModeIsActive()) {
             follower.update();
+            Scheduler.execute();
 
-            telemetry.addData("X",      "%.2f", follower.getPose().getX());
-            telemetry.addData("Y",      "%.2f", follower.getPose().getY());
-            telemetry.addData("Busy",   follower.isBusy());
+            telemetry.addData("X", "%.2f", follower.pose().x());
+            telemetry.addData("Y", "%.2f", follower.pose().y());
+            telemetry.addData("Mode", follower.mode());
             telemetry.update();
         }
-
-        // Path complete. The Follower has stopped the motors.
-        telemetry.addData("Status", "Path complete");
-        telemetry.update();
-        sleep(500);
     }
 }
 ```
+
+The follower and scheduler are separate systems, so both require one update per loop. Ivy's `follow()` command starts the path and handles its completion condition; the OpMode does not need to poll and advance a custom state variable.
 
 ---
 
 ## Fill-in-the-Blank Practice
 
-1. To maintain accurate position tracking, `follower.__________()` must be called on every iteration of the main loop without exception.
-2. The robot's position and orientation on the field are represented by a `__________` object containing x, y, and heading values.
-3. `follower.__________()` returns `true` while the robot is actively executing a path and `false` once it has arrived at the destination.
+1. Pedro 3 creates the configured follower with `Constants.__________(hardwareMap)`.
+2. The current pose is returned by `follower.__________()`.
+3. Ivy is `__________` for direct path following but recommended for multi-step autonomous routines.
 
 <details>
 <summary>Show answers</summary>
 
-1. **`update`**
-2. **`Pose`**
-3. **`isBusy`**
+1. **`create`**
+2. **`pose`**
+3. **optional** (not required)
 
 </details>
 
@@ -137,11 +170,9 @@ public class PedroIntroDemo extends LinearOpMode {
 
 ## Simulator Challenge
 
-Write the initialization and status-check logic for an autonomous program that uses Pedro Pathing. Before `waitForStart()`, create the `Follower` and set the robot's starting pose to (8, 60) with a heading of 0 radians. After start, write a loop that calls `follower.update()` and reports the robot's current X, Y, and heading to telemetry while the Follower is busy. Do not worry about building a path yet. Just demonstrate the correct Follower lifecycle.
+Complete the Pedro 3 lifecycle. Create the follower with `Constants.create(hardwareMap)`, create a degree-based `PoseFactory`, set the starting pose to `(8, 60, 0°)`, call `follower.update()` before waiting for Start and on every active loop, and report `follower.pose().x()`, `.y()`, and `.heading()`.
 
-:::note
-This is an autonomous program. No gamepad input is used.
-:::
+The simulator remains on the DECODE field so new members can focus on the API without learning a second game layout.
 
 <SimulatorRunGuide />
 
@@ -151,16 +182,19 @@ This is an autonomous program. No gamepad input is used.
 <summary>Show answer</summary>
 
 ```java
-follower = new Follower(hardwareMap);
+PoseFactory poseFactory = PoseFactory.degrees();
+follower = Constants.create(hardwareMap);
+follower.setPose(poseFactory.of(8, 60, 0));
+follower.update();
 
-follower.setStartingPose(new Pose(8, 60, 0));
+waitForStart();
 
-while (opModeIsActive() && follower.isBusy()) {
+while (opModeIsActive()) {
     follower.update();
 
-    telemetry.addData("X",       "%.2f", follower.getPose().getX());
-    telemetry.addData("Y",       "%.2f", follower.getPose().getY());
-    telemetry.addData("Heading", "%.4f", follower.getPose().getHeading());
+    telemetry.addData("X",       "%.2f", follower.pose().x());
+    telemetry.addData("Y",       "%.2f", follower.pose().y());
+    telemetry.addData("Heading", "%.4f", follower.pose().heading());
     telemetry.update();
 }
 ```
@@ -168,7 +202,7 @@ while (opModeIsActive() && follower.isBusy()) {
 </details>
 
 :::info Connects to the mechanical track
-The follower is only as good as the localization under it, and that is a mounting problem.
+The follower is only as good as the localization under it, and that is also a mounting problem.
 
 See [Lesson 7.4: Mounting Odometry Pods for Reliable Localization](/mechanical/module-07/odometry-pods).
 :::
@@ -176,5 +210,5 @@ See [Lesson 7.4: Mounting Odometry Pods for Reliable Localization](/mechanical/m
 <MarkComplete
   lessonId="unit-15/pedro-pathing"
   nextUnit="/docs/unit-15/bezier-curves"
-  nextUnitName="Lesson 15.3: Implementing Path Following with Bézier Curves"
+  nextUnitName="Lesson 15.3: Creating Pedro 3 Paths with Bézier Curves"
 />

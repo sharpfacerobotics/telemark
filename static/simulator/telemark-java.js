@@ -30,8 +30,8 @@
     "DistanceSensor", "IMU", "BNO055IMU", "ElapsedTime", "HardwareMap",
     "RevHubOrientationOnRobot", "YawPitchRollAngles", "WebcamName",
     "VisionPortal", "AprilTagProcessor", "AprilTagDetection", "Rect",
-    "Limelight3A", "LLResult", "Follower", "Pose", "Point", "Path",
-    "PathChain", "BezierCurve", "BezierLine",
+    "Limelight3A", "LLResult", "Follower", "Pose", "PoseFactory", "Path",
+    "Command", "Scheduler", "Constants", "Paths", "Commands", "Groups", "PedroCommands",
   ]);
   const MODIFIERS = new Set([
     "public", "private", "protected", "static", "final", "abstract",
@@ -802,7 +802,11 @@
       const token = tokens[i];
       const value = token.value;
 
-      if (value === "this" && tokens[i + 1]?.value === ".") continue;
+      if (value === "this" && tokens[i + 1]?.value === ".") {
+        if (options.preserveThis) output += "this";
+        else i += 1;
+        continue;
+      }
       if (value === "null") {
         output += "null ";
         continue;
@@ -864,6 +868,23 @@
         }
         output += "new " + (typeName === "Rect" ? "__telemarkRect" : typeName) + " ";
         i += 1;
+        continue;
+      }
+      if (
+        options.fieldNames?.has(value)
+        && token.type === "identifier"
+        && tokens[i - 1]?.value !== "."
+      ) {
+        output += (options.staticFieldOwners?.[value] || "this") + "." + value + " ";
+        continue;
+      }
+      if (
+        options.methodNames?.has(value)
+        && token.type === "identifier"
+        && tokens[i - 1]?.value !== "."
+        && tokens[i + 1]?.value === "("
+      ) {
+        output += "this." + value + " ";
         continue;
       }
       if (value === "(double)" || value === "(int)") continue;

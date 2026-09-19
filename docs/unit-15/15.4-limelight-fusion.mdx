@@ -97,9 +97,10 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.robotcore.util.Range;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.localization.Pose;
+import com.pedropathing.math.Pose;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 @Autonomous(name="Limelight_Fusion_Demo")
 public class LimelightFusionDemo extends LinearOpMode {
@@ -121,11 +122,12 @@ public class LimelightFusionDemo extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        follower = new Follower(hardwareMap);
+        follower = Constants.create(hardwareMap);
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
         Pose start = new Pose(12, 12, 0);
-        follower.setStartingPose(start);
+        follower.setPose(start);
+        follower.update();
         previousPrediction = start;
 
         limelight.pipelineSwitch(0);
@@ -138,9 +140,9 @@ public class LimelightFusionDemo extends LinearOpMode {
             growPredictionUncertainty();       // P = P + Q
             applyVisionMeasurement();          // gated measurement update
 
-            Pose estimate = follower.getPose();
-            telemetry.addData("Fused X", "%.2f in", estimate.getX());
-            telemetry.addData("Fused Y", "%.2f in", estimate.getY());
+            Pose estimate = follower.pose();
+            telemetry.addData("Fused X", "%.2f in", estimate.x());
+            telemetry.addData("Fused Y", "%.2f in", estimate.y());
             telemetry.update();
         }
 
@@ -148,13 +150,13 @@ public class LimelightFusionDemo extends LinearOpMode {
     }
 
     private void growPredictionUncertainty() {
-        Pose predicted = follower.getPose();
+        Pose predicted = follower.pose();
         double distance = Math.hypot(
-            predicted.getX() - previousPrediction.getX(),
-            predicted.getY() - previousPrediction.getY()
+            predicted.x() - previousPrediction.x(),
+            predicted.y() - previousPrediction.y()
         );
         double turn = Math.abs(AngleUnit.normalizeRadians(
-            predicted.getHeading() - previousPrediction.getHeading()
+            predicted.heading() - previousPrediction.heading()
         ));
 
         // Simple process-noise model: uncertainty grows with motion.
@@ -183,11 +185,11 @@ public class LimelightFusionDemo extends LinearOpMode {
         double measuredHeading =
             botPose.getOrientation().getYaw(AngleUnit.RADIANS);
 
-        Pose predicted = follower.getPose();
-        double innovationX = measuredX - predicted.getX();
-        double innovationY = measuredY - predicted.getY();
+        Pose predicted = follower.pose();
+        double innovationX = measuredX - predicted.x();
+        double innovationY = measuredY - predicted.y();
         double innovationHeading = AngleUnit.normalizeRadians(
-            measuredHeading - predicted.getHeading()
+            measuredHeading - predicted.heading()
         );
 
         // A tunable measurement-noise model: distant, single-tag poses get
@@ -227,10 +229,10 @@ public class LimelightFusionDemo extends LinearOpMode {
             headingVariance / (headingVariance + visionHeadingVariance);
 
         Pose fused = new Pose(
-            predicted.getX() + gainX * innovationX,
-            predicted.getY() + gainY * innovationY,
+            predicted.x() + gainX * innovationX,
+            predicted.y() + gainY * innovationY,
             AngleUnit.normalizeRadians(
-                predicted.getHeading() + gainHeading * innovationHeading
+                predicted.heading() + gainHeading * innovationHeading
             )
         );
         follower.setPose(fused);
@@ -286,21 +288,21 @@ void correctPoseFromLimelight() {
     Pose3D botpose = result.getBotpose();
     if (botpose == null) return;
 
-    Pose estimate = follower.getPose();
-    double innovationX = botpose.getPosition().x * 39.3701 - estimate.getX();
-    double innovationY = botpose.getPosition().y * 39.3701 - estimate.getY();
+    Pose estimate = follower.pose();
+    double innovationX = botpose.getPosition().x * 39.3701 - estimate.x();
+    double innovationY = botpose.getPosition().y * 39.3701 - estimate.y();
     double innovationHeading = AngleUnit.normalizeRadians(
-        botpose.getOrientation().getYaw(AngleUnit.RADIANS) - estimate.getHeading()
+        botpose.getOrientation().getYaw(AngleUnit.RADIANS) - estimate.heading()
     );
 
     if (Math.hypot(innovationX, innovationY) > 12.0) return;
 
     double gain = 0.35;
     follower.setPose(new Pose(
-        estimate.getX() + gain * innovationX,
-        estimate.getY() + gain * innovationY,
+        estimate.x() + gain * innovationX,
+        estimate.y() + gain * innovationY,
         AngleUnit.normalizeRadians(
-            estimate.getHeading() + gain * innovationHeading
+            estimate.heading() + gain * innovationHeading
         )
     ));
 }
@@ -311,5 +313,5 @@ void correctPoseFromLimelight() {
 <MarkComplete
   lessonId="unit-15/limelight-fusion"
   nextUnit="/docs/unit-15/full-autonomous"
-  nextUnitName="Lesson 15.5: Designing a Full Autonomous Sequence using Bézier Pathing and Vision"
+  nextUnitName="Lesson 15.5: Coordinating a Pedro 3 Autonomous with Ivy"
 />

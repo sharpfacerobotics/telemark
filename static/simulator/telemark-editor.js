@@ -66,9 +66,12 @@
     ],
     follower: [
       {label: "update", insertText: "update()", detail: "Advance localization and following"},
-      {label: "getPose", insertText: "getPose()", detail: "Current pose estimate"},
+      {label: "pose", insertText: "pose()", detail: "Current Pedro 3 pose estimate"},
       {label: "setPose", insertText: "setPose(new Pose(x, y, heading))", detail: "Apply a corrected pose"},
-      {label: "followPath", insertText: "followPath(path)", detail: "Start following a path"},
+      {label: "follow", insertText: "follow(path)", detail: "Start following a Pedro 3 Path"},
+      {label: "mode", insertText: "mode()", detail: "Current follower mode"},
+      {label: "following", insertText: "following()", detail: "Path currently being followed"},
+      {label: "atParametricEnd", insertText: "atParametricEnd()", detail: "Whether the path reached its parametric end"},
       {label: "isBusy", insertText: "isBusy()", detail: "Check whether a path is active"},
     ],
     imu: [

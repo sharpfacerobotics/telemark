@@ -55,6 +55,16 @@ const derived=java.compile(`class Child extends Parent {int value(){return n;}} 
 assert.equal(run(derived).scope.result,5,'parent may appear after subclass');
 const explicitSuper=java.compile('class Child extends Parent {int extra=2; Child(int n){super(n);} int value(){return n+extra;}} class Parent {int n; Parent(int n){this.n=n;}} public class Main extends OpMode {Child child=new Child(5);int result;void loop(){result=child.value();}}');
 assert.equal(run(explicitSuper).scope.result,7,'super runs before child field initialization');
+const fieldExpressions=java.compile(`class Helper {
+  String first="left"; String second="right"; String[] names; int count;
+  void initialize(){names=new String[]{first,second};for(String name:names){count++;}}
+}
+public class Main extends OpMode {
+  Helper helper=new Helper(); int result;
+  void init(){helper.initialize();result=helper.count;}
+  void loop(){}
+}`);
+assert.equal(run(fieldExpressions).scope.result,2,'array initializers and enhanced for expressions resolve helper-class fields');
 assert.equal(compile([{name:'Main.java',source:'package robot; import Helper; public class Main extends OpMode {void loop(){}}'},{name:'Helper.java',source:'public class Helper {}'}]).ok,false,'unnamed-package classes cannot be imported');
 const sameNames=[{name:'Main.java',source:'import a.Helper; public class Main extends OpMode{Helper h=new Helper(); int result;void loop(){result=h.value();}}'},
  {name:'a/Helper.java',source:'package a; public class Helper{int value(){return 1;}}'},

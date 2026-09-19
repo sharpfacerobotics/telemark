@@ -334,7 +334,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     id: 'UNIT_15',
     label: 'Unit 15',
     title: 'Advanced Integration',
-    desc: 'Combine vision, localization, pathing, and autonomous state control.',
+    desc: 'Combine vision, localization, Pedro 3 pathing, and Ivy command control.',
     tier: 'Advanced',
     slug: 'unit-15',
     overviewPath: '/docs/unit-15',
@@ -343,11 +343,11 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Dashboard',
     lessonCount: 6,
     overview:
-      'Combine vision, localization, path following, and state-machine control into a complete autonomous routine.',
+      'Combine vision, localization, Pedro 3 path following, and Ivy commands into a complete autonomous routine.',
     outcomes: [
       'Use the Limelight 3A to run dedicated vision pipelines and retrieve validated targeting data from robot code.',
-      'Build smooth autonomous trajectories with Pedro Pathing, including PathChains and Bezier-based motion planning.',
-      'Fuse AprilTag-based global pose corrections with odometry and coordinate full routines using non-blocking state-machine logic.',
+      'Build smooth autonomous trajectories with Pedro 3 line(), curve(), and compound Path APIs.',
+      'Fuse AprilTag-based global pose corrections with odometry and coordinate full routines using non-blocking Ivy commands.',
     ],
   },
 ];
@@ -356,7 +356,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-00/classes-and-objects',
     label: '0.1 · Classes & Objects',
-    title: 'Lesson 0.1: Blueprints, Houses, Classes, and Objects',
+    title: 'Lesson 0.1: Classes, and Objects',
     path: '/docs/unit-00/classes-and-objects',
     unitSlug: 'unit-00',
     unitLabel: 'Unit 0',
@@ -1246,8 +1246,8 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   },
   {
     id: 'unit-15/pedro-pathing',
-    label: '15.2 · Pedro Pathing',
-    title: 'Lesson 15.2: Interfacing with Pedro Pathing for Follower Control',
+    label: '15.2 · Pedro Pathing 3',
+    title: 'Lesson 15.2: Controlling a Pedro 3 Follower',
     path: '/docs/unit-15/pedro-pathing',
     unitSlug: 'unit-15',
     unitLabel: 'Unit 15',
@@ -1255,8 +1255,8 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   },
   {
     id: 'unit-15/bezier-curves',
-    label: '15.3 · Bézier Curves',
-    title: 'Lesson 15.3: Implementing Path Following with Bézier Curves',
+    label: '15.3 · Pedro 3 Paths',
+    title: 'Lesson 15.3: Creating Pedro 3 Paths with Bézier Curves',
     path: '/docs/unit-15/bezier-curves',
     unitSlug: 'unit-15',
     unitLabel: 'Unit 15',
@@ -1273,8 +1273,8 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   },
   {
     id: 'unit-15/full-autonomous',
-    label: '15.5 · Full Autonomous',
-    title: 'Lesson 15.5: Designing a Full Autonomous Sequence using Bézier Pathing and Vision',
+    label: '15.5 · Pedro 3 + Ivy',
+    title: 'Lesson 15.5: Coordinating a Pedro 3 Autonomous with Ivy',
     path: '/docs/unit-15/full-autonomous',
     unitSlug: 'unit-15',
     unitLabel: 'Unit 15',

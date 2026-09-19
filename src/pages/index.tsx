@@ -1,85 +1,11 @@
-import React, {useState} from 'react';
+import React from 'react';
 import Link from '@docusaurus/Link';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import {useColorMode} from '@docusaurus/theme-common';
 import Layout from '@theme/Layout';
 import Head from '@docusaurus/Head';
-import {TOOL_CATALOG} from '@site/src/components/mechanical/toolCatalog';
-import {LATEST_RELEASE} from '../telemark/changelog';
 import styles from './index.module.css';
-import AuthenticatedSimulatorNavigator from '../components/AuthenticatedSimulatorNavigator';
-import SimulatorWorkflow from '../components/SimulatorWorkflow';
-import {
-  CURRICULUM_LESSON_COUNT,
-  CURRICULUM_UNIT_COUNT,
-  CURRICULUM_UNITS,
-  type CurriculumUnit,
-} from '../telemark/curriculum';
-import {
-  MECHANICAL_LESSON_COUNT,
-  MECHANICAL_UNITS,
-  MECHANICAL_UNIT_COUNT,
-} from '../telemark/mechanical';
-import {
-  BLOCKS_LESSON_COUNT,
-} from '../telemark/blocksCurriculum';
-import {TOTAL_LESSON_COUNT, TOTAL_UNIT_COUNT} from '../telemark/tracks';
-
-const MOBILE_CURRICULUM_PREVIEW_COUNT = 4;
-
-const BLOCKS_FOUNDATION_CARD: CurriculumUnit = {
-  id: 'BLOCKS_FOUNDATIONS',
-  label: 'Blocks',
-  title: 'Programming Foundations',
-  desc: 'Learn variables, decisions, loops, functions, lists, and debugging before Java.',
-  tier: 'Beginner',
-  slug: 'blocks',
-  overviewPath: '/blocks',
-  startPath: '/blocks/blocks-unit-00/workspace-and-run-controls',
-  nextPath: '/docs/unit-00',
-  nextLabel: 'Java Unit 0',
-  lessonCount: BLOCKS_LESSON_COUNT,
-  overview: 'Six block-coding units that prepare a new programmer for the Java curriculum.',
-  outcomes: [],
-};
-
-const SOFTWARE_HOME_UNITS = [BLOCKS_FOUNDATION_CARD, ...CURRICULUM_UNITS];
-
-/** Real screenshots of the existing lessons and tools. */
-const SHOWCASE = [
-  {image: 'img/showcase/slide-calculator.jpg', text: 'Linear slide sizing', url: '/simulator#slide', width: 2200, height: 1452,
-   alt: 'The linear slide calculator, with extension, spool diameter and cable force filled in.'},
-  {image: 'img/showcase/unit-8-2-simulator.jpg', text: 'Unit 8.2 simulator', url: '/docs/unit-08/set-direction', width: 2200, height: 1452,
-   alt: 'The Unit 8.2 simulator: a mecanum drivetrain in a 3D field, the checklist of requirements it has to meet, the OpMode being written, and a gamepad.'},
-  {image: 'img/showcase/unit-2-mastery.jpg', text: 'Unit 2 mastery challenge', url: '/docs/unit-02/mastery-coding-challenge', width: 3300, height: 2178,
-   alt: 'The Unit 2 mastery challenge: a competition TeleOp being written against seven checks, with the team\u2019s own CAD robot in the field beside it.'},
-  {image: 'img/showcase/unit-6-mastery.jpg', text: 'Autonomous, without sleep', url: '/docs/unit-06/mastery-coding-challenge', width: 3300, height: 2178,
-   alt: 'The Unit 6 mastery challenge: a non-blocking autonomous LinearOpMode, with FTC team 17438\u2019s imported robot in the field.'},
-  {image: 'img/showcase/cad-check.jpg', text: 'CAD file check', url: '/simulator#cad-check', width: 2200, height: 1452,
-   alt: 'The CAD check reporting measured wall thickness and hole sizes from an uploaded STEP file.'},
-  {image: 'img/showcase/arm-simulator.jpg', text: 'Arm simulator', url: '/simulator#arm-sim', width: 2200, height: 1452,
-   alt: 'The arm simulator running a time-stepped arm and plotting whether it holds.'},
-  {image: 'img/showcase/gear-ratio.jpg', text: 'Gear ratio', url: '/simulator#arm-torque', width: 2200, height: 1452,
-   alt: 'The gear ratio calculator working a reduction from a required output torque.'},
-  {image: 'img/showcase/beam-deflection.jpg', text: 'Beam deflection', url: '/simulator', width: 2200, height: 1452,
-   alt: 'The beam deflection calculator showing how far a given extrusion sags under load.'},
-  {image: 'img/showcase/weight-budget.jpg', text: 'Weight budget', url: '/simulator#weight', width: 2200, height: 1452,
-   alt: 'The weight budget, with the robot mass split across named subsystems.'},
-  {image: 'img/showcase/lesson.jpg', text: 'A lesson', url: '/docs/unit-00/classes-and-objects', width: 2200, height: 1452,
-   alt: 'A lesson page, with the explanation running beside a worked example.'},
-  {image: 'img/showcase/cad-practice.jpg', text: 'CAD practice', url: '/mechanical/module-00/design-cycle', width: 2200, height: 1452,
-   alt: 'A CAD practice exercise stating the dimensions a submitted model has to hit.'},
-];
-
-const HOME_TOOLS = [
-  {name: 'CAD file check', path: '/simulator#cad-check', desc: 'Upload a STEP or STL export and compare its measured geometry with the exercise requirements.'},
-  {name: 'Arm gravity torque', path: '/simulator#arm-torque', desc: 'Calculate the torque at the arm\u2019s worst angle and the reduction needed to supply it.'},
-  {name: 'Linear slide sizing', path: '/simulator#slide', desc: 'Check extension, spool diameter, and cable force for a proposed slide.'},
-  {name: 'Arm simulator', path: '/simulator#arm-sim', desc: 'Run a time-stepped arm with your measurements and inspect its motion and load.'},
-  {name: 'Tap drill and clearance', path: '/simulator#tap-drill', desc: 'Look up standard tap-drill and clearance-hole sizes.'},
-  {name: 'Weight budget', path: '/simulator#weight', desc: 'Assign and track the robot\u2019s mass by subsystem.'},
-];
 
 /** Keep the theme-matched product reel moving without interrupting the page. */
 function HeroVideo(): React.JSX.Element {
@@ -101,15 +27,8 @@ function HeroVideo(): React.JSX.Element {
     const video = videoRef.current;
     if (!video || activeSrcRef.current === src) return undefined;
 
-    // Keep the last pre-load position separately: assigning a new src resets
-    // currentTime to zero before a rapid second theme change can read it.
     const currentPosition = Number.isFinite(video.currentTime) ? video.currentTime : 0;
-    // Prefer the live position whenever there is one. During a rapid second
-    // switch the browser may already have reset it to zero, in which case the
-    // saved pre-load position is the reliable value.
-    if (currentPosition > 0.05) {
-      playbackTimeRef.current = currentPosition;
-    }
+    if (currentPosition > 0.05) playbackTimeRef.current = currentPosition;
     if (!switchingRef.current) {
       shouldPlayRef.current = (!video.paused && !video.ended) || video.autoplay;
     }
@@ -131,8 +50,8 @@ function HeroVideo(): React.JSX.Element {
 
         if (snapshot.wasPlaying) {
           void video.play().catch(() => {
-            // Browser autoplay policy may still pause playback; the selected
-            // theme and timestamp remain correct if that happens.
+            // Autoplay policy may pause playback; the theme and position are
+            // still restored correctly.
           });
         } else {
           video.pause();
@@ -147,8 +66,6 @@ function HeroVideo(): React.JSX.Element {
       }
     };
 
-    // Waiting for playable media avoids browsers discarding a seek issued
-    // while only the replacement file's metadata has arrived.
     video.addEventListener('canplay', restorePlayback, {once: true});
     video.src = src;
     video.load();
@@ -184,16 +101,13 @@ function HeroSection(): React.JSX.Element {
   return (
     <section className={styles.hero}>
       <div className={styles.heroCopy}>
-        <p className={styles.heroBadge}>Student-built FTC software and mechanical curriculum</p>
-
         <h1 className={styles.heroTitle}>
           <span className={styles.titleLine1}>Learn FTC</span>
           <span className={styles.titleLine2}>Robotics</span>
         </h1>
 
         <p className={styles.heroSub}>
-          Learn to program an FTC robot, test your code in the browser,
-          and check a mechanical design before you build.
+          Learn through experience with integrated lessons featuring software and mechanical simulators.
         </p>
 
         <div className={styles.heroActions}>
@@ -211,336 +125,22 @@ function HeroSection(): React.JSX.Element {
   );
 }
 
-const FIGURES = [
-  {value: TOTAL_LESSON_COUNT, label: 'Lessons'},
-  {value: TOTAL_UNIT_COUNT, label: 'Units and modules'},
-  {value: TOOL_CATALOG.length, label: 'Calculators and checks'},
-];
-
-function StatsBar(): React.JSX.Element {
-  return (
-    <div className={styles.figures}>
-      <div className={styles.figureRow}>
-      {FIGURES.map((figure) => (
-        <div key={figure.label} className={styles.figure}>
-          <span className={styles.figureValue}>
-            {figure.value}
-          </span>
-          <span className={styles.figureLabel}>{figure.label}</span>
-        </div>
-      ))}
-      </div>
-      <p className={styles.figuresNote}>
-        <Link to="/changelog">Version {LATEST_RELEASE.version}: {LATEST_RELEASE.title}</Link>
-      </p>
-    </div>
-  );
-}
-
-function CurriculumSection({
-  units,
-  label,
-  id,
-  heading,
-  blurb,
-  stat,
-}: {
-  units: CurriculumUnit[];
-  label: string;
-  id: string;
-  heading: string;
-  blurb: string;
-  /** The track's size, which the removed tracks section used to carry. */
-  stat: string;
-}): React.JSX.Element {
-  const [showAllMobile, setShowAllMobile] = useState(false);
-
-  return (
-    <section className={styles.section} id={id}>
-      <p className={styles.sectionLabel}>{label}</p>
-      <h2 className={styles.sectionTitle}>{heading}</h2>
-      <p className={styles.sectionDesc}>{blurb}</p>
-      <p className={styles.trackStat}>{stat}</p>
-
-      <div className={styles.curriculumGrid} id={`${id}-curriculum-list`}>
-        {units.map((unit, index) => {
-          const cardContent = (
-            <>
-            <div className={styles.unitNum}>{unit.label}</div>
-            <div className={styles.unitTitle}>{unit.title}</div>
-            <span className={styles.unitTag}>
-              {unit.tier}
-            </span>
-            <div className={styles.unitDesc}>{unit.desc}</div>
-            </>
-          );
-
-          return (
-            <Link
-              to={unit.overviewPath}
-              key={unit.id}
-              className={`${styles.unitCard} ${
-                index >= MOBILE_CURRICULUM_PREVIEW_COUNT && !showAllMobile
-                  ? styles.mobileCurriculumExtra
-                  : ''
-              }`}
-            >
-              {cardContent}
-            </Link>
-          );
-        })}
-      </div>
-      {units.length > MOBILE_CURRICULUM_PREVIEW_COUNT && (
-        <button
-          type="button"
-          className={styles.mobileCurriculumToggle}
-          aria-expanded={showAllMobile}
-          aria-controls={`${id}-curriculum-list`}
-          onClick={() => setShowAllMobile((current) => !current)}
-        >
-          {showAllMobile ? 'Show fewer' : `Show all ${units.length}`}
-        </button>
-      )}
-    </section>
-  );
-}
-
-function FeatureShot({
-  src,
-  alt,
-  width = 1100,
-  height = 726,
-}: {
-  src: string;
-  alt: string;
-  width?: number;
-  height?: number;
-}): React.JSX.Element {
-  const base = useBaseUrl('/').replace(/\/$/, '');
-  return (
-    <figure className={styles.featureShot}>
-      <img src={`${base}/${src}`} alt={alt} loading="lazy" decoding="async" width={width} height={height} />
-    </figure>
-  );
-}
-
-function SimulatorSection(): React.JSX.Element {
-  return (
-    <section className={styles.section}>
-      <div className={styles.featureRow}>
-        <div>
-          <h2 className={styles.sectionTitle}>Run Java in the browser</h2>
-          <p className={styles.sectionDesc}>
-            Write and run each lesson's code against simulated hardware. Use
-            telemetry and requirement checks to find mistakes before testing
-            on the robot.
-          </p>
-        </div>
-        <FeatureShot
-          src="img/showcase/unit-6-mastery-homepage.png"
-          alt="The Unit 6 coding challenge open beside FTC Team 17438's simulated robot and gamepad."
-          width={1672}
-          height={941}
-        />
-      </div>
-      <details className={styles.simulatorGuide}>
-        <summary>Using the simulator</summary>
-        <SimulatorWorkflow
-          className={styles.simulatorWorkflow}
-          itemClassName={styles.simulatorStep}
-          taskClassName={styles.simulatorTasks}
-        />
-      </details>
-      <p className={styles.simulatorLimit}>
-        Use a physical robot to verify wiring, motor direction, friction, and
-        final tuning that the browser cannot model.
-      </p>
-      <AuthenticatedSimulatorNavigator
-        simulatorId="homepage_navigator"
-        wrapperClassName={styles.simulatorWrapper}
-        toolbarClassName={styles.simulatorToolbar}
-        toolbarButtonClassName={styles.simulatorToolbarButton}
-      />
-    </section>
-  );
-}
-
-/**
- * The mechanical counterpart to the simulator section.
- *
- * The software track had a section showing what you can actually do in the
- * browser and the mechanical track had none, so the page implied one track was
- * interactive and the other was reading. Both halves run something.
- */
-function ToolsSection(): React.JSX.Element {
-  return (
-    <section className={styles.section} id="tools">
-      <div className={`${styles.featureRow} ${styles.featureRowFlip}`}>
-        <div>
-          <h2 className={styles.sectionTitle}>Check your mechanical design</h2>
-          <p className={styles.sectionDesc}>
-            Use {TOOL_CATALOG.length} calculators to check mechanism dimensions
-            and loads. The CAD check measures an exported model against the
-            exercise requirements.
-          </p>
-        </div>
-        <FeatureShot
-          src="img/showcase/cad-check.jpg"
-          alt="The CAD check reporting measured wall thickness and hole sizes from an uploaded file."
-        />
-      </div>
-
-      <div className={styles.toolStrip}>
-        {HOME_TOOLS.slice(0, 4).map((tool) => (
-          <div key={tool.path} className={styles.toolCard}>
-            <Link to={tool.path} className={styles.toolLink}>
-              <span className={styles.toolName}>{tool.name}</span>
-              <span className={styles.toolDesc}>{tool.desc}</span>
-            </Link>
-          </div>
-        ))}
-      </div>
-
-      <p className={styles.toolLimit}>
-        Calculators check the design arithmetic. Test grip, friction, and game
-        element behavior with a physical prototype.
-      </p>
-
-      <div className={styles.heroActions}>
-        <Link to="/simulator#cad-check" className={styles.btnTrackAlt}>
-          Open the CAD check
-        </Link>
-      </div>
-    </section>
-  );
-}
-
-function ShowcaseSection(): React.JSX.Element {
-  const base = useBaseUrl('/').replace(/\/$/, '');
-  return (
-    <section className={styles.section} id="showcase">
-      <h2 className={styles.sectionTitle}>See the curriculum and tools</h2>
-      <p className={styles.sectionDesc}>
-        Open any screenshot to use the lesson, simulator, calculator, or CAD
-        exercise shown.
-      </p>
-
-      <div className={styles.gallery}>
-        {SHOWCASE.map((shot) => (
-          <Link key={shot.image} to={shot.url} className={styles.galleryItem}>
-            <figure>
-              <img src={`${base}/${shot.image}`} alt={shot.alt} width={shot.width} height={shot.height} loading="lazy" decoding="async" />
-              <figcaption>{shot.text}</figcaption>
-            </figure>
-          </Link>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function CtaSection(): React.JSX.Element {
-  return (
-    <div className={styles.ctaSection}>
-      <div className={styles.ctaBox}>
-        <h2 className={styles.ctaTitle}>
-          Start with the fundamentals.
-        </h2>
-        <p className={styles.ctaSub}>
-          Choose the software or mechanical track. Each starts with the basics
-          and includes exercises you can work through at your own pace.
-        </p>
-        <div className={styles.heroActions}>
-          <Link to="/docs/unit-00/classes-and-objects" className={styles.btnPrimary}>
-            Begin Unit 0
-          </Link>
-          <Link to="/mechanical/module-00/design-cycle" className={styles.btnTrackAlt}>
-            Begin Module 0
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/** A full-width ground for one section. */
-function Band({tint, children}: {tint?: boolean; children: React.ReactNode}): React.JSX.Element {
-  return (
-    <div className={tint ? `${styles.band} ${styles.bandTint}` : styles.band}>
-      {children}
-    </div>
-  );
-}
-
-// ─── Root export ──────────────────────────────────────────────────────────────
-
 export default function Home(): React.JSX.Element {
-  const { siteConfig } = useDocusaurusContext();
+  const {siteConfig} = useDocusaurusContext();
   const buildCommit = String(siteConfig.customFields?.buildCommit ?? 'unknown');
 
   return (
     <Layout
       title={siteConfig.title}
-      description="Telemark is a student-built FTC curriculum with two tracks: Java programming with browser simulators, and mechanical engineering with design calculators."
+      description="Learn FTC robotics through integrated software and mechanical lessons with browser-based simulators."
       wrapperClassName={styles.homeWrapper}
     >
       <Head>
         <meta name="telemark-build-commit" content={buildCommit} />
       </Head>
 
-      {/* Font Awesome is used by the simulator controls. */}
-      <link
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-        rel="stylesheet"
-      />
-
       <main className={styles.lp}>
         <HeroSection />
-
-        {/* Sections sit on alternating grounds rather than being separated by
-            hairlines. A rule between two identical backgrounds says only that
-            something ended; a change of ground says what the next thing is. */}
-        <Band tint>
-          <StatsBar />
-        </Band>
-
-        <Band>
-          <CurriculumSection
-            units={SOFTWARE_HOME_UNITS}
-            label="Software track"
-            id="curriculum"
-            heading={`Blocks foundations and ${CURRICULUM_UNIT_COUNT} Java units`}
-            blurb="Start with Blocks if you are new to programming. If you already know variables, conditions, and loops, begin with Java Unit 0."
-            stat={`${BLOCKS_LESSON_COUNT + CURRICULUM_LESSON_COUNT} software lessons`}
-          />
-        </Band>
-
-        <Band tint>
-          <CurriculumSection
-            units={MECHANICAL_UNITS}
-            label="Mechanical track"
-            id="mechanical"
-            heading={`${MECHANICAL_UNIT_COUNT} modules from first sketch to competition`}
-            blurb="Learn the design process, CAD, materials, power transmission, fabrication, testing, and competition maintenance."
-            stat={`${MECHANICAL_UNIT_COUNT} modules · ${MECHANICAL_LESSON_COUNT} lessons`}
-          />
-        </Band>
-
-        <Band>
-          <SimulatorSection />
-        </Band>
-
-        <Band tint>
-          <ToolsSection />
-        </Band>
-
-        <Band>
-          <ShowcaseSection />
-        </Band>
-
-        <Band tint>
-          <CtaSection />
-        </Band>
       </main>
     </Layout>
   );

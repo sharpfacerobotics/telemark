@@ -1,266 +1,189 @@
 ---
 id: full-autonomous
-title: "Lesson 15.5: Designing a Full Autonomous Sequence using Bézier Pathing and Vision"
-sidebar_label: "15.5 · Full Autonomous"
+title: "Lesson 15.5: Coordinating a Pedro 3 Autonomous with Ivy"
+sidebar_label: "15.5 · Pedro 3 + Ivy"
 sidebar_position: 5
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import Unit15Simulator from '@site/src/components/Unit15Simulator';
 
-# Lesson 15.5: Designing a Full Autonomous Sequence using Bézier Pathing and Vision
+# Lesson 15.5: Coordinating a Pedro 3 Autonomous with Ivy
 
 ---
 
 ## What This Lesson Assembles
 
-This lesson brings the major techniques from the unit into one integrated autonomous example. It combines:
+This lesson combines:
 
-- The `Intake`, `Lift`, and `RobotHardware` classes built in Unit 13.
-- Pre-match spike mark detection via a custom `VisionProcessor` (Unit 14) to select the correct scoring path.
-- A `Follower` and `PathChain` of `BezierCurve` segments (Lessons 15.2 and 15.3) to execute smooth field navigation.
-- Gated Limelight AprilTag updates (Lesson 15.4) to constrain accumulated odometry drift.
-- A state machine (introduced in the curriculum PDF) to coordinate mechanism actions with drivetrain movement without blocking `follower.update()`.
+- The DECODE `RobotHardware`, intake, transfer, launcher, and sensor subsystems built earlier.
+- Pre-match vision to select an autonomous branch.
+- Pedro 3 `Path` methods using `line()`, `curve()`, and `path()`.
+- Gated Limelight pose corrections from Lesson 15.4.
+- Ivy commands that coordinate paths and mechanisms without blocking `follower.update()`.
 
-None of these components is new on its own. The work here is integrating them into a coherent, non-blocking program structure.
-
----
-
-## The State Machine Architecture
-
-A sequential `LinearOpMode` that calls `followPath()` and then runs only `follower.update()` while `isBusy()` does not update mechanism logic at the same time. If an intake or lift needs to move at a specific field position while the drivetrain is moving, a state machine gives both systems an opportunity to update on each pass.
-
-A state machine replaces sequential `if-this-then-that` logic with an `enum` that names each phase of the routine and a `switch` block that executes the logic for the current state. The loop body runs on every iteration: `follower.update()` is called first, then the current state's logic runs, then the state transitions if its completion condition is met. No state blocks the loop.
-
-<AnnotatedCode
-  title="One non-blocking autonomous cycle"
-  java={String.raw`enum AutoState { DRIVE_TO_SCORE, SCORE_ELEMENT, DONE }
-AutoState state = AutoState.DRIVE_TO_SCORE;
-
-while (opModeIsActive()) {
-    follower.update();
-    robot.update();
-
-    switch (state) {
-        case DRIVE_TO_SCORE:
-            if (!follower.isBusy()) {
-                robot.lift.moveToScore();
-                state = AutoState.SCORE_ELEMENT;
-            }
-            break;
-        // ...
-    }
-}`}
-  python={String.raw`class AutoState(Enum):
-    DRIVE_TO_SCORE = 1
-    SCORE_ELEMENT = 2
-    DONE = 3
-
-state = AutoState.DRIVE_TO_SCORE
-
-while op_mode_is_active():
-    follower.update()
-    robot.update()
-
-    if state == AutoState.DRIVE_TO_SCORE:
-        if not follower.is_busy():
-            robot.lift.move_to_score()
-            state = AutoState.SCORE_ELEMENT`}
-/>
-
-The state transitions only when the completion condition for the current state is satisfied: the path is finished, the mechanism has reached its position, or a sensor confirms the action is complete. Until then, `follower.update()` continues to run and the drivetrain continues to track its path.
+The field and simulator stay on DECODE so new members can concentrate on integration instead of learning a second game's layout.
 
 ---
 
-## Non-Blocking Mechanism Actions
+## Why Commands Instead of a New State Machine?
 
-Mechanism actions inside this state machine should also be non-blocking. A `sleep(500)` to wait for an intake action blocks `follower.update()` for 500 milliseconds. During that time, the Follower cannot correct the robot's position. Record when the action starts and check `getRuntime()` in the state's `case` block. Transition when the interval has elapsed.
+A hand-written state machine can work, but every new state adds transition conditions, timers, and cleanup paths that the team must test. Pedro 3's documentation recommends command-based flow, and Ivy already knows how to turn a Pedro path into a command.
+
+Ivy gives each action a clear lifecycle:
+
+- `sequential(...)` runs commands one after another.
+- `parallel(...)` runs compatible commands together.
+- `follow(follower, path)` starts Pedro and completes when the path reaches its end condition.
+- `instant(() -> action)` runs one mechanism action.
+- `waitMs(milliseconds)` waits without blocking the OpMode loop.
+- `waitUntil(condition)` waits for a sensor or mechanism condition.
+
+The OpMode still owns the periodic loop. Every cycle calls `follower.update()`, `robot.update()`, and `Scheduler.execute()`.
+
+:::note When a state machine is still reasonable
+Keep a mature state machine if the team already has one and has tested its transition and interruption behavior. For new Pedro 3 code, Ivy removes boilerplate and matches the official examples and visualizer output. Another established command framework is also fine; do not run two schedulers in the same OpMode.
+:::
+
+---
+
+## Compose Robot Actions Around Paths
 
 ```java
-case SCORE_ELEMENT:
-    if (getRuntime() > scoreActionEndTime) {
-        robot.intake.eject();
-        follower.followPath(driveToPickupPath);
-        state = AutoState.DRIVE_TO_PICKUP;
-    }
-    break;
+private Command autoRoutine(Path firstPath) {
+    return sequential(
+        follow(follower, firstPath),
+        instant(() -> robot.intake.eject()),
+        waitMs(400),
+        instant(() -> robot.intake.stop()),
+        follow(follower, driveToGoal()),
+        instant(() -> robot.launcher.launch(getRuntime()))
+    );
+}
 ```
+
+`waitMs(400)` is an Ivy command, not `sleep(400)`. The scheduler continues to execute the surrounding OpMode loop while the wait command checks elapsed time.
+
+For a position-controlled mechanism, prefer its real completion condition:
+
+```java
+sequential(
+    instant(() -> robot.lift.moveToScore()),
+    waitUntil(robot.lift::isAtTarget),
+    instant(() -> robot.intake.eject())
+)
+```
+
+The same composition idea appears in other languages even though FTC robot code is Java:
+
+<AnnotatedCode
+  title="Command sequence concept"
+  java={String.raw`Command routine = sequential(
+    follow(follower, scorePath),
+    instant(() -> robot.intake.eject()),
+    waitMs(500),
+    instant(() -> robot.intake.stop())
+);`}
+  python={String.raw`routine = sequential(
+    follow(follower, score_path),
+    instant(robot.intake.eject),
+    wait_ms(500),
+    instant(robot.intake.stop),
+)`}
+/>
+
+This Python is a conceptual comparison only; FTC OpModes and the Pedro/Ivy APIs shown in this course use Java.
 
 ---
 
-## Annotated Code
-
-:::note
-This is an autonomous program. No gamepad input is used.
-:::
+## Complete Pedro 3 + Ivy Structure
 
 ```java
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import static com.pedropathing.api.Paths.*;
+import static com.pedropathing.ivy.Scheduler.schedule;
+import static com.pedropathing.ivy.commands.Commands.*;
+import static com.pedropathing.ivy.groups.Groups.sequential;
+import static com.pedropathing.ivy.pedro.PedroCommands.follow;
+
+import com.pedropathing.api.PoseFactory;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.ivy.Command;
+import com.pedropathing.ivy.Scheduler;
+import com.pedropathing.math.Pose;
+import com.pedropathing.paths.Path;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-import com.pedropathing.follower.Follower;
-import com.pedropathing.localization.Pose;
-import com.pedropathing.pathgen.BezierCurve;
-import com.pedropathing.pathgen.BezierLine;
-import com.pedropathing.pathgen.Path;
-import com.pedropathing.pathgen.PathChain;
-import com.pedropathing.pathgen.Point;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.teamcode.vision.SpikeMarkVisionProcessor;
-import org.firstinspires.ftc.teamcode.vision.SpikeMarkVisionProcessor.SpikeLocation;
-import com.qualcomm.robotcore.hardware.WebcamName;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.teamcode.pedro.Constants;
 
-@Autonomous(name="Full_Autonomous_Practice")
-public class FullAutonomousPractice extends LinearOpMode {
+@Autonomous(name="DECODE_Pedro_3_Auto")
+public class DecodePedro3Auto extends LinearOpMode {
 
-    // ── Subsystems ─────────────────────────────────────────────────────
-    private Follower               follower;
-    private Limelight3A            limelight;
-    private SpikeMarkVisionProcessor spikeProcessor;
-    private VisionPortal           visionPortal;
-    private RobotHardware          robot;
+    private Follower follower;
+    private RobotHardware robot;
+    private Limelight3A limelight;
 
-    // ── State machine ──────────────────────────────────────────────────
-    private enum AutoState { DRIVE_TO_SPIKE, PLACE_ELEMENT, DRIVE_TO_BACKDROP, RAISE_LIFT, RELEASE, DONE }
-    private AutoState currentState;
+    private final PoseFactory poseFactory = PoseFactory.degrees();
+    private final Pose startPose   = poseFactory.of(8, 60, 0);
+    private final Pose scorePose   = poseFactory.of(60, 60, 0);
+    private final Pose controlPose = poseFactory.of(88, 82, 35);
+    private final Pose parkPose    = poseFactory.of(116, 108, 90);
 
-    // ── Paths (built during init, executed during run) ─────────────────
-    private Path      driveToSpikeLeft, driveToSpikeCenter, driveToSpikeRight;
-    private PathChain driveToBackdrop;
+    private Path scorePath() {
+        return line(startPose, scorePose).linear(startPose, scorePose);
+    }
 
-    // ── Constants ──────────────────────────────────────────────────────
-    private static final int    LIMELIGHT_PIPELINE = 0;
-    private static final double M_TO_IN            = 39.3701;
-    private static final double ACTION_DURATION_S  = 0.4;
-    private static final double VISION_GAIN        = 0.35;
-    private static final double MAX_VISION_JUMP_IN = 12.0;
-    private static final double MAX_STALENESS_MS   = 100.0;
+    private Path parkPath() {
+        return curve(scorePose, controlPose, parkPose)
+            .linear(scorePose, parkPose);
+    }
 
-    private double actionTimer = 0;
+    private Command autoRoutine() {
+        return sequential(
+            follow(follower, scorePath()),
+            instant(() -> robot.intake.eject()),
+            waitMs(400),
+            instant(() -> robot.intake.stop()),
+            follow(follower, parkPath()),
+            instant(() -> robot.stopAll())
+        );
+    }
 
     @Override
     public void runOpMode() {
-        // ── Hardware initialization ────────────────────────────────────
-        follower  = new Follower(hardwareMap);
-        limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        robot     = new RobotHardware();
+        Scheduler.reset();
+
+        robot = new RobotHardware();
         robot.init(hardwareMap);
 
-        follower.setStartingPose(new Pose(12, 12, 0));
-        robot.intake.stop();
+        follower = Constants.create(hardwareMap);
+        follower.setPose(startPose);
+        follower.update();
 
-        // ── Vision initialization ──────────────────────────────────────
-        WebcamName webcam = hardwareMap.get(WebcamName.class, "Webcam 1");
-        spikeProcessor = new SpikeMarkVisionProcessor();
-        visionPortal   = VisionPortal.easyCreateWithDefaults(webcam, spikeProcessor);
-
-        limelight.pipelineSwitch(LIMELIGHT_PIPELINE);
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        limelight.pipelineSwitch(0);
         limelight.start();
 
-        // ── Path pre-computation ───────────────────────────────────────
-        // Pre-building paths in init() avoids computation latency at match start
-        Point startPt       = new Point(12,  12,  Point.CARTESIAN);
-        Point spikeLPt      = new Point(36,  12,  Point.CARTESIAN);
-        Point spikeCPt      = new Point(36,  60,  Point.CARTESIAN);
-        Point spikeRPt      = new Point(36,  108, Point.CARTESIAN);
-        Point backdropPt    = new Point(108, 60,  Point.CARTESIAN);
-        Point backdropCtrl  = new Point(108, 12,  Point.CARTESIAN);
+        waitForStart();
+        if (isStopRequested()) return;
 
-        driveToSpikeLeft   = new Path(new BezierLine(startPt, spikeLPt));
-        driveToSpikeCenter = new Path(new BezierLine(startPt, spikeCPt));
-        driveToSpikeRight  = new Path(new BezierLine(startPt, spikeRPt));
+        schedule(autoRoutine());
 
-        // Curved return path to the backdrop. It is the same for every spike location.
-        driveToBackdrop = follower.pathBuilder()
-            .addPath(new Path(new BezierCurve(spikeLPt, backdropCtrl, backdropPt)))
-            .build();
-
-        // ── Pre-match vision feedback ──────────────────────────────────
-        while (!isStarted() && !isStopRequested()) {
-            telemetry.addData("Spike Location", spikeProcessor.detectedLocation);
-            telemetry.addData("Instruction",    "Aim camera, then press Start");
-            telemetry.update();
-        }
-
-        SpikeLocation spike = spikeProcessor.detectedLocation;
-        visionPortal.stopStreaming(); // Camera decision made. Free the CPU.
-
-        // ── Select and start the correct first path ────────────────────
-        switch (spike) {
-            case LEFT:   follower.followPath(driveToSpikeLeft);   break;
-            case CENTER: follower.followPath(driveToSpikeCenter); break;
-            default:     follower.followPath(driveToSpikeRight);  break;
-        }
-
-        currentState = AutoState.DRIVE_TO_SPIKE;
-
-        // ── Main execution loop ────────────────────────────────────────
         while (opModeIsActive()) {
-            // 1. Update the Follower every cycle
             follower.update();
-
-            // Keep non-blocking subsystem work moving every cycle.
             robot.update();
-
-            // 2. Consider one gated Limelight measurement update
+            Scheduler.execute();
             applyLimelightCorrection();
 
-            // 3. State machine
-            switch (currentState) {
-
-                case DRIVE_TO_SPIKE:
-                    if (!follower.isBusy()) {
-                        robot.intake.eject();
-                        actionTimer = getRuntime() + ACTION_DURATION_S;
-                        currentState = AutoState.PLACE_ELEMENT;
-                    }
-                    break;
-
-                case PLACE_ELEMENT:
-                    // Give the intake time to eject before driving away
-                    if (getRuntime() > actionTimer) {
-                        robot.intake.stop();
-                        follower.followPath(driveToBackdrop);
-                        currentState = AutoState.DRIVE_TO_BACKDROP;
-                    }
-                    break;
-
-                case DRIVE_TO_BACKDROP:
-                    if (!follower.isBusy()) {
-                        robot.lift.moveToScore();
-                        currentState = AutoState.RAISE_LIFT;
-                    }
-                    break;
-
-                case RAISE_LIFT:
-                    if (robot.lift.isAtTarget()) {
-                        robot.intake.eject();
-                        actionTimer = getRuntime() + ACTION_DURATION_S;
-                        currentState = AutoState.RELEASE;
-                    }
-                    break;
-
-                case RELEASE:
-                    if (getRuntime() > actionTimer) {
-                        robot.intake.stop();
-                        currentState = AutoState.DONE;
-                    }
-                    break;
-
-                case DONE:
-                    // All actions complete. The robot holds position.
-                    break;
-            }
-
-            telemetry.addData("State", currentState);
-            telemetry.addData("X",     "%.1f", follower.getPose().getX());
-            telemetry.addData("Y",     "%.1f", follower.getPose().getY());
+            telemetry.addData("Follower mode", follower.mode());
+            telemetry.addData("Path segment", follower.pathIndex());
+            telemetry.addData("X", "%.1f", follower.pose().x());
+            telemetry.addData("Y", "%.1f", follower.pose().y());
             telemetry.update();
         }
 
@@ -271,73 +194,59 @@ public class FullAutonomousPractice extends LinearOpMode {
     private void applyLimelightCorrection() {
         LLResult result = limelight.getLatestResult();
         if (result == null || !result.isValid()) return;
-        if (result.getStaleness() > MAX_STALENESS_MS) return;
-        if (result.getBotposeTagCount() < 1) return;
+        if (result.getStaleness() > 100 || result.getBotposeTagCount() < 1) return;
 
         Pose3D botPose = result.getBotpose();
         if (botPose == null) return;
 
-        Pose estimate = follower.getPose();
-        double innovationX = botPose.getPosition().x * M_TO_IN - estimate.getX();
-        double innovationY = botPose.getPosition().y * M_TO_IN - estimate.getY();
-        double innovationHeading = AngleUnit.normalizeRadians(
-            botPose.getOrientation().getYaw(AngleUnit.RADIANS)
-                - estimate.getHeading()
+        Pose estimate = follower.pose();
+        double measuredX = botPose.getPosition().x * 39.3701;
+        double measuredY = botPose.getPosition().y * 39.3701;
+        double measuredHeading =
+            botPose.getOrientation().getYaw(AngleUnit.RADIANS);
+
+        double dx = measuredX - estimate.x();
+        double dy = measuredY - estimate.y();
+        double dh = AngleUnit.normalizeRadians(
+            measuredHeading - estimate.heading()
         );
 
-        if (Math.hypot(innovationX, innovationY) > MAX_VISION_JUMP_IN) return;
+        if (Math.hypot(dx, dy) > 12.0) return;
 
-        // Compact complementary update. Lesson 15.4 shows the covariance-based form.
+        double gain = 0.35;
         follower.setPose(new Pose(
-            estimate.getX() + VISION_GAIN * innovationX,
-            estimate.getY() + VISION_GAIN * innovationY,
-            AngleUnit.normalizeRadians(
-                estimate.getHeading() + VISION_GAIN * innovationHeading
-            )
+            estimate.x() + gain * dx,
+            estimate.y() + gain * dy,
+            AngleUnit.normalizeRadians(estimate.heading() + gain * dh)
         ));
     }
 }
 ```
 
-## A Competition Team Uses the Same Update Pattern
+This compact correction keeps the example readable; Lesson 15.4 explains the covariance-based alternative. In either version, confirm that Limelight and Pedro use the same field origin, axes, units, and heading convention before fusing poses.
 
-Titan Robotics Club's autonomous OpMode keeps a robot object and an autonomous command active together. Its periodic callback updates the command instead of waiting for one action to finish inside the callback. This lesson uses the same idea with direct subsystem calls:
+For a production example of keeping AprilTag relocalization behind a reusable localization API, compare Murray Bridge Bunyips' [`AprilTagRelocalizingAccumulator`](https://github.com/Murray-Bridge-Bunyips/BunyipsLib/blob/8e2e23df19e9f797923e3904a21fcb981e542b9f/src/main/java/au/edu/sa/mbhs/studentrobotics/bunyipslib/localization/accumulators/AprilTagRelocalizingAccumulator.java). The lesson's command routine deliberately calls a small correction method rather than mixing estimator details into the Ivy sequence.
 
-```java
-public void updateAutonomous(double elapsedTime) {
-    robot.update();
-    if (autonomousCommand != null) {
-        autonomousCommand.update(elapsedTime);
-    }
-}
-```
+---
 
-The method and variable names were shortened to match this lesson. Framework-specific tracing and menu code were omitted. The important behavior remains: every cycle advances the robot and the current autonomous task. Adapted from [Team 3543 Titan Robotics Club's `FtcAuto.java` at a pinned commit](https://github.com/trc492/FtcTemplate/blob/0680f02e5a8281264c16558c9a953aa15f0cd362/TeamCode/src/main/java/teamcode/FtcAuto.java) under the [MIT License](https://github.com/trc492/FtcTemplate/blob/0680f02e5a8281264c16558c9a953aa15f0cd362/LICENSE).
+## Bring Your Earlier Files Forward
 
-## Bring Your Unit 13 Files Forward
-
-Use the simulator's **+** control to bring files forward from the completed-lesson library or import the project exported by Lesson 13.9. Select `RobotConfig.java`, `Intake.java`, `MotorMechanism.java`, `Lift.java`, and `RobotHardware.java`. Keep `FullAutonomousPractice.java` as the runnable OpMode.
-
-These classes use the same TeamCode package, so Java resolves them by class name. You do not add an import statement for another class in the same package.
-
-Keep raw intake and lift hardware access inside their subsystem files. The autonomous OpMode should express intent through `robot.intake` and `robot.lift`.
-
-If you changed computers, import the project export you downloaded in Unit 13. The reference implementations in Lessons 13.6 through 13.9 provide a recovery path if that file is unavailable.
+Use the simulator's **+** control to bring forward the DECODE project files from the completed-lesson library. Keep them in the same TeamCode package so the autonomous class can reuse them directly. Keep raw motor and servo access inside subsystem files. The autonomous OpMode should express intent through methods such as `robot.intake.eject()` and `robot.launcher.launch(...)`.
 
 ---
 
 ## Fill-in-the-Blank Practice
 
-1. In a state machine, each phase of the autonomous routine is represented by a value in a Java `__________`.
-2. The correct approach to waiting for a mechanism action without blocking `follower.update()` is to record a target time using `getRuntime()` and transition only when `__________` has elapsed.
-3. Paths should be constructed during `__________` rather than inside the main loop to avoid computation latency at the moment the robot needs to start moving.
+1. Ivy runs several commands in order with `__________(...)`.
+2. The three periodic calls are `follower.update()`, `robot.update()`, and `Scheduler.__________()`.
+3. A non-blocking 400 ms pause is `__________(400)`, not `sleep(400)`.
 
 <details>
 <summary>Show answers</summary>
 
-1. **`enum`**
-2. **the timer** (when `getRuntime() > actionTimer`)
-3. **`init()`** (or before `waitForStart()`)
+1. **`sequential`**
+2. **`execute`**
+3. **`waitMs`**
 
 </details>
 
@@ -345,7 +254,7 @@ If you changed computers, import the project export you downloaded in Unit 13. T
 
 ## Simulator Practice
 
-Complete the simulator's state machine transition logic. Import or complete the supplied subsystem files, initialize `RobotHardware`, and call `robot.update()` every cycle. When the path finishes, command the lift and intake through their public methods, record `deliverTimer = getRuntime()`, and transition without blocking. Stop the robot when the routine ends.
+Complete an Ivy routine that follows the supplied DECODE scoring path, ejects through the `RobotHardware` subsystem, waits 500 ms without blocking, stops the intake, and stops all robot outputs. Keep the follower, robot, and scheduler updated every active loop.
 
 <SimulatorRunGuide />
 
@@ -355,21 +264,15 @@ Complete the simulator's state machine transition logic. Import or complete the 
 <summary>Show answer</summary>
 
 ```java
-case DRIVE_TO_TARGET:
-    if (!follower.isBusy()) {
-        robot.lift.moveToScore();
-        robot.intake.eject();
-        deliverTimer = getRuntime();
-        currentState = State.DELIVER;
-    }
-    break;
-
-case DELIVER:
-    if (getRuntime() - deliverTimer >= 0.5) {
-        robot.intake.stop();
-        currentState = State.DONE;
-    }
-    break;
+Command autoRoutine() {
+    return sequential(
+        follow(follower, scoringPath),
+        instant(() -> robot.intake.eject()),
+        waitMs(500),
+        instant(() -> robot.intake.stop()),
+        instant(() -> robot.stopAll())
+    );
+}
 ```
 
 </details>

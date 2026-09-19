@@ -39,21 +39,21 @@ void correctPoseFromLimelight() {
     Pose3D botpose = result.getBotpose();
     if (botpose == null) return;
 
-    Pose estimate = follower.getPose();
-    double innovationX = botpose.getPosition().x * 39.3701 - estimate.getX();
-    double innovationY = botpose.getPosition().y * 39.3701 - estimate.getY();
+    Pose estimate = follower.pose();
+    double innovationX = botpose.getPosition().x * 39.3701 - estimate.x();
+    double innovationY = botpose.getPosition().y * 39.3701 - estimate.y();
     double innovationHeading = AngleUnit.normalizeRadians(
-        botpose.getOrientation().getYaw(AngleUnit.RADIANS) - estimate.getHeading()
+        botpose.getOrientation().getYaw(AngleUnit.RADIANS) - estimate.heading()
     );
 
     if (Math.hypot(innovationX, innovationY) > 12.0) return;
 
     double gain = 0.35;
     follower.setPose(new Pose(
-        estimate.getX() + gain * innovationX,
-        estimate.getY() + gain * innovationY,
+        estimate.x() + gain * innovationX,
+        estimate.y() + gain * innovationY,
         AngleUnit.normalizeRadians(
-            estimate.getHeading() + gain * innovationHeading
+            estimate.heading() + gain * innovationHeading
         )
     ));
 }

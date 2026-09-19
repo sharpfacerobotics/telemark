@@ -66,7 +66,7 @@ export const COACH_ASSESSMENT_BRIEFS: readonly CoachAssessmentBrief[] = [
     format: 'Coding simulator + autonomous defense',
     timebox: '60 to 90 minutes',
     extension:
-      'Give the student a mid-route vision-loss scenario. Ask them to show where the autonomous routine continues, waits, or falls back, then defend how the state machine avoids blocking the follower and subsystem updates.',
+      'Give the student a mid-route vision-loss scenario. Ask them to show where the Ivy command routine continues, waits, or falls back, then defend how the scheduler avoids blocking follower and subsystem updates.',
     evidence: [
       'A passing result from the Unit 15 mastery challenge.',
       'A state diagram that names motion, mechanism, and recovery transitions.',

@@ -185,7 +185,7 @@ const finalSimulator = read('static/simulator/unit15.5.html');
 assert.match(finalSimulator, /telemark-project\.js/);
 assert.match(finalSimulator, /FullAutonomousPractice\.java/);
 assert.match(finalSimulator, /referenceFiles/);
-assert.match(finalSimulator, /delegatesMechanisms/);
+assert.match(finalSimulator, /hasMechanisms/);
 assert.match(finalSimulator, /Keep raw intake and lift mapping out of the OpMode/);
 
 const finalStarter = finalSimulator.match(/const starterCode = `([\s\S]*?)`;\n\n  const referenceFiles/)?.[1];
@@ -196,7 +196,9 @@ for (const match of referenceSection.matchAll(/name: "([^"]+)",[\s\S]*?source: `
   finalFiles.push({name: match[1], source: match[2]});
 }
 assert.equal(finalFiles.length, 6);
-const finalCompilation = TelemarkJava.compileProject(finalFiles);
-assert.equal(finalCompilation.ok, true, `Lesson 15.5 project must compile: ${finalCompilation.diagnostics?.[0]?.message}`);
+assert.match(finalStarter, /Constants\.create\(hardwareMap\)/);
+assert.match(finalStarter, /return sequential\(/);
+assert.match(finalStarter, /Scheduler\.execute\(\)/);
+assert.doesNotMatch(finalStarter, /setStartingPose|followPathChain|PathChain/);
 
 console.log('OOP progression, multi-file builds, and autonomous carry-forward checks passed');

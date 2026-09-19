@@ -518,11 +518,14 @@ function testChallengeSdkMocks() {
   const pathMotion = MasteryMotion.create(15);
   const pathSdk = {};
   MasteryMotion.installSdkMocks(pathSdk, pathMotion);
-  const follower = new pathSdk.Follower();
-  const path = follower.pathBuilder()
-    .addPath(new pathSdk.BezierLine(new pathSdk.Point(0, 0), new pathSdk.Point(1, 1)))
-    .build();
-  follower.followPath(path);
+  const follower = pathSdk.Constants.create({});
+  const poses = pathSdk.PoseFactory.degrees();
+  const route = pathSdk.path(
+    pathSdk.line(poses.of(0, 0, 0), poses.of(1, 1, 45)),
+    pathSdk.curve(poses.of(1, 1, 45), poses.of(2, 1, 0), poses.of(3, 2, 45)),
+  );
+  follower.setPose(poses.of(0, 0, 0));
+  follower.follow(route);
   follower.update();
   pathMotion.step(0.1);
   assert.ok(pathMotion.snapshot().pathProgress > 0);
