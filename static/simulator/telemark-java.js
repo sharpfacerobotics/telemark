@@ -284,7 +284,10 @@
           c.methods.forEach(m => m.params.forEach(p => sdkNames.add(p)));
         });
         for (const imp of u.imports) {
-          if (imp.path.startsWith('static')) throw new TelemarkJavaError('Static imports are not supported yet; use ClassName.MEMBER.', imp.token);
+          if (imp.path.startsWith('static')) {
+            if (/^staticcom\.pedropathing\./.test(imp.path)) continue;
+            throw new TelemarkJavaError('Static imports are not supported yet; use ClassName.MEMBER.', imp.token);
+          }
           if (!imp.path.includes('.')) throw new TelemarkJavaError('Classes in the unnamed package cannot be imported. Add a package declaration to the helper file.', imp.token);
           if (imp.path.endsWith('.*')) {
             const pkg = imp.path.slice(0, -2);
@@ -293,7 +296,7 @@
           }
           const match = symbols.find(c => c.qualifiedName === imp.path);
           if (!match) {
-            const sdk = /^(?:java\.|com\.(?:qualcomm|acmerobotics|pedropathing)|org\.(?:opencv|openftc)|org\.firstinspires\.ftc\.(?:robotcore|vision))/.test(imp.path);
+            const sdk = /^(?:java\.|com\.(?:qualcomm|acmerobotics|pedropathing)|org\.(?:opencv|openftc)|org\.firstinspires\.ftc\.(?:robotcore|vision)|org\.firstinspires\.ftc\.teamcode\.pedro\.Constants$)/.test(imp.path);
             if (!sdk) throw new TelemarkJavaError('Import ' + imp.path + ' cannot be resolved. Add its Java file to this project.', imp.token);
             sdkNames.add(imp.path.split('.').pop());
             continue;
@@ -1140,6 +1143,11 @@
 
       if (token.value === "true" || token.value === "false" || token.value === "null") {
         output.push(token.value);
+        continue;
+      }
+
+      if (token.value === "->") {
+        output.push("=>");
         continue;
       }
 

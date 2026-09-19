@@ -79,6 +79,13 @@ assert.equal(run(compile(entries,{entry:'One'})).scope.result,1);
 assert.equal(compile(entries,{entry:'Missing'}).ok,false,'invalid entry cannot silently run a different OpMode');
 assert.equal(run(compile([{name:'Main.java',source:'public class Main extends OpMode {static final int LIMIT=2;int result;void loop(){if(LIMIT<5){result=1;}}}'}])).scope.result,1,'capitalized constants in comparisons are not generic declarations');
 assert.equal(compile([{name:'Main.java',source:'import java.util.ArrayList;public class Main extends OpMode {ArrayList<String> list;void loop(){}}'}]).ok,false,'unsupported generics produce a compile diagnostic');
+const pedroGeneratedConstants = compile([{name:'Main.java',source:`import com.pedropathing.follower.Follower;
+import org.firstinspires.ftc.teamcode.pedro.Constants;
+import static com.pedropathing.api.Paths.line;
+public class Main extends OpMode {void loop(){Follower follower=Constants.create(hardwareMap);}}`}]);
+assert.equal(pedroGeneratedConstants.ok,true,'Pedro generated Constants is supplied by the simulator runtime');
+const ivyLambda = java.compile('public class Main extends OpMode {void helper(){} void loop(){instant(() -> helper());}}');
+assert.equal(ivyLambda.ok,true,'Ivy no-argument command lambdas transpile to JavaScript arrows');
 const classLiteralFiles = [
   {name:'Main.java',source:'package robot; import robot.mechanisms.LinearSlide; public class Main extends OpMode { LinearSlide slide; void init(){slide=hardwareMap.get(LinearSlide.class,"slide");} void loop(){} }'},
   {name:'LinearSlide.java',source:'package robot.mechanisms; public class LinearSlide {}'},
