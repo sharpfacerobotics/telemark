@@ -201,11 +201,13 @@ public class PedroLifecycle extends LinearOpMode {
     @Override
     public void runOpMode() {
 
-        // Initialize the Follower
-        follower = new Follower(hardwareMap);
+        PoseFactory poseFactory = PoseFactory.degrees();
 
-        // Set the starting pose: x=8, y=60, heading=0 radians
-        // TODO: Set the follower's starting pose to x=8, y=60, heading=0
+        // Create the configured Pedro 3 Follower
+        follower = Constants.create(hardwareMap);
+
+        // TODO: Set the pose to x=8, y=60, heading=0 degrees
+        // TODO: Prime the localizer with one follower.update() call
 
         telemetry.addData("Status",  "Follower Ready");
         telemetry.addData("Start X", 8);
@@ -214,9 +216,8 @@ public class PedroLifecycle extends LinearOpMode {
 
         waitForStart();
 
-        // Update loop - runs while follower is busy following a path
-        // Since no path is set, isBusy() is false and loop exits immediately
-        while (opModeIsActive() && follower.isBusy()) {
+        // Pedro 3 must be updated throughout the active OpMode.
+        while (opModeIsActive()) {
             // TODO: Update the follower each loop
 
             // TODO: Get the current pose and display X, Y, and Heading
@@ -229,16 +230,17 @@ public class PedroLifecycle extends LinearOpMode {
 }`;
 
   const requirements = [
-    "Create a Follower with new Follower(hardwareMap)",
-    "Call follower.setStartingPose(new Pose(8, 60, 0))",
+    "Create a degree-based PoseFactory",
+    "Create the Follower with Constants.create(hardwareMap)",
+    "Call follower.setPose(poseFactory.of(8, 60, 0))",
     "Starting x is 8 inches",
     "Starting y is 60 inches",
-    "Starting heading is 0 radians",
+    "Starting heading is 0 degrees",
+    "Prime the Follower with update() before Start",
     "Call waitForStart()",
     "Call follower.update() inside the while loop",
-    "Use follower.isBusy() in the while condition",
     "Use opModeIsActive() in the while condition",
-    "Use follower.getPose() for telemetry",
+    "Use follower.pose() for telemetry",
     "Report X, Y, and heading through telemetry"
   ];
 
@@ -376,10 +378,10 @@ public class PedroLifecycle extends LinearOpMode {
       hardwareMap.registerFollower = function (name) {
         const device = {
           _name: name,
-          setStartingPose: function (pose) { setFollowerStartPose(pose); },
+          setPose: function (pose) { setFollowerStartPose(pose); },
           update: function () { updateFollower(); },
           isBusy: function () { return isFollowerBusy(); },
-          getPose: function () { return getFollowerPose(); }
+          pose: function () { return getFollowerPose(); }
         };
         hardwareMap._devices[name] = device;
         return device;
@@ -428,11 +430,11 @@ public class PedroLifecycle extends LinearOpMode {
     panel.innerHTML = `
       <div class="u152-title"><i class="fa-solid fa-route"></i> Follower Lifecycle</div>
       <div class="u152-timeline">
-        <div class="u152-step" id="u152-step-created">1. new Follower(hardwareMap)</div>
-        <div class="u152-step" id="u152-step-pose">2. follower.setStartingPose(8, 60, 0)</div>
-        <div class="u152-step" id="u152-step-wait">3. waitForStart()</div>
-        <div class="u152-step" id="u152-step-update">4. follower.update() loop</div>
-        <div class="u152-step" id="u152-step-complete">5. follower.isBusy() is false, loop exits</div>
+        <div class="u152-step" id="u152-step-created">1. Constants.create(hardwareMap)</div>
+        <div class="u152-step" id="u152-step-pose">2. follower.setPose(8, 60, 0°)</div>
+        <div class="u152-step" id="u152-step-wait">3. Prime, then waitForStart()</div>
+        <div class="u152-step" id="u152-step-update">4. follower.update() every active loop</div>
+        <div class="u152-step" id="u152-step-complete">5. Stop safely from Driver Station</div>
       </div>
 
       <div class="u152-title"><i class="fa-solid fa-location-dot"></i> Current Pose</div>
@@ -861,12 +863,16 @@ public class PedroLifecycle extends LinearOpMode {
   function transpileLinearBody(body) {
     let js = body || "";
     js = js
-      .replace(/\bnew\s+Follower\s*\(\s*hardwareMap\s*\)/g, "createFollower()")
-      .replace(/\bfollower\s*\.\s*setStartingPose\s*\(/g, "setFollowerStartPose(")
+      .replace(/\bConstants\s*\.\s*create\s*\(\s*hardwareMap\s*\)/g, "createFollower()")
+      .replace(/\bPoseFactory\s*\.\s*degrees\s*\(\s*\)/g, "({ of: createPose })")
+      .replace(/\bfollower\s*\.\s*setPose\s*\(/g, "setFollowerStartPose(")
       .replace(/\bnew\s+Pose\s*\(/g, "createPose(")
       .replace(/\bfollower\s*\.\s*update\s*\(\s*\)/g, "updateFollower()")
       .replace(/\bfollower\s*\.\s*isBusy\s*\(\s*\)/g, "isFollowerBusy()")
-      .replace(/\bfollower\s*\.\s*getPose\s*\(\s*\)/g, "getFollowerPose()")
+      .replace(/\bfollower\s*\.\s*pose\s*\(\s*\)/g, "getFollowerPose()")
+      .replace(/\.x\s*\(\s*\)/g, ".x")
+      .replace(/\.y\s*\(\s*\)/g, ".y")
+      .replace(/\.heading\s*\(\s*\)/g, ".heading")
       .replace(/\.getX\s*\(\s*\)/g, ".x")
       .replace(/\.getY\s*\(\s*\)/g, ".y")
       .replace(/\.getHeading\s*\(\s*\)/g, ".heading")
@@ -875,7 +881,7 @@ public class PedroLifecycle extends LinearOpMode {
       .replace(/\bwaitForStart\s*\(\s*\)\s*;/g, "await waitForStart(); if (!opModeIsActive()) return;")
       .replace(/\bsleep\s*\(/g, "await sleep(")
       .replace(/\bwhile\s*\(([^)]*(?:opModeIsActive|isFollowerBusy)[^)]*)\)\s*\{/g, "while ($1) { await linearTick();")
-      .replace(/(^|[;{}\n]\s*)(?:final\s+)?(?:double|int|boolean|String|float|long|byte|short|char|Follower|Pose)\s+([A-Za-z_$])/gm, "$1let $2");
+      .replace(/(^|[;{}\n]\s*)(?:final\s+)?(?:double|int|boolean|String|float|long|byte|short|char|Follower|Pose|PoseFactory)\s+([A-Za-z_$])/gm, "$1let $2");
     if (typeof _simTranspile === "function") js = _simTranspile(js);
     return js;
   }
@@ -893,7 +899,7 @@ public class PedroLifecycle extends LinearOpMode {
     renderCard("u152-x-card", '<i class="fa-solid fa-arrows-left-right"></i> X<br><strong>' + state.pose.x.toFixed(2) + ' in</strong>', xGood && state.poseSet ? "good" : "warn");
     renderCard("u152-y-card", '<i class="fa-solid fa-arrows-up-down"></i> Y<br><strong>' + state.pose.y.toFixed(2) + ' in</strong>', yGood && state.poseSet ? "good" : "warn");
     renderCard("u152-heading-card", '<i class="fa-solid fa-location-arrow"></i> Heading<br><strong>' + state.pose.heading.toFixed(3) + ' rad</strong><br>' + radiansToDegrees(state.pose.heading).toFixed(1) + ' deg', hGood && state.poseSet ? "good" : "warn");
-    renderCard("u152-busy-card", '<i class="fa-solid fa-spinner"></i> isBusy()<br><strong>' + (state.updateCount === 0 && state.poseSet && state.active ? "true for setup tick" : "false") + '</strong><br>No path is queued after the lifecycle check.', state.loopComplete ? "good" : "");
+    renderCard("u152-busy-card", '<i class="fa-solid fa-gauge"></i> follower.mode()<br><strong>IDLE</strong><br>No path is queued in this lifecycle exercise.', state.loopComplete ? "good" : "");
     renderCard("u152-update-card", '<i class="fa-solid fa-rotate"></i> update() calls<br><strong>' + state.updateCount + '</strong><br>The robot should hold its starting pose.', state.updateCount > 0 || state.loopComplete ? "good" : "");
     renderCard("u152-order-card", '<i class="fa-solid fa-list-ol"></i> Phase<br><strong>' + phaseText() + '</strong><br>Create, set pose, wait, then update.', state.loopComplete ? "good" : state.waitingForStart ? "warn" : "");
 
@@ -936,20 +942,24 @@ public class PedroLifecycle extends LinearOpMode {
     const pose = parseStartingPose(code);
     const whileBlocks = extractWhileBlocks(runBody);
     const followerLoop = whileBlocks.find(function (block) {
-      return /follower\s*\.\s*isBusy\s*\(\s*\)/.test(block.condition) || /follower\s*\.\s*update\s*\(\s*\)/.test(block.body);
+      return /opModeIsActive\s*\(\s*\)/.test(block.condition) && /follower\s*\.\s*update\s*\(\s*\)/.test(block.body);
     }) || { condition: "", body: "" };
 
+    const waitIndex = runBody.search(/\bwaitForStart\s*\(\s*\)/);
+    const beforeStart = waitIndex >= 0 ? runBody.slice(0, waitIndex) : "";
+
     const checks = [
-      /new\s+Follower\s*\(\s*hardwareMap\s*\)/.test(runBody),
-      /follower\s*\.\s*setStartingPose\s*\(/.test(runBody) && !!pose,
+      /PoseFactory\s*\.\s*degrees\s*\(\s*\)/.test(code),
+      /Constants\s*\.\s*create\s*\(\s*hardwareMap\s*\)/.test(runBody),
+      /follower\s*\.\s*setPose\s*\(/.test(runBody) && !!pose,
       !!pose && Math.abs(pose.x - 8) <= 1,
       !!pose && Math.abs(pose.y - 60) <= 1,
       !!pose && Math.abs(pose.heading) <= 0.001,
+      /follower\s*\.\s*update\s*\(\s*\)/.test(beforeStart),
       /\bwaitForStart\s*\(\s*\)/.test(runBody),
       /follower\s*\.\s*update\s*\(\s*\)/.test(followerLoop.body),
-      /follower\s*\.\s*isBusy\s*\(\s*\)/.test(followerLoop.condition),
       /opModeIsActive\s*\(\s*\)/.test(followerLoop.condition),
-      /follower\s*\.\s*getPose\s*\(\s*\)/.test(runBody),
+      /follower\s*\.\s*pose\s*\(\s*\)/.test(runBody),
       telemetryHasPose(runBody)
     ];
 
@@ -965,13 +975,13 @@ public class PedroLifecycle extends LinearOpMode {
 
   function parseStartingPose(code) {
     const runBody = extractMethodBody(code, "runOpMode") || "";
-    const direct = /follower\s*\.\s*setStartingPose\s*\(\s*new\s+Pose\s*\(\s*([^,\)]+)\s*,\s*([^,\)]+)\s*,\s*([^,\)]+)\s*\)\s*\)/.exec(runBody);
+    const direct = /follower\s*\.\s*setPose\s*\(\s*(?:[A-Za-z_$][\w$]*\s*\.\s*of|new\s+Pose)\s*\(\s*([^,\)]+)\s*,\s*([^,\)]+)\s*,\s*([^,\)]+)\s*\)\s*\)/.exec(runBody);
     if (direct) return numberPose(direct[1], direct[2], direct[3]);
 
-    const assigned = /(?:Pose\s+)?([A-Za-z_$][\w$]*)\s*=\s*new\s+Pose\s*\(\s*([^,\)]+)\s*,\s*([^,\)]+)\s*,\s*([^,\)]+)\s*\)/.exec(runBody);
+    const assigned = /(?:Pose\s+)?([A-Za-z_$][\w$]*)\s*=\s*(?:[A-Za-z_$][\w$]*\s*\.\s*of|new\s+Pose)\s*\(\s*([^,\)]+)\s*,\s*([^,\)]+)\s*,\s*([^,\)]+)\s*\)/.exec(runBody);
     if (assigned) {
       const name = assigned[1];
-      const usesName = new RegExp("follower\\s*\\.\\s*setStartingPose\\s*\\(\\s*" + name + "\\s*\\)").test(runBody);
+      const usesName = new RegExp("follower\\s*\\.\\s*setPose\\s*\\(\\s*" + name + "\\s*\\)").test(runBody);
       if (usesName) return numberPose(assigned[2], assigned[3], assigned[4]);
     }
     return null;
@@ -983,30 +993,32 @@ public class PedroLifecycle extends LinearOpMode {
   }
 
   function telemetryHasPose(body) {
-    const hasX = /telemetry\s*\.\s*addData\s*\(\s*"[^"]*X[^"]*"\s*,[\s\S]*?(?:getX\s*\(\s*\)|\.x)\s*\)/.test(body);
-    const hasY = /telemetry\s*\.\s*addData\s*\(\s*"[^"]*Y[^"]*"\s*,[\s\S]*?(?:getY\s*\(\s*\)|\.y)\s*\)/.test(body);
-    const hasHeading = /telemetry\s*\.\s*addData\s*\(\s*"[^"]*Heading[^"]*"\s*,[\s\S]*?(?:getHeading\s*\(\s*\)|\.heading)\s*\)/.test(body);
+    const hasX = /telemetry\s*\.\s*addData\s*\(\s*"[^"]*X[^"]*"\s*,[\s\S]*?\.x\s*\(\s*\)/.test(body);
+    const hasY = /telemetry\s*\.\s*addData\s*\(\s*"[^"]*Y[^"]*"\s*,[\s\S]*?\.y\s*\(\s*\)/.test(body);
+    const hasHeading = /telemetry\s*\.\s*addData\s*\(\s*"[^"]*Heading[^"]*"\s*,[\s\S]*?\.heading\s*\(\s*\)/.test(body);
     return hasX && hasY && hasHeading;
   }
 
   function updateWarning(runBody, checks, pose) {
     const warning = el("u152-warning");
     if (!warning) return;
-    const newIndex = runBody.search(/new\s+Follower\s*\(\s*hardwareMap\s*\)/);
-    const poseIndex = runBody.search(/follower\s*\.\s*setStartingPose\s*\(/);
+    const newIndex = runBody.search(/Constants\s*\.\s*create\s*\(\s*hardwareMap\s*\)/);
+    const poseIndex = runBody.search(/follower\s*\.\s*setPose\s*\(/);
     const waitIndex = runBody.search(/\bwaitForStart\s*\(\s*\)/);
-    const updateIndex = runBody.search(/follower\s*\.\s*update\s*\(\s*\)/);
     let message = "";
     let type = "warn";
 
     if (!checks[0]) {
-      message = "Create a Follower instance with new Follower(hardwareMap) before calling any other Follower methods";
+      message = "Create a degree-based factory with PoseFactory.degrees().";
+      type = "error";
+    } else if (!checks[1]) {
+      message = "Create the Pedro 3 Follower with Constants.create(hardwareMap).";
       type = "error";
     } else if (poseIndex >= 0 && newIndex >= 0 && poseIndex < newIndex) {
       message = "Create the Follower before setting the pose - Follower must exist before it can receive a pose";
       type = "error";
-    } else if (!checks[1]) {
-      message = "Call follower.setStartingPose(new Pose(8, 60, 0)) before waitForStart()";
+    } else if (!checks[2]) {
+      message = "Call follower.setPose(poseFactory.of(8, 60, 0)) before waitForStart().";
       type = "error";
     } else if (poseIndex >= 0 && waitIndex >= 0 && poseIndex > waitIndex) {
       message = "Set the starting pose before waitForStart() - the pose must be established before the match begins";
@@ -1014,18 +1026,15 @@ public class PedroLifecycle extends LinearOpMode {
     } else if (pose && Math.abs(pose.heading) > 0.001) {
       message = "Starting heading should be 0 radians - 0 means the robot faces the positive X direction";
     } else if (!checks[6]) {
-      message = "Call follower.update() every iteration - this drives path following and pose estimation";
-      type = "error";
-    } else if (updateIndex >= 0 && waitIndex >= 0 && updateIndex < waitIndex) {
-      message = "Call waitForStart() before the update loop - the robot should not move before the match starts";
-      type = "error";
-    } else if (!checks[7]) {
-      message = "Include follower.isBusy() in the while condition - this keeps the loop running while a path is active";
+      message = "Prime localization with follower.update() before waitForStart().";
       type = "error";
     } else if (!checks[8]) {
-      message = "Include opModeIsActive() in the while condition for safety";
+      message = "Call follower.update() every iteration - this drives path following and pose estimation";
+      type = "error";
     } else if (!checks[9]) {
-      message = "Use follower.getPose().getX(), .getY(), and .getHeading() to report position to the Driver Station";
+      message = "Include opModeIsActive() in the while condition for safety";
+    } else if (!checks[10]) {
+      message = "Use follower.pose().x(), .y(), and .heading() to report position to the Driver Station";
     } else if (!/telemetry\s*\.\s*update\s*\(\s*\)/.test(runBody)) {
       message = "Call telemetry.update() to send data to the Driver Station";
     }

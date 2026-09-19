@@ -30,8 +30,8 @@
     "DistanceSensor", "IMU", "BNO055IMU", "ElapsedTime", "HardwareMap",
     "RevHubOrientationOnRobot", "YawPitchRollAngles", "WebcamName",
     "VisionPortal", "AprilTagProcessor", "AprilTagDetection", "Rect",
-    "Limelight3A", "LLResult", "Follower", "Pose", "Point", "Path",
-    "PathChain", "BezierCurve", "BezierLine",
+    "Limelight3A", "LLResult", "Follower", "Pose", "PoseFactory", "Path",
+    "Command", "Scheduler", "Constants", "Paths", "Commands", "Groups", "PedroCommands",
   ]);
   const MODIFIERS = new Set([
     "public", "private", "protected", "static", "final", "abstract",
@@ -284,7 +284,10 @@
           c.methods.forEach(m => m.params.forEach(p => sdkNames.add(p)));
         });
         for (const imp of u.imports) {
-          if (imp.path.startsWith('static')) throw new TelemarkJavaError('Static imports are not supported yet; use ClassName.MEMBER.', imp.token);
+          if (imp.path.startsWith('static')) {
+            if (/^staticcom\.pedropathing\./.test(imp.path)) continue;
+            throw new TelemarkJavaError('Static imports are not supported yet; use ClassName.MEMBER.', imp.token);
+          }
           if (!imp.path.includes('.')) throw new TelemarkJavaError('Classes in the unnamed package cannot be imported. Add a package declaration to the helper file.', imp.token);
           if (imp.path.endsWith('.*')) {
             const pkg = imp.path.slice(0, -2);
@@ -293,7 +296,7 @@
           }
           const match = symbols.find(c => c.qualifiedName === imp.path);
           if (!match) {
-            const sdk = /^(?:java\.|com\.(?:qualcomm|acmerobotics|pedropathing)|org\.(?:opencv|openftc)|org\.firstinspires\.ftc\.(?:robotcore|vision))/.test(imp.path);
+            const sdk = /^(?:java\.|com\.(?:qualcomm|acmerobotics|pedropathing)|org\.(?:opencv|openftc)|org\.firstinspires\.ftc\.(?:robotcore|vision)|org\.firstinspires\.ftc\.teamcode\.pedro\.Constants$)/.test(imp.path);
             if (!sdk) throw new TelemarkJavaError('Import ' + imp.path + ' cannot be resolved. Add its Java file to this project.', imp.token);
             sdkNames.add(imp.path.split('.').pop());
             continue;
@@ -802,7 +805,11 @@
       const token = tokens[i];
       const value = token.value;
 
-      if (value === "this" && tokens[i + 1]?.value === ".") continue;
+      if (value === "this" && tokens[i + 1]?.value === ".") {
+        if (options.preserveThis) output += "this";
+        else i += 1;
+        continue;
+      }
       if (value === "null") {
         output += "null ";
         continue;
@@ -864,6 +871,23 @@
         }
         output += "new " + (typeName === "Rect" ? "__telemarkRect" : typeName) + " ";
         i += 1;
+        continue;
+      }
+      if (
+        options.fieldNames?.has(value)
+        && token.type === "identifier"
+        && tokens[i - 1]?.value !== "."
+      ) {
+        output += (options.staticFieldOwners?.[value] || "this") + "." + value + " ";
+        continue;
+      }
+      if (
+        options.methodNames?.has(value)
+        && token.type === "identifier"
+        && tokens[i - 1]?.value !== "."
+        && tokens[i + 1]?.value === "("
+      ) {
+        output += "this." + value + " ";
         continue;
       }
       if (value === "(double)" || value === "(int)") continue;
@@ -1119,6 +1143,11 @@
 
       if (token.value === "true" || token.value === "false" || token.value === "null") {
         output.push(token.value);
+        continue;
+      }
+
+      if (token.value === "->") {
+        output.push("=>");
         continue;
       }
 

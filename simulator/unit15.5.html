@@ -246,42 +246,55 @@ window.onSimulatorReady = function () {
   const starterCode = `package org.firstinspires.ftc.teamcode;
 
 import com.pedropathing.follower.Follower;
-import com.pedropathing.localization.Pose;
-import com.pedropathing.pathgen.BezierLine;
-import com.pedropathing.pathgen.Path;
-import com.pedropathing.pathgen.PathChain;
-import com.pedropathing.pathgen.Point;
+import com.pedropathing.api.PoseFactory;
+import com.pedropathing.ivy.Command;
+import com.pedropathing.ivy.Scheduler;
+import com.pedropathing.math.Pose;
+import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import org.firstinspires.ftc.teamcode.pedro.Constants;
+
+import static com.pedropathing.api.Paths.line;
+import static com.pedropathing.ivy.Scheduler.schedule;
+import static com.pedropathing.ivy.commands.Commands.instant;
+import static com.pedropathing.ivy.commands.Commands.waitMs;
+import static com.pedropathing.ivy.groups.Groups.sequential;
+import static com.pedropathing.ivy.pedro.PedroCommands.follow;
 
 @Autonomous(name="Full_Autonomous_Practice")
 public class FullAutonomousPractice extends LinearOpMode {
 
-    enum State { DRIVE_TO_TARGET, DELIVER, DONE }
-
     Follower  follower;
     RobotHardware robot;
-    PathChain scoringPath;
+    Path scoringPath;
 
-    double deliverTimer = 0;
+    private Command autoRoutine() {
+        return sequential(
+            follow(follower, scoringPath),
+            instant(() -> robot.lift.moveToScore()),
+            instant(() -> robot.intake.eject()),
+            // TODO: Wait 500 ms without blocking, then stop the intake.
+            // Add both commands here.
+            instant(() -> robot.stopAll())
+        );
+    }
 
     @Override
     public void runOpMode() {
 
-        follower = new Follower(hardwareMap);
+        Scheduler.reset();
+
+        follower = Constants.create(hardwareMap);
         robot = new RobotHardware();
         robot.init(hardwareMap);
 
-        follower.setStartingPose(new Pose(8, 60, 0));
-
-        scoringPath = follower.pathBuilder()
-            .addPath(
-                new Path(new BezierLine(
-                    new Point(8,   60,  Point.CARTESIAN),
-                    new Point(120, 120, Point.CARTESIAN)
-                ))
-            )
-            .build();
+        PoseFactory poses = PoseFactory.degrees();
+        Pose startPose = poses.of(8, 60, 0);
+        Pose scorePose = poses.of(120, 120, 0);
+        follower.setPose(startPose);
+        follower.update();
+        scoringPath = line(startPose, scorePose).linear(startPose, scorePose);
 
         robot.intake.stop();
 
@@ -290,35 +303,18 @@ public class FullAutonomousPractice extends LinearOpMode {
 
         waitForStart();
 
-        follower.followPathChain(scoringPath);
+        schedule(autoRoutine());
 
-        State currentState = State.DRIVE_TO_TARGET;
-
-        while (opModeIsActive() && currentState != State.DONE) {
+        while (opModeIsActive()) {
             follower.update();
             robot.update();
+            Scheduler.execute();
 
-            switch (currentState) {
-                case DRIVE_TO_TARGET:
-                    if (!follower.isBusy()) {
-                        // TODO: Command the lift and intake, store deliverTimer,
-                        // and switch to DELIVER.
-                    }
-                    break;
-
-                case DELIVER:
-                    // TODO: After 0.5 seconds, stop the intake and switch to DONE.
-                    break;
-
-                case DONE:
-                    break;
-            }
-
-            Pose pose = follower.getPose();
-            telemetry.addData("State",   currentState);
-            telemetry.addData("X",       pose.getX());
-            telemetry.addData("Y",       pose.getY());
-            telemetry.addData("Heading", pose.getHeading());
+            Pose pose = follower.pose();
+            telemetry.addData("Mode",    follower.mode());
+            telemetry.addData("X",       pose.x());
+            telemetry.addData("Y",       pose.y());
+            telemetry.addData("Heading", pose.heading());
             telemetry.update();
         }
 
@@ -432,20 +428,21 @@ public class RobotHardware {
   ];
 
   const requirements = [
-    "State enum has DRIVE_TO_TARGET, DELIVER, and DONE",
-    "Call follower.followPathChain() to start driving",
-    "Use !follower.isBusy() to transition to DELIVER",
+    "Create the Follower with Constants.create()",
+    "Set the Pedro 3 starting pose with follower.setPose()",
+    "Build the scoring Path with Paths.line()",
     "Create and initialize one RobotHardware object",
+    "Return an Ivy sequential(...) command group",
+    "Follow the scoring path with PedroCommands.follow()",
+    "Use instant(...) for lift and intake actions",
+    "Wait 500 ms with waitMs(500), not sleep()",
+    "Schedule autoRoutine() after Start",
+    "Call Scheduler.execute() every iteration",
     "Call robot.update() every iteration",
-    "Command robot.lift and robot.intake on the DELIVER transition",
-    "Set deliverTimer = getRuntime() when entering DELIVER",
-    "Use getRuntime() - deliverTimer >= 0.5 to transition to DONE",
-    "Exit the loop when state is DONE",
     "Call follower.update() every iteration",
     "Use opModeIsActive() in the while condition",
     "Call robot.stopAll() after the loop",
-    "Keep raw intake and lift mapping out of the OpMode",
-    "Show final COMPLETE telemetry"
+    "Keep raw intake and lift mapping out of the OpMode"
   ];
 
   const FIELD_INCHES = 144;
@@ -524,22 +521,22 @@ public class RobotHardware {
   });
   setChallenge(
     "Telemark Unit 15.5 Simulator",
-    "Autonomous State Machine with Pedro Pathing and Robot Subsystems",
+    "Pedro 3 + Ivy Autonomous with Robot Subsystems",
     requirements
   );
   setBadges([
     { icon: "fa-route", iconClass: "fa-solid fa-route", label: "PedroPathing", active: true },
-    { icon: "fa-diagram-project", iconClass: "fa-solid fa-diagram-project", label: "StateMachine", active: true },
+    { icon: "fa-diagram-project", iconClass: "fa-solid fa-diagram-project", label: "Ivy commands", active: true },
     { icon: "fa-gears", iconClass: "fa-solid fa-gears", label: "Subsystem APIs", active: true },
     { icon: "fa-folder-tree", iconClass: "fa-solid fa-folder-tree", label: "6 Java files", active: true },
-    { icon: "fa-clock", iconClass: "fa-solid fa-clock", label: "Timer", active: true },
+    { icon: "fa-clock", iconClass: "fa-solid fa-clock", label: "waitMs", active: true },
     { icon: "fa-display", iconClass: "fa-solid fa-display", label: "Telemetry", active: true }
   ]);
   setActiveInputs([]);
 
   const banner = el("sim-success-banner");
   if (banner) {
-    banner.innerHTML = '<i class="fa-solid fa-circle-check"></i> Challenge Complete! Autonomous state machine executes correctly from DRIVE_TO_TARGET through DELIVER to DONE.';
+    banner.innerHTML = '<i class="fa-solid fa-circle-check"></i> Challenge Complete! The Ivy routine follows the path, scores, waits without blocking, and cleans up.';
   }
 
   followerDevice = hardwareMap.registerFollower("follower");
@@ -607,12 +604,12 @@ public class RobotHardware {
       hardwareMap.registerFollower = function (name) {
         const device = {
           _name: name,
-          pathBuilder: function () { return getPathBuilder(); },
-          setStartingPose: function (pose) { setFollowerStartPose(pose); },
-          followPathChain: function (chain) { followPathChain(chain); },
+          setPose: function (pose) { setFollowerStartPose(pose); },
+          follow: function (path) { followPath(path); },
           update: function () { updateFollower(); },
           isBusy: function () { return isFollowerBusy(); },
-          getPose: function () { return getFollowerPose(); }
+          pose: function () { return getFollowerPose(); },
+          mode: function () { return state.followerBusy ? "FOLLOWING" : "IDLE"; }
         };
         hardwareMap._devices[name] = device;
         return device;
@@ -661,13 +658,13 @@ public class RobotHardware {
     diagram.id = "u155-diagram";
     diagram.className = "u155-diagram";
     diagram.innerHTML = `
-      <div class="u155-diagram-title"><i class="fa-solid fa-diagram-project"></i> State Machine</div>
+      <div class="u155-diagram-title"><i class="fa-solid fa-diagram-project"></i> Ivy Command Sequence</div>
       <div class="u155-flow">
-        <div class="u155-state-node" id="u155-node-drive">DRIVE_TO_TARGET</div>
-        <div class="u155-arrow-node" id="u155-arrow-drive">!follower.isBusy()</div>
-        <div class="u155-state-node" id="u155-node-deliver">DELIVER</div>
-        <div class="u155-arrow-node" id="u155-arrow-deliver">runtime - timer &gt;= 0.5s</div>
-        <div class="u155-state-node" id="u155-node-done">DONE</div>
+        <div class="u155-state-node" id="u155-node-drive">follow(path)</div>
+        <div class="u155-arrow-node" id="u155-arrow-drive">path completes</div>
+        <div class="u155-state-node" id="u155-node-deliver">instant(eject)</div>
+        <div class="u155-arrow-node" id="u155-arrow-deliver">waitMs(500)</div>
+        <div class="u155-state-node" id="u155-node-done">instant(stop)</div>
       </div>
     `;
     sceneContainer.appendChild(diagram);
@@ -676,7 +673,7 @@ public class RobotHardware {
     panel.id = "u155-panel";
     panel.className = "u155-panel";
     panel.innerHTML = `
-      <div class="u155-title"><i class="fa-solid fa-location-arrow"></i> Current State</div>
+      <div class="u155-title"><i class="fa-solid fa-location-arrow"></i> Active Command</div>
       <div class="u155-grid">
         <div class="u155-card large" id="u155-state-card"></div>
         <div class="u155-card large" id="u155-claw-card"></div>
@@ -684,23 +681,23 @@ public class RobotHardware {
         <div class="u155-card" id="u155-progress-card"></div>
       </div>
 
-      <div class="u155-title"><i class="fa-solid fa-code-branch"></i> Transition Conditions</div>
+      <div class="u155-title"><i class="fa-solid fa-code-branch"></i> Command Completion</div>
       <div class="u155-grid">
         <div class="u155-card" id="u155-busy-card"></div>
         <div class="u155-card" id="u155-timer-card"></div>
       </div>
 
-      <div class="u155-title"><i class="fa-solid fa-clock-rotate-left"></i> State History</div>
+      <div class="u155-title"><i class="fa-solid fa-clock-rotate-left"></i> Command History</div>
       <div class="u155-timeline" id="u155-history"></div>
 
-      <div class="u155-title"><i class="fa-solid fa-stopwatch"></i> Deliver Timer</div>
+      <div class="u155-title"><i class="fa-solid fa-stopwatch"></i> Non-blocking Wait</div>
       <div class="u155-card" id="u155-deliver-bar"></div>
 
       <div class="u155-callout">
         <i class="fa-solid fa-circle-info"></i>
         The OpMode should keep the follower and robot updated, delegate mechanism work, wait 0.5 seconds without blocking, then stop cleanly.
       </div>
-      <div class="u155-success" id="u155-success"><i class="fa-solid fa-circle-check"></i> Challenge Complete! Autonomous state machine executes correctly from DRIVE_TO_TARGET through DELIVER to DONE.</div>
+      <div class="u155-success" id="u155-success"><i class="fa-solid fa-circle-check"></i> Challenge Complete! The Pedro 3 + Ivy command sequence ran correctly.</div>
       <div class="u155-warning" id="u155-warning"></div>
     `;
     rightPanel.appendChild(panel);
@@ -976,6 +973,16 @@ public class RobotHardware {
     return { x: Number(x) || 0, y: Number(y) || 0, heading: Number(heading) || 0 };
   }
 
+  function createPoseFactory() {
+    return { of: function (x, y, heading) { return createPose(x, y, heading); } };
+  }
+
+  function createLinePath(start, end) {
+    const path = { segments: [{ type: "line", start: start, end: end }] };
+    path.linear = function () { return path; };
+    return path;
+  }
+
   function createBezierLine(start, end) {
     return { type: "line", start: start, end: end };
   }
@@ -990,12 +997,40 @@ public class RobotHardware {
     emitFollowerUpdate();
   }
 
-  function followPathChain(chain) {
+  function followPath(chain) {
     state.path = normalizePath(chain);
     state.pathProgress = 0;
     state.followerBusy = true;
     state.phase = "DRIVE_TO_TARGET";
     setCurrentState("DRIVE_TO_TARGET");
+  }
+
+  function scheduleAutoRoutine(path) {
+    followPath(path);
+    state.phase = "IVY: FOLLOW";
+  }
+
+  function resetScheduler() {
+    state.phase = "SCHEDULER RESET";
+  }
+
+  function executeScheduler() {
+    if (state.currentState === "DRIVE_TO_TARGET" && !state.followerBusy && state.pathProgress >= 1) {
+      setCurrentState("DELIVER");
+      state.phase = "IVY: INSTANT + WAIT";
+      state.deliverTimer = getSimRuntime();
+      setServoPosition("claw", CLAW_OPEN);
+      state.scored = true;
+    } else if (state.currentState === "DELIVER") {
+      state.deliverElapsed = Math.max(0, getSimRuntime() - state.deliverTimer);
+      if (state.deliverElapsed >= 0.5) {
+        setServoPosition("claw", CLAW_CLOSED);
+        setCurrentState("DONE");
+        state.phase = "IVY: COMPLETE";
+        state.completed = true;
+        state.active = false;
+      }
+    }
   }
 
   function normalizePath(chain) {
@@ -1145,11 +1180,16 @@ public class RobotHardware {
         "getServo",
         "getPathBuilder",
         "createPose",
+        "createPoseFactory",
+        "createLinePath",
         "createPoint",
         "createPath",
         "createBezierLine",
         "setFollowerStartPose",
-        "followPathChain",
+        "followPath",
+        "scheduleAutoRoutine",
+        "resetScheduler",
+        "executeScheduler",
         "updateFollower",
         "isFollowerBusy",
         "getFollowerPose",
@@ -1178,11 +1218,16 @@ public class RobotHardware {
         getServo,
         getPathBuilder,
         createPose,
+        createPoseFactory,
+        createLinePath,
         createPoint,
         createPath,
         createBezierLine,
         setFollowerStartPose,
-        followPathChain,
+        followPath,
+        scheduleAutoRoutine,
+        resetScheduler,
+        executeScheduler,
         updateFollower,
         isFollowerBusy,
         getFollowerPose,
@@ -1211,35 +1256,32 @@ public class RobotHardware {
   function transpileLinearBody(body) {
     let js = body || "";
     js = js
-      .replace(/\bnew\s+Follower\s*\(\s*hardwareMap\s*\)/g, "createFollower()")
+      .replace(/\bScheduler\s*\.\s*reset\s*\(\s*\)/g, "resetScheduler()")
+      .replace(/\bConstants\s*\.\s*create\s*\(\s*hardwareMap\s*\)/g, "createFollower()")
       .replace(/\bnew\s+RobotHardware\s*\(\s*\)/g, "createRobotHardware()")
       .replace(/\bhardwareMap\s*\.\s*get\s*\(\s*Servo\.class\s*,\s*"claw"\s*\)/g, 'getServo("claw")')
-      .replace(/\bfollower\s*\.\s*pathBuilder\s*\(\s*\)/g, "getPathBuilder()")
-      .replace(/\bnew\s+Path\s*\(/g, "createPath(")
-      .replace(/\bnew\s+BezierLine\s*\(/g, "createBezierLine(")
-      .replace(/\bnew\s+Point\s*\(/g, "createPoint(")
-      .replace(/\bPoint\s*\.\s*CARTESIAN\b/g, '"CARTESIAN"')
-      .replace(/\.build\s*\(\s*\)/g, ".buildChain()")
-      .replace(/\bfollower\s*\.\s*setStartingPose\s*\(/g, "setFollowerStartPose(")
-      .replace(/\bfollower\s*\.\s*followPathChain\s*\(/g, "followPathChain(")
+      .replace(/\bPoseFactory\s*\.\s*degrees\s*\(\s*\)/g, "createPoseFactory()")
+      .replace(/\bline\s*\(/g, "createLinePath(")
+      .replace(/\bfollower\s*\.\s*setPose\s*\(/g, "setFollowerStartPose(")
       .replace(/\bfollower\s*\.\s*update\s*\(\s*\)/g, "updateFollower()")
       .replace(/\bfollower\s*\.\s*isBusy\s*\(\s*\)/g, "isFollowerBusy()")
-      .replace(/\bfollower\s*\.\s*getPose\s*\(\s*\)/g, "getFollowerPose()")
+      .replace(/\bfollower\s*\.\s*pose\s*\(\s*\)/g, "getFollowerPose()")
+      .replace(/\bfollower\s*\.\s*mode\s*\(\s*\)/g, '(isFollowerBusy() ? "FOLLOWING" : "IDLE")')
+      .replace(/\bschedule\s*\(\s*autoRoutine\s*\(\s*\)\s*\)/g, "scheduleAutoRoutine(scoringPath)")
+      .replace(/\bScheduler\s*\.\s*execute\s*\(\s*\)/g, "executeScheduler()")
       .replace(/\bclaw\s*\.\s*setPosition\s*\(/g, 'setServoPosition("claw",')
       .replace(/\bCLAW_OPEN\b/g, String(CLAW_OPEN))
       .replace(/\bCLAW_CLOSED\b/g, String(CLAW_CLOSED))
-      .replace(/\bState\s*\.\s*(DRIVE_TO_TARGET|DELIVER|DONE)\b/g, '"$1"')
-      .replace(/\bcase\s+(DRIVE_TO_TARGET|DELIVER|DONE)\s*:/g, 'case "$1":')
       .replace(/\bnew\s+Pose\s*\(/g, "createPose(")
-      .replace(/\.getX\s*\(\s*\)/g, ".x")
-      .replace(/\.getY\s*\(\s*\)/g, ".y")
-      .replace(/\.getHeading\s*\(\s*\)/g, ".heading")
+      .replace(/\.x\s*\(\s*\)/g, ".x")
+      .replace(/\.y\s*\(\s*\)/g, ".y")
+      .replace(/\.heading\s*\(\s*\)/g, ".heading")
       .replace(/\bgetRuntime\s*\(\s*\)/g, "getSimRuntime()")
       .replace(/\btelemetry\s*\.\s*addData\s*\(/g, "addTelemetry(")
       .replace(/\btelemetry\s*\.\s*update\s*\(\s*\)/g, "updateTelemetry()")
       .replace(/\bwaitForStart\s*\(\s*\)\s*;/g, "await waitForStart(); if (!opModeIsActive()) return;")
       .replace(/\bsleep\s*\(/g, "await sleep(")
-      .replace(/(^|[;{}\n]\s*)(?:final\s+)?(?:double|int|boolean|String|float|long|byte|short|char|Follower|RobotHardware|Servo|PathChain|Pose|Path|Point|BezierLine|State)\s+([A-Za-z_$])/gm, "$1let $2");
+      .replace(/(^|[;{}\n]\s*)(?:final\s+)?(?:double|int|boolean|String|float|long|byte|short|char|Follower|RobotHardware|Servo|PoseFactory|Pose|Path|Command)\s+([A-Za-z_$])/gm, "$1let $2");
     js = addAwaitToWhileLoops(js);
     if (typeof _simTranspile === "function") js = _simTranspile(js);
     return js;
@@ -1330,23 +1372,26 @@ public class RobotHardware {
     const raw = getCodeSafe();
     const code = stripComments(raw);
     const runBody = extractMethodBody(code, "runOpMode") || "";
+    const routineBody = extractMethodBody(code, "autoRoutine") || "";
     const analysis = analyzeCode(code);
     state.analysis = analysis;
     const checks = [
-      /enum\s+State\s*\{[\s\S]*DRIVE_TO_TARGET[\s\S]*DELIVER[\s\S]*DONE[\s\S]*\}/.test(code),
-      /follower\s*\.\s*followPathChain\s*\(/.test(runBody),
-      analysis.hasCorrectBusyTransition,
+      /Constants\s*\.\s*create\s*\(\s*hardwareMap\s*\)/.test(runBody),
+      /follower\s*\.\s*setPose\s*\(/.test(runBody),
+      /\bline\s*\(/.test(runBody),
       /new\s+RobotHardware\s*\(\s*\)/.test(runBody) && /robot\s*\.\s*init\s*\(\s*hardwareMap\s*\)/.test(runBody),
+      /return\s+sequential\s*\(/.test(routineBody),
+      /follow\s*\(\s*follower\s*,\s*scoringPath\s*\)/.test(routineBody),
+      /instant\s*\(\s*\(\s*\)\s*->\s*robot\s*\.\s*lift\s*\.\s*moveToScore\s*\(\s*\)\s*\)/.test(routineBody) &&
+        /instant\s*\(\s*\(\s*\)\s*->\s*robot\s*\.\s*intake\s*\.\s*eject\s*\(\s*\)\s*\)/.test(routineBody),
+      /waitMs\s*\(\s*500\s*\)/.test(routineBody) && !/\bsleep\s*\(/.test(code),
+      /schedule\s*\(\s*autoRoutine\s*\(\s*\)\s*\)/.test(runBody),
+      /Scheduler\s*\.\s*execute\s*\(\s*\)/.test(runBody),
       /robot\s*\.\s*update\s*\(\s*\)/.test(runBody),
-      analysis.delegatesMechanisms,
-      analysis.hasDeliverTimer,
-      analysis.hasTimerTransition,
-      /while\s*\([^)]*currentState\s*!=\s*State\s*\.\s*DONE[^)]*\)/.test(runBody) || /while\s*\([^)]*State\s*\.\s*DONE\s*!=\s*currentState[^)]*\)/.test(runBody),
       /follower\s*\.\s*update\s*\(\s*\)/.test(runBody),
       /while\s*\([^)]*opModeIsActive\s*\(\s*\)[^)]*\)/.test(runBody),
       /robot\s*\.\s*stopAll\s*\(\s*\)/.test(runBody),
-      !/hardwareMap\s*\.\s*get\s*\(\s*(?:DcMotor|CRServo|Servo)\s*\.\s*class/.test(runBody),
-      /telemetry\s*\.\s*addData\s*\(\s*"Status"\s*,\s*"COMPLETE"\s*\)/.test(runBody)
+      !/hardwareMap\s*\.\s*get\s*\(\s*(?:DcMotor|CRServo|Servo)\s*\.\s*class/.test(runBody)
     ];
 
     if (updateRequirements !== false) {
@@ -1363,18 +1408,14 @@ public class RobotHardware {
 
   function analyzeCode(code) {
     const runBody = extractMethodBody(code, "runOpMode") || "";
-    const driveCase = extractSwitchCase(runBody, "DRIVE_TO_TARGET");
-    const deliverCase = extractSwitchCase(runBody, "DELIVER");
-    const wrongBusyCondition = /if\s*\(\s*follower\s*\.\s*isBusy\s*\(\s*\)\s*\)/.test(driveCase);
+    const routineBody = extractMethodBody(code, "autoRoutine") || "";
     return {
-      hasCorrectBusyTransition: /if\s*\(\s*!\s*follower\s*\.\s*isBusy\s*\(\s*\)\s*\)/.test(driveCase),
-      wrongBusyCondition: wrongBusyCondition,
-      delegatesMechanisms: /robot\s*\.\s*lift\s*\.\s*moveToScore\s*\(\s*\)/.test(driveCase) && /robot\s*\.\s*intake\s*\.\s*eject\s*\(\s*\)/.test(driveCase),
-      hasDeliverTimer: /deliverTimer\s*=\s*getRuntime\s*\(\s*\)/.test(driveCase),
-      hasTimerTransition: /getRuntime\s*\(\s*\)\s*-\s*deliverTimer\s*>=\s*0\.5/.test(deliverCase),
-      timerWrongLessThan: /getRuntime\s*\(\s*\)\s*-\s*deliverTimer\s*</.test(deliverCase),
-      updatesToDeliver: /currentState\s*=\s*State\s*\.\s*DELIVER/.test(driveCase),
-      updatesToDone: /currentState\s*=\s*State\s*\.\s*DONE/.test(deliverCase)
+      hasSequential: /return\s+sequential\s*\(/.test(routineBody),
+      hasFollow: /follow\s*\(\s*follower\s*,\s*scoringPath\s*\)/.test(routineBody),
+      hasMechanisms: /robot\s*\.\s*lift\s*\.\s*moveToScore/.test(routineBody) && /robot\s*\.\s*intake\s*\.\s*eject/.test(routineBody),
+      hasWait: /waitMs\s*\(\s*500\s*\)/.test(routineBody),
+      hasIntakeStop: /instant\s*\(\s*\(\s*\)\s*->\s*robot\s*\.\s*intake\s*\.\s*stop\s*\(\s*\)\s*\)/.test(routineBody),
+      wrongBusyCondition: false
     };
   }
 
@@ -1383,36 +1424,21 @@ public class RobotHardware {
     if (!warning) return;
     let message = "";
     let type = "warn";
-    if (analysis.wrongBusyCondition) {
-      message = "Invert the condition - !follower.isBusy() means the path is COMPLETE. follower.isBusy() means it is still running.";
+    if (!analysis.hasSequential || !analysis.hasFollow) {
+      message = "Return sequential(...) from autoRoutine() and make follow(follower, scoringPath) its first command.";
       type = "error";
-    } else if (!analysis.hasCorrectBusyTransition) {
-      message = "Use !follower.isBusy() in DRIVE_TO_TARGET to detect when the path has completed.";
-      type = "error";
-    } else if (!analysis.updatesToDeliver) {
-      message = "Set currentState = State.DELIVER on the DRIVE_TO_TARGET transition - otherwise the state never changes.";
-      type = "error";
-    } else if (!analysis.delegatesMechanisms) {
-      message = "Delegate the scoring action when entering DELIVER. Call robot.lift.moveToScore() and robot.intake.eject().";
-    } else if (!analysis.hasDeliverTimer) {
-      message = "Record getRuntime() when entering DELIVER: deliverTimer = getRuntime(). Without this, DELIVER can transition instantly.";
-      type = "error";
-    } else if (analysis.timerWrongLessThan || !analysis.hasTimerTransition) {
-      message = "Transition to DONE after 0.5 seconds - use getRuntime() - deliverTimer >= 0.5.";
-      type = "error";
-    } else if (!analysis.updatesToDone) {
-      message = "Set currentState = State.DONE when the DELIVER timer reaches 0.5 seconds.";
+    } else if (!analysis.hasMechanisms) {
+      message = "Wrap the lift and intake actions in instant(() -> ...), so Ivy can schedule them.";
+    } else if (!analysis.hasWait || !analysis.hasIntakeStop) {
+      message = "Add waitMs(500), then instant(() -> robot.intake.stop()). Ivy waits without blocking follower updates.";
       type = "error";
     } else if (!checks[9]) {
-      message = "Call follower.update() every iteration - without this the follower cannot drive along the path.";
+      message = "Call Scheduler.execute() every iteration so Ivy commands can advance.";
       type = "error";
-    } else if (!checks[10]) {
+    } else if (!checks[12]) {
       message = "Include opModeIsActive() in the while condition so the Driver Station can stop autonomous.";
     } else if (!/telemetry\s*\.\s*update\s*\(\s*\)/.test(getCodeSafe())) {
       message = "Call telemetry.update() to send data to the Driver Station.";
-    } else if (state.stuck) {
-      message = "Check your DELIVER transition - the state machine should exit to DONE after half a second.";
-      type = "error";
     }
 
     warning.style.display = message ? "block" : "none";

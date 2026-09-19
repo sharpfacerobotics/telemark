@@ -203,13 +203,14 @@ window.onSimulatorReady = function () {
   "use strict";
 
   const starterCode = `import com.pedropathing.follower.Follower;
-import com.pedropathing.localization.Pose;
+import com.pedropathing.math.Pose;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 @TeleOp(name="Pose_Correction")
 public class PoseCorrection extends OpMode {
@@ -219,7 +220,7 @@ public class PoseCorrection extends OpMode {
 
     @Override
     public void init() {
-        follower  = new Follower(hardwareMap);
+        follower  = Constants.create(hardwareMap);
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
         limelight.pipelineSwitch(0);
@@ -247,12 +248,13 @@ public class PoseCorrection extends OpMode {
 
     @Override
     public void loop() {
+        follower.update();
         correctPoseFromLimelight();
 
-        Pose pose = follower.getPose();
-        telemetry.addData("X",       pose.getX());
-        telemetry.addData("Y",       pose.getY());
-        telemetry.addData("Heading", pose.getHeading());
+        Pose pose = follower.pose();
+        telemetry.addData("X",       pose.x());
+        telemetry.addData("Y",       pose.y());
+        telemetry.addData("Heading", pose.heading());
         telemetry.update();
     }
 }`;
@@ -488,7 +490,7 @@ public class PoseCorrection extends OpMode {
         const device = {
           _name: name,
           setPose: function (pose) { setFollowerPose(pose); },
-          getPose: function () { return getFollowerPose(); }
+          pose: function () { return getFollowerPose(); }
         };
         hardwareMap._devices[name] = device;
         return device;
@@ -912,7 +914,7 @@ public class PoseCorrection extends OpMode {
   function transpileInitBody(body) {
     let js = body || "";
     js = js
-      .replace(/\bnew\s+Follower\s*\(\s*hardwareMap\s*\)/g, "createFollower()")
+      .replace(/\bConstants\s*\.\s*create\s*\(\s*hardwareMap\s*\)/g, "createFollower()")
       .replace(/\bhardwareMap\s*\.\s*get\s*\(\s*Limelight3A\.class\s*,\s*"limelight"\s*\)/g, 'hardwareMap.get("Limelight3A", "limelight")')
       .replace(/\blimelight\s*\.\s*pipelineSwitch\s*\(/g, "switchPipeline(")
       .replace(/\blimelight\s*\.\s*start\s*\(\s*\)/g, "startLimelight()")
@@ -934,13 +936,13 @@ public class PoseCorrection extends OpMode {
       .replace(/\bbotpose\s*\.\s*getPosition\s*\(\s*\)\s*\.\s*x\b/g, "botpose.position.x")
       .replace(/\bbotpose\s*\.\s*getPosition\s*\(\s*\)\s*\.\s*y\b/g, "botpose.position.y")
       .replace(/\bbotpose\s*\.\s*getOrientation\s*\(\s*\)\s*\.\s*getYaw\s*\(\s*AngleUnit\.RADIANS\s*\)/g, "botpose.orientation.yawRadians")
-      .replace(/\bfollower\s*\.\s*getPose\s*\(\s*\)/g, "getFollowerPose()")
+      .replace(/\bfollower\s*\.\s*pose\s*\(\s*\)/g, "getFollowerPose()")
       .replace(/\bfollower\s*\.\s*setPose\s*\(/g, "setFollowerPose(")
       .replace(/\bnew\s+Pose\s*\(/g, "createPose(")
       .replace(/\bAngleUnit\s*\.\s*normalizeRadians\s*\(/g, "normalizeAngle(")
-      .replace(/\.getX\s*\(\s*\)/g, ".x")
-      .replace(/\.getY\s*\(\s*\)/g, ".y")
-      .replace(/\.getHeading\s*\(\s*\)/g, ".heading")
+      .replace(/\.x\s*\(\s*\)/g, ".x")
+      .replace(/\.y\s*\(\s*\)/g, ".y")
+      .replace(/\.heading\s*\(\s*\)/g, ".heading")
       .replace(/(^|[;{}\n]\s*)(?:final\s+)?(?:LLResult|Pose3D|Pose|double|int|boolean|String|float|long|byte|short|char)\s+([A-Za-z_$])/gm, "$1let $2");
     if (typeof _simTranspile === "function") js = _simTranspile(js);
     return js;
@@ -950,10 +952,11 @@ public class PoseCorrection extends OpMode {
     let js = body || "";
     js = js
       .replace(/\bcorrectPoseFromLimelight\s*\(\s*\)/g, "callCorrectPose()")
-      .replace(/\bfollower\s*\.\s*getPose\s*\(\s*\)/g, "getFollowerPose()")
-      .replace(/\.getX\s*\(\s*\)/g, ".x")
-      .replace(/\.getY\s*\(\s*\)/g, ".y")
-      .replace(/\.getHeading\s*\(\s*\)/g, ".heading")
+      .replace(/\bfollower\s*\.\s*update\s*\(\s*\)/g, "updateFollower()")
+      .replace(/\bfollower\s*\.\s*pose\s*\(\s*\)/g, "getFollowerPose()")
+      .replace(/\.x\s*\(\s*\)/g, ".x")
+      .replace(/\.y\s*\(\s*\)/g, ".y")
+      .replace(/\.heading\s*\(\s*\)/g, ".heading")
       .replace(/\btelemetry\s*\.\s*addData\s*\(/g, "addTelemetry(")
       .replace(/\btelemetry\s*\.\s*update\s*\(\s*\)/g, "updateTelemetry()")
       .replace(/(^|[;{}\n]\s*)(?:final\s+)?(?:Pose|double|int|boolean|String|float|long|byte|short|char)\s+([A-Za-z_$])/gm, "$1let $2");
@@ -1170,7 +1173,7 @@ public class PoseCorrection extends OpMode {
       /getPosition\s*\(\s*\)\s*\.\s*y/.test(correctBody) &&
       /39\.3701|39\.37|\/\s*0\.0254/.test(correctBody);
     const hasYawConversion = /getOrientation\s*\(\s*\)\s*\.\s*getYaw\s*\(\s*AngleUnit\s*\.\s*RADIANS\s*\)/.test(correctBody);
-    const hasEstimate = /\bPose\s+(?:estimate|predicted)\s*=\s*follower\s*\.\s*getPose\s*\(\s*\)/.test(correctBody);
+    const hasEstimate = /\bPose\s+(?:estimate|predicted)\s*=\s*follower\s*\.\s*pose\s*\(\s*\)/.test(correctBody);
     const hasInnovations = /\bdouble\s+innovationX\s*=/.test(correctBody) &&
       /\bdouble\s+innovationY\s*=/.test(correctBody) &&
       /\bdouble\s+innovationHeading\s*=\s*AngleUnit\s*\.\s*normalizeRadians\s*\(/.test(correctBody);
@@ -1179,9 +1182,9 @@ public class PoseCorrection extends OpMode {
     const gainValue = gainMatch ? Number(gainMatch[1]) : NaN;
     const hasGain = Number.isFinite(gainValue) && gainValue > 0 && gainValue < 1;
     const hasSetPose = /follower\s*\.\s*setPose\s*\(\s*new\s+Pose\s*\(/.test(correctBody);
-    const hasBlendedX = /(?:estimate|predicted)\s*\.\s*getX\s*\(\s*\)\s*\+\s*gain\s*\*\s*innovationX/.test(correctBody);
-    const hasBlendedY = /(?:estimate|predicted)\s*\.\s*getY\s*\(\s*\)\s*\+\s*gain\s*\*\s*innovationY/.test(correctBody);
-    const hasBlendedHeading = /AngleUnit\s*\.\s*normalizeRadians\s*\([\s\S]*?(?:estimate|predicted)\s*\.\s*getHeading\s*\(\s*\)\s*\+\s*gain\s*\*\s*innovationHeading/.test(correctBody);
+    const hasBlendedX = /(?:estimate|predicted)\s*\.\s*x\s*\(\s*\)\s*\+\s*gain\s*\*\s*innovationX/.test(correctBody);
+    const hasBlendedY = /(?:estimate|predicted)\s*\.\s*y\s*\(\s*\)\s*\+\s*gain\s*\*\s*innovationY/.test(correctBody);
+    const hasBlendedHeading = /AngleUnit\s*\.\s*normalizeRadians\s*\([\s\S]*?(?:estimate|predicted)\s*\.\s*heading\s*\(\s*\)\s*\+\s*gain\s*\*\s*innovationHeading/.test(correctBody);
     const guardsBeforeSetPose = setPoseIndex > 0 && hasValidCheck && hasFreshnessGate &&
       hasTagGate && hasBotposeNull && hasInnovationGate;
 

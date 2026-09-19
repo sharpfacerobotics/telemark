@@ -380,44 +380,66 @@
     };
 
     class Pose {
-      constructor(x, y, heading) { this.x = Number(x) || 0; this.y = Number(y) || 0; this.heading = Number(heading) || 0; }
-      getX() { return this.x; }
-      getY() { return this.y; }
-      getHeading() { return this.heading; }
+      constructor(x, y, heading) { this._x = Number(x) || 0; this._y = Number(y) || 0; this._heading = Number(heading) || 0; }
+      x() { return this._x; }
+      y() { return this._y; }
+      heading() { return this._heading; }
     }
-    class Point {
-      constructor(x, y) { this.x = Number(x) || 0; this.y = Number(y) || 0; }
+    class PoseFactory {
+      static degrees() {
+        return {of(x, y, heading) { return new Pose(x, y, (Number(heading) || 0) * Math.PI / 180); }};
+      }
+      static radians() {
+        return {of(x, y, heading) { return new Pose(x, y, heading); }};
+      }
     }
-    Point.CARTESIAN = "CARTESIAN";
-    class BezierLine { constructor() { this.points = Array.from(arguments); } }
-    class BezierCurve { constructor() { this.points = Array.from(arguments); } }
-    class PathChain { constructor(paths) { this.paths = paths || []; } }
-    class PathBuilder {
-      constructor() { this.paths = []; }
-      addPath(path) { this.paths.push(path); return this; }
-      setLinearHeadingInterpolation() { return this; }
-      setConstantHeadingInterpolation() { return this; }
-      build() { return new PathChain(this.paths.slice()); }
+    class Path {
+      constructor(segments) { this.segments = Array.isArray(segments) ? segments : [segments]; }
+      linear() { return this; }
+      constant() { return this; }
+      tangent() { return this; }
+    }
+    function line(start, end) { return new Path({type: "line", points: [start, end]}); }
+    function curve() { return new Path({type: "curve", points: Array.from(arguments)}); }
+    function path() {
+      const segments = [];
+      Array.from(arguments).forEach(value => segments.push.apply(segments, value instanceof Path ? value.segments : [value]));
+      return new Path(segments);
     }
     class Follower {
-      constructor() { this.pose = new Pose(0, 0, 0); this.busy = false; }
-      setStartingPose(pose) { this.setPose(pose); }
+      constructor() { this._pose = new Pose(0, 0, 0); this.busy = false; this.activePath = null; }
       setPose(pose) {
-        this.pose = pose || this.pose;
-        motion.setPose(this.pose.x || 0, this.pose.y || 0, this.pose.heading || 0);
+        this._pose = pose || this._pose;
+        motion.setPose(this._pose.x(), this._pose.y(), this._pose.heading());
       }
-      getPose() { return this.pose; }
-      pathBuilder() { return new PathBuilder(); }
-      followPath() { this.busy = true; motion.startFollower(); }
+      pose() { return this._pose; }
+      follow(value) { this.activePath = value; this.busy = true; motion.startFollower(); }
       update() { motion.pulseFollowerUpdate(); this.busy = motion.state.followerActive; }
       isBusy() { return this.busy; }
+      mode() { return this.busy ? "FOLLOWING" : "IDLE"; }
+      following() { return this.activePath; }
+      atParametricEnd() { return !this.busy && !!this.activePath; }
     }
     target.Pose = target.Pose || Pose;
-    target.Point = target.Point || Point;
-    target.BezierLine = target.BezierLine || BezierLine;
-    target.BezierCurve = target.BezierCurve || BezierCurve;
-    target.PathChain = target.PathChain || PathChain;
+    target.PoseFactory = target.PoseFactory || PoseFactory;
+    target.Path = target.Path || Path;
+    target.line = target.line || line;
+    target.curve = target.curve || curve;
+    target.path = target.path || path;
     target.Follower = target.Follower || Follower;
+    target.Constants = target.Constants || {create() { return new Follower(); }};
+
+    const scheduled = [];
+    target.instant = target.instant || (action => ({run: action}));
+    target.waitMs = target.waitMs || (milliseconds => ({waitMs: Number(milliseconds) || 0}));
+    target.waitUntil = target.waitUntil || (condition => ({condition}));
+    target.follow = target.follow || ((follower, value) => ({run() { follower.follow(value); }}));
+    target.sequential = target.sequential || ((...commands) => ({commands}));
+    target.schedule = target.schedule || (command => { scheduled.push(command); return command; });
+    target.Scheduler = target.Scheduler || {
+      reset() { scheduled.length = 0; },
+      execute() { scheduled.forEach(command => { if (command && typeof command.run === "function") command.run(); }); }
+    };
 
     class Rect { constructor(x, y, width, height) { Object.assign(this, {x, y, width, height}); } }
     class AprilTagProcessor {
