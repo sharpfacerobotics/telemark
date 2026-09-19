@@ -1,32 +1,6 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const ts = require('typescript');
-
-/** Counts read from the curriculum data, so adding a module cannot leave a
-    stale literal here to fail a later build. */
-const tsCache = new Map();
-
-function loadTelemark(name) {
-  const file = path.resolve(__dirname, '..', 'src/telemark', `${name}.ts`);
-  if (tsCache.has(file)) return tsCache.get(file);
-  const {outputText} = ts.transpileModule(fs.readFileSync(file, 'utf8'), {
-    compilerOptions: {module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022},
-  });
-  const module = {};
-  tsCache.set(file, module);
-  new Function('exports', 'require', 'module', outputText)(
-    module,
-    (id) => (id.startsWith('./') ? loadTelemark(id.slice(2)) : require(id)),
-    {exports: module},
-  );
-  return module;
-}
-
-const software = loadTelemark('curriculum');
-const mechanical = loadTelemark('mechanical');
-const blocks = loadTelemark('blocksCurriculum');
-
 const buildRoot = path.resolve(__dirname, '../build');
 
 function findRoute(route) {
@@ -48,19 +22,15 @@ function walk(directory) {
 }
 
 const homepage = fs.readFileSync(path.join(buildRoot, 'index.html'), 'utf8');
-// The homepage must render real counts from the curriculum data, not stale
-// hardcoded numbers. Both tracks are represented: the software unit and lesson
-// counts, the mechanical module and lesson counts, and the combined total in
-// the stats bar.
-assert.match(homepage, />16</, 'Homepage must render the 16 software units');
-const softwareStat = `${software.CURRICULUM_LESSON_COUNT + blocks.BLOCKS_LESSON_COUNT} software lessons`;
-const mechanicalStat = `${mechanical.MECHANICAL_UNIT_COUNT} modules · ${mechanical.MECHANICAL_LESSON_COUNT} lessons`;
-const combinedLessons = software.CURRICULUM_LESSON_COUNT
-  + mechanical.MECHANICAL_LESSON_COUNT
-  + blocks.BLOCKS_LESSON_COUNT;
-assert.ok(homepage.includes(softwareStat), `Homepage must render "${softwareStat}"`);
-assert.ok(homepage.includes(mechanicalStat), `Homepage must render "${mechanicalStat}"`);
-assert.match(homepage, new RegExp(`>${combinedLessons}<`), `Homepage must render the combined lesson count ${combinedLessons}`);
+assert.match(homepage, /Learn FTC/, 'Homepage must render the primary heading');
+assert.match(homepage, /Learn through experience with integrated lessons featuring software and mechanical simulators\./);
+assert.match(homepage, /Begin Software/);
+assert.match(homepage, /Begin Mechanical/);
+assert.match(homepage, /telemark-hero(?:-light)?\.mp4/, 'Homepage must retain the hero video');
+assert.doesNotMatch(homepage, /Student-built FTC software and mechanical curriculum/);
+assert.doesNotMatch(homepage, /Learn to program an FTC robot/);
+assert.doesNotMatch(homepage, /software lessons|Units and modules|Calculators and checks|Version 1\.10/);
+assert.doesNotMatch(homepage, /Built by FTC Team Sharp Face Robotics #30450/);
 assert.match(homepage, /telemark-build-commit/);
 
 findRoute('/curriculum');
