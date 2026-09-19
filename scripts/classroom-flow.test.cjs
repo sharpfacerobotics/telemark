@@ -55,24 +55,12 @@ for (const collection of ['accounts', 'usernames', 'classrooms', 'userInvites', 
   );
 }
 
-assert.match(rootTheme, /TelemarkAccountProvider/);
-assert.match(gate, /accountStatus !== 'absent'/);
-assert.match(personalize, /Who is using this account\?/);
-assert.match(personalize, /disabled=\{Boolean\(account\)\}/, 'saved roles cannot be edited');
-assert.match(personalize, /Coaches invite this username/);
-assert.match(
-  personalize,
-  /if \(savedAccount\.role === 'student'\) \{[\s\S]*?markManyAutoComplete/,
-  'coach setup must not create learner placement progress',
-);
-assert.match(dashboard, /account\?\.role === 'coach'/);
-assert.match(
-  dashboard,
-  /accountStatus === 'ready' && account\?\.role === 'student'[\s\S]*?useProgress\(progressUser\)/,
-  'coach dashboards must not start learner progress sync',
-);
-assert.match(dashboard, /<CoachDashboard/);
-assert.match(dashboard, /<StudentClassroomPanel/);
+assert.doesNotMatch(rootTheme, /TelemarkAccountProvider/, 'unfinished accounts must not initialize globally');
+assert.doesNotMatch(gate, /useTelemarkAccount|accountStatus|setupError/);
+assert.doesNotMatch(gate, /<aside|Continue to public lessons|Sign out/);
+assert.doesNotMatch(personalize, /useTelemarkAccount|Who is using this account\?|Coaches invite this username/);
+assert.doesNotMatch(dashboard, /useTelemarkAccount|<CoachDashboard|<StudentClassroomPanel/);
+assert.match(dashboard, /useProgress\(user\)/, 'the standard dashboard keeps cloud progress enabled');
 assert.match(classroomUi, /inviteStudentToClassroom/);
 assert.match(classroomUi, /respondToClassroomInvite/);
 assert.match(classroomUi, /completed, skipped, or completed by placement/);

@@ -90,21 +90,91 @@ function HeroVideo(): React.JSX.Element {
   const {colorMode} = useColorMode();
   const src = colorMode === 'light' ? lightSrc : darkSrc;
   const poster = colorMode === 'light' ? lightPoster : darkPoster;
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const initialSrcRef = React.useRef(src);
+  const activeSrcRef = React.useRef(src);
+  const playbackTimeRef = React.useRef(0);
+  const switchingRef = React.useRef(false);
+  const shouldPlayRef = React.useRef(true);
+
+  React.useEffect(() => {
+    const video = videoRef.current;
+    if (!video || activeSrcRef.current === src) return undefined;
+
+    // Keep the last pre-load position separately: assigning a new src resets
+    // currentTime to zero before a rapid second theme change can read it.
+    const currentPosition = Number.isFinite(video.currentTime) ? video.currentTime : 0;
+    // Prefer the live position whenever there is one. During a rapid second
+    // switch the browser may already have reset it to zero, in which case the
+    // saved pre-load position is the reliable value.
+    if (currentPosition > 0.05) {
+      playbackTimeRef.current = currentPosition;
+    }
+    if (!switchingRef.current) {
+      shouldPlayRef.current = (!video.paused && !video.ended) || video.autoplay;
+    }
+    const snapshot = {
+      time: playbackTimeRef.current,
+      wasPlaying: shouldPlayRef.current,
+    };
+    switchingRef.current = true;
+    activeSrcRef.current = src;
+
+    const restorePlayback = (): void => {
+      const lastPlayableTime = Number.isFinite(video.duration)
+        ? Math.max(0, video.duration - 0.05)
+        : snapshot.time;
+      const target = Math.min(snapshot.time, lastPlayableTime);
+      const finishSwitch = (): void => {
+        playbackTimeRef.current = target;
+        switchingRef.current = false;
+
+        if (snapshot.wasPlaying) {
+          void video.play().catch(() => {
+            // Browser autoplay policy may still pause playback; the selected
+            // theme and timestamp remain correct if that happens.
+          });
+        } else {
+          video.pause();
+        }
+      };
+
+      if (Math.abs(video.currentTime - target) < 0.05) {
+        finishSwitch();
+      } else {
+        video.addEventListener('seeked', finishSwitch, {once: true});
+        video.currentTime = target;
+      }
+    };
+
+    // Waiting for playable media avoids browsers discarding a seek issued
+    // while only the replacement file's metadata has arrived.
+    video.addEventListener('canplay', restorePlayback, {once: true});
+    video.src = src;
+    video.load();
+
+    return () => video.removeEventListener('canplay', restorePlayback);
+  }, [src]);
 
   return (
     <div className={styles.heroVideoFrame}>
       <video
-        key={src}
+        ref={videoRef}
         className={styles.heroVideo}
+        src={initialSrcRef.current}
         autoPlay
         loop
         muted
         playsInline
-        preload="metadata"
+        preload="auto"
         poster={poster}
+        onTimeUpdate={(event) => {
+          if (!switchingRef.current) {
+            playbackTimeRef.current = event.currentTarget.currentTime;
+          }
+        }}
         aria-label="Telemark curriculum and robot simulator preview"
       >
-        <source src={src} type="video/mp4" />
       </video>
     </div>
   );

@@ -7,24 +7,21 @@ import { signInWithGoogle } from '../telemark/googleAuth';
 import styles from './login.module.css';
 import {useBasePath} from '@site/src/telemark/useBasePath';
 import {useLearnerProfile} from '@site/src/telemark/useLearnerProfile';
-import {useTelemarkAccount} from '@site/src/telemark/useTelemarkAccount';
 
 export default function LoginPage(): React.JSX.Element {
   const { user, loading } = useAuth();
   const {status: profileStatus} = useLearnerProfile();
-  const {status: accountStatus} = useTelemarkAccount();
   const [error, setError] = useState<string | null>(null);
   const history           = useHistory();
   const basePath = useBasePath();
 
-  // New accounts choose a username and student/coach role before entering a
-  // dashboard. Returning accounts skip directly to their role-specific view.
+  // A new account stays on the general site until the learner chooses a
+  // curriculum destination. That click is what starts personalization.
   useEffect(() => {
-    if (loading || !user || profileStatus === 'loading' || accountStatus === 'loading') return;
-    if (profileStatus === 'signed-out' || accountStatus === 'signed-out') return;
-    const needsSetup = profileStatus === 'absent' || accountStatus === 'absent';
-    history.push(basePath(needsSetup ? '/personalize' : '/dashboard'));
-  }, [user, loading, profileStatus, accountStatus, history, basePath]);
+    if (!loading && user && ['absent', 'ready', 'error'].includes(profileStatus)) {
+      history.push(basePath(profileStatus === 'absent' ? '/' : '/dashboard'));
+    }
+  }, [user, loading, profileStatus, history, basePath]);
 
   async function handleSignIn() {
     setError(null);

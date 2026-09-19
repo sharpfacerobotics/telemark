@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import Link from '@docusaurus/Link';
-import {useHistory} from '@docusaurus/router';
+import {useHistory, useLocation} from '@docusaurus/router';
 import Layout from '@theme/Layout';
 import {signOut} from 'firebase/auth';
 import {auth} from '@site/src/telemark/firebase';
@@ -16,8 +16,7 @@ import {BLOCKS_LESSONS} from '@site/src/telemark/blocksCurriculum';
 import {useProgress} from '@site/src/telemark/useProgress';
 import {trackEvent} from '@site/src/telemark/analytics';
 import {useBasePath} from '@site/src/telemark/useBasePath';
-import {useTelemarkAccount} from '@site/src/telemark/useTelemarkAccount';
-import type {AccountRole} from '@site/src/telemark/classroom';
+import {personalizationBypassKey} from '@site/src/components/PersonalizationGate';
 import styles from './personalize.module.css';
 
 const LEVELS: Array<{id: SoftwareLevel; title: string; description: string}> = [
@@ -38,34 +37,25 @@ const LEVELS: Array<{id: SoftwareLevel; title: string; description: string}> = [
   },
 ];
 
+function safeNext(search: string): string | null {
+  const value = new URLSearchParams(search).get('next');
+  return value && value.startsWith('/') && !value.startsWith('//') ? value : null;
+}
+
 export default function PersonalizePage(): React.JSX.Element {
   const {user, loading: authLoading} = useAuth();
   const {profile, status, error: profileError, saveProfile} = useLearnerProfile();
-  const {
-    account,
-    status: accountStatus,
-    error: accountError,
-    saveAccount,
-  } = useTelemarkAccount();
   const {markManyAutoComplete, clearAutoCompleted} = useProgress(user);
-  const [role, setRole] = useState<AccountRole | null>(null);
-  const [username, setUsername] = useState('');
   const [tracks, setTracks] = useState<MainTrackId[]>([]);
   const [softwareLevel, setSoftwareLevel] = useState<SoftwareLevel | null>(null);
   const [blockExperienceChoice, setBlockExperienceChoice] = useState<'python' | 'java' | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const initialized = useRef(false);
-  const accountInitialized = useRef(false);
   const history = useHistory();
+  const location = useLocation();
   const basePath = useBasePath();
-
-  useEffect(() => {
-    if (accountInitialized.current || accountStatus !== 'ready' || !account) return;
-    accountInitialized.current = true;
-    setRole(account.role);
-    setUsername(account.username);
-  }, [account, accountStatus]);
+  const next = safeNext(location.search);
 
   useEffect(() => {
     if (initialized.current || status !== 'ready' || !profile) return;
@@ -90,39 +80,29 @@ export default function PersonalizePage(): React.JSX.Element {
 
   async function save() {
     if (!user) return;
-    if (!role) {
-      setError('Choose whether this account belongs to a student or coach.');
-      return;
-    }
-    if (!username.trim()) {
-      setError('Choose a username so coaches and students can find the right account.');
-      return;
-    }
     if (tracks.length === 0) {
       setError('Choose Software, Mechanical, or both.');
       return;
     }
-    if (role === 'student' && tracks.includes('software') && !softwareLevel) {
+    if (tracks.includes('software') && !softwareLevel) {
       setError('Choose the software level that best matches your current experience.');
       return;
     }
-    if (role === 'student' && softwareLevel === 'block_experience' && !blockExperienceChoice) {
+    if (softwareLevel === 'block_experience' && !blockExperienceChoice) {
       setError('Choose the optional Python bridge or continue directly to FTC Java.');
       return;
     }
-
-    const savedSoftwareLevel = role === 'coach' ? 'text_experience' : softwareLevel;
 
     const nextProfile: LearnerProfile = {
       version: 1,
       selectedTracks: tracks,
       ...(tracks.includes('software') ? {
-        softwareLevel: savedSoftwareLevel!,
-        blocksPlacement: savedSoftwareLevel === 'complete_beginner'
+        softwareLevel: softwareLevel!,
+        blocksPlacement: softwareLevel === 'complete_beginner'
           ? 'required' as const
           : 'auto_completed' as const,
       } : {}),
-      ...(savedSoftwareLevel === 'block_experience'
+      ...(softwareLevel === 'block_experience'
         ? {postBlocksChoice: blockExperienceChoice!}
         : profile?.postBlocksChoice ? {postBlocksChoice: profile.postBlocksChoice} : {}),
       onboardingComplete: true,
@@ -131,28 +111,22 @@ export default function PersonalizePage(): React.JSX.Element {
     setSaving(true);
     setError(null);
     try {
-      const savedAccount = await saveAccount(role, username);
-      setUsername(savedAccount.username);
       const saved = await saveProfile(nextProfile);
-      if (savedAccount.role === 'student') {
-        const blockIds = BLOCKS_LESSONS.map((lesson) => lesson.id);
-        if (saved.blocksPlacement === 'auto_completed') {
-          await markManyAutoComplete(blockIds);
-        } else if (saved.blocksPlacement === 'required') {
-          await clearAutoCompleted(blockIds);
-        }
+      const blockIds = BLOCKS_LESSONS.map((lesson) => lesson.id);
+      if (saved.blocksPlacement === 'auto_completed') {
+        await markManyAutoComplete(blockIds);
+      } else if (saved.blocksPlacement === 'required') {
+        await clearAutoCompleted(blockIds);
       }
+      window.sessionStorage.removeItem(personalizationBypassKey(user.uid));
       trackEvent('personalization_complete', {
-        account_role: savedAccount.role,
         tracks: saved.selectedTracks.join(','),
         software_level: saved.softwareLevel ?? 'not_selected',
         blocks_exit_choice: saved.softwareLevel === 'block_experience'
           ? saved.postBlocksChoice ?? 'not_selected'
           : 'not_applicable',
       });
-      history.push(basePath(
-        savedAccount.role === 'coach' ? '/dashboard' : profileDestination(saved),
-      ));
+      history.push(basePath(profileDestination(saved)));
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Could not save your learning path.');
     } finally {
@@ -160,7 +134,17 @@ export default function PersonalizePage(): React.JSX.Element {
     }
   }
 
-  if (authLoading || status === 'loading' || accountStatus === 'loading') {
+  function continueWithoutProfile() {
+    if (!user) return;
+    window.sessionStorage.setItem(personalizationBypassKey(user.uid), '1');
+    const baseRoot = basePath('/').replace(/\/$/, '');
+    const destination = next && baseRoot && next.startsWith(`${baseRoot}/`)
+      ? next.slice(baseRoot.length)
+      : next ?? '/dashboard';
+    history.push(basePath(destination));
+  }
+
+  if (authLoading || status === 'loading') {
     return <Layout title="Personalize · Telemark"><main className={styles.page}>Loading your account...</main></Layout>;
   }
 
@@ -182,73 +166,11 @@ export default function PersonalizePage(): React.JSX.Element {
     <Layout title="Your Learning Path · Telemark" description="Choose the Telemark curricula that match your role and experience.">
       <main className={styles.page}>
         <section className={styles.card}>
-          <h1>{account && profile ? 'Edit your account' : 'Set up your account'}</h1>
-          <p className={styles.intro}>
-            Choose how you use Telemark and the work you want to learn or assign.
-            Your verified Google email is <strong>{user.email}</strong>.
-          </p>
+          <h1>{profile ? 'Edit your learning path' : 'Set up your learning path'}</h1>
+          <p className={styles.intro}>Choose the work you want to learn. You can change this later without losing completed lessons.</p>
 
           <fieldset className={styles.fieldset}>
-            <legend>Who is using this account?</legend>
-            <div className={styles.options}>
-              {([
-                ['student', 'Student', 'Track your work, join a coach’s classroom, and compare progress with classmates.'],
-                ['coach', 'Coach', 'Create classrooms, invite students, and monitor accepted students’ progress.'],
-              ] as const).map(([id, title, description]) => (
-                <label
-                  key={id}
-                  className={`${styles.option} ${role === id ? styles.selected : ''} ${account ? styles.locked : ''}`}
-                >
-                  <input
-                    type="radio"
-                    name="account-role"
-                    checked={role === id}
-                    disabled={Boolean(account)}
-                    onChange={() => { setRole(id); setError(null); }}
-                  />
-                  <span><strong>{title}</strong><small>{description}</small></span>
-                </label>
-              ))}
-            </div>
-            {account && (
-              <p className={styles.fieldNote}>
-                Account type is fixed after setup so classroom ownership and student consent stay intact.
-              </p>
-            )}
-          </fieldset>
-
-          <div className={styles.fieldset}>
-            <label className={styles.usernameLabel} htmlFor="telemark-username">
-              Username
-            </label>
-            <p className={styles.fieldNote}>
-              Coaches invite this username. It is visible only in classrooms you accept,
-              and you can change it later.
-            </p>
-            <div className={styles.usernameField}>
-              <span aria-hidden="true">@</span>
-              <input
-                id="telemark-username"
-                type="text"
-                value={username}
-                minLength={3}
-                maxLength={20}
-                autoCapitalize="none"
-                autoCorrect="off"
-                autoComplete="username"
-                spellCheck={false}
-                placeholder="drive_team_7"
-                onChange={(event) => {
-                  setUsername(event.target.value.replace(/^@/, '').toLowerCase());
-                  setError(null);
-                }}
-              />
-            </div>
-            <p className={styles.fieldNote}>Use 3 to 20 lowercase letters, numbers, underscores, or hyphens.</p>
-          </div>
-
-          <fieldset className={styles.fieldset}>
-            <legend>Which areas do you want to {role === 'coach' ? 'teach' : 'learn'}?</legend>
+            <legend>Which areas do you want to learn?</legend>
             <div className={styles.options}>
               {([
                 ['software', 'Software', 'Programming, the FTC SDK, sensors, and autonomous code.'],
@@ -262,7 +184,7 @@ export default function PersonalizePage(): React.JSX.Element {
             </div>
           </fieldset>
 
-          {role !== 'coach' && tracks.includes('software') && (
+          {tracks.includes('software') && (
             <fieldset className={styles.fieldset}>
               <legend>What programming experience do you have?</legend>
               <div className={styles.options}>
@@ -276,7 +198,7 @@ export default function PersonalizePage(): React.JSX.Element {
             </fieldset>
           )}
 
-          {role !== 'coach' && softwareLevel === 'block_experience' && (
+          {softwareLevel === 'block_experience' && (
             <fieldset className={`${styles.fieldset} ${styles.bridge}`}>
               <legend>How confident are you about moving to text code?</legend>
               <p className={styles.bridgeIntro}>Python is an optional bridge. It can make the change from blocks easier, but FTC robot programs still use Java.</p>
@@ -296,22 +218,16 @@ export default function PersonalizePage(): React.JSX.Element {
             </fieldset>
           )}
 
-          {(error || accountError || profileError) && (
-            <p className={styles.error} role="alert">
-              {error ?? accountError ?? profileError}
-            </p>
-          )}
+          {(error || profileError) && <p className={styles.error} role="alert">{error ?? profileError}</p>}
 
           <div className={styles.actions}>
             <button type="button" className={styles.primary} onClick={() => void save()} disabled={saving}>
-              {saving
-                ? 'Saving...'
-                : account && profile
-                  ? 'Save account'
-                  : role === 'coach' ? 'Open classroom' : 'Start learning'}
+              {saving ? 'Saving...' : profile ? 'Save learning path' : 'Start learning'}
             </button>
-            {account && profile && (
+            {profile ? (
               <Link className={styles.secondary} to="/dashboard">Cancel</Link>
+            ) : (
+              <button type="button" className={styles.secondary} onClick={continueWithoutProfile}>Not now</button>
             )}
             <button type="button" className={styles.secondary} onClick={() => void signOut(auth)}>Sign out</button>
           </div>

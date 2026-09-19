@@ -77,11 +77,18 @@ assert.match(heroVideo, /\bautoPlay\b/, 'the hero preview starts automatically')
 assert.match(heroVideo, /\bmuted\b/, 'homepage hero video must default to muted');
 assert.match(heroVideo, /\bloop\b/, 'the hero preview loops automatically');
 assert.match(heroVideo, /\bplaysInline\b/, 'homepage hero video must play inline on mobile');
+assert.match(heroVideo, /preload="auto"/, 'the autoplaying hero video must begin loading immediately');
 assert.doesNotMatch(heroVideo, /\scontrols(?:=|\s|>)/, 'the hero preview hides native playback controls');
 assert.match(homepage, /useBaseUrl\('\/video\/telemark-hero\.mp4'\)/);
 assert.match(homepage, /useBaseUrl\('\/video\/telemark-hero-light\.mp4'\)/);
 assert.match(homepage, /colorMode === 'light' \? lightSrc : darkSrc/);
-assert.match(heroVideo, /<source src=\{src\} type="video\/mp4"/);
+assert.match(heroVideo, /ref=\{videoRef\}/, 'the theme switch must retain one video element');
+assert.match(heroVideo, /src=\{initialSrcRef\.current\}/, 'React must not replace the video before its timestamp is captured');
+assert.match(homepage, /playbackTimeRef\.current = currentPosition/, 'theme changes must snapshot the current timestamp');
+assert.match(homepage, /video\.addEventListener\('seeked', finishSwitch/, 'theme changes must restore the timestamp before resuming');
+assert.match(homepage, /video\.addEventListener\('canplay', restorePlayback/, 'playback resumes only after the replacement video is ready');
+assert.match(homepage, /snapshot\.wasPlaying[\s\S]*video\.play\(\)/, 'a playing reel must keep playing after a theme change');
+assert.match(homepage, /\|\| video\.autoplay/, 'initial theme resolution must preserve intended autoplay');
 assert.match(heroVideo, /poster=\{poster\}/, 'the paused reel has a theme-aware poster');
 assert.doesNotMatch(homepage, /CountUp|SpotlightCard|<Masonry|<WhatsNew/, 'the homepage avoids decorative animations and automatic overlays');
 for (const section of ['HeroSection', 'StatsBar', 'CurriculumSection', 'SimulatorSection', 'ToolsSection', 'ShowcaseSection', 'CtaSection']) {
