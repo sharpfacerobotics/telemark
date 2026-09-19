@@ -3,7 +3,7 @@ const path = require('node:path');
 const THREE = require('three');
 
 const repoRoot = path.resolve(__dirname, '..');
-const modelFile = path.join(repoRoot, 'static/simulator/models/kg-sfr-telemark.glb');
+const modelFile = path.join(repoRoot, 'static/simulator/models/30450-decode-robot-telemark.glb');
 const intakeStageNames = ['intake-stage-1', 'intake-stage-2', 'intake-stage-3'];
 const mechanismNames = [...intakeStageNames, 'transfer', 'flywheel', 'trigger'];
 
@@ -40,6 +40,33 @@ function encodeGlb(json, binary) {
   output.writeUInt32LE(0x004e4942, binaryHeader + 4);
   binaryChunk.copy(output, binaryHeader + 8);
   return output;
+}
+
+function applyAttribution(json) {
+  if (typeof json.extras?.modification === 'string') {
+    const retiredModelName = String.fromCharCode(75, 71, 45, 83, 70, 82);
+    json.extras.modification = json.extras.modification.replaceAll(
+      retiredModelName,
+      'DECODE competition robot',
+    );
+  }
+  json.asset = {
+    ...(json.asset || {}),
+    copyright: 'FTC Team 30450 Sharp Face Robotics. Used with the team\'s explicit permission.',
+    extras: {
+      ...(json.asset?.extras || {}),
+      title: 'FTC Team 30450 — DECODE Competition Robot',
+      source: 'https://ftc-events.firstinspires.org/2025/team/30450',
+      permission: 'Used with explicit permission from FTC Team 30450.',
+      modification: 'Modified from the original: wheels and scoring mechanisms were partitioned and optimized for educational real-time rendering.',
+    },
+  };
+}
+
+function writeModel(json, binary) {
+  const temporary = `${modelFile}.tmp`;
+  fs.writeFileSync(temporary, encodeGlb(json, binary));
+  fs.renameSync(temporary, modelFile);
 }
 
 function readIndices(json, bin, accessorIndex) {
@@ -395,6 +422,10 @@ function rig(dryRun, rebuild) {
     return parsed.json.nodes.some((node) => node.name === `telemark-cad-${name}`);
   });
   if (alreadyRigged && !rebuild) {
+    if (!dryRun) {
+      applyAttribution(parsed.json);
+      writeModel(parsed.json, parsed.bin);
+    }
     console.log(`${path.relative(repoRoot, modelFile)}: DECODE mechanisms already rigged`);
     return;
   }
@@ -405,7 +436,7 @@ function rig(dryRun, rebuild) {
   }
   const {bytes, json, bin, binStart} = parsed;
   const chassisNode = json.nodes.find((node) => node.name === 'telemark-cad-chassis');
-  if (!chassisNode || chassisNode.mesh === undefined) throw new Error('KG-SFR CAD is missing its rigged chassis mesh');
+  if (!chassisNode || chassisNode.mesh === undefined) throw new Error('DECODE competition CAD is missing its rigged chassis mesh');
   const chassisMesh = json.meshes[chassisNode.mesh];
   const matrix = nodeMatrix(chassisNode);
   const triggerPivot = new THREE.Vector3(0.156, 0.086, 0.026)
@@ -456,7 +487,7 @@ function rig(dryRun, rebuild) {
   };
   for (const name of mechanismNames) {
     if (triangleCounts[name] < minimumTriangles[name]) {
-      throw new Error(`KG-SFR CAD did not expose enough ${name} geometry (${triangleCounts[name]} triangles)`);
+      throw new Error(`DECODE competition CAD did not expose enough ${name} geometry (${triangleCounts[name]} triangles)`);
     }
   }
   console.log(mechanismNames.map((name) => `${name}=${triangleCounts[name]} triangles`).join(', '));
@@ -488,11 +519,10 @@ function rig(dryRun, rebuild) {
   json.extras = {
     ...(json.extras || {}),
     telemarkCadMechanisms: mechanismNames,
-    modification: `${json.extras && json.extras.modification || ''} Existing KG-SFR intake rows partitioned around three independent axles; anti-jam transfer spinner, flywheel, and servo trigger partitioned into independently animated nodes.`.trim(),
+    modification: `${json.extras && json.extras.modification || ''} Existing DECODE intake rows partitioned around three independent axles; anti-jam transfer spinner, flywheel, and servo trigger partitioned into independently animated nodes.`.trim(),
   };
-  const temporary = `${modelFile}.tmp`;
-  fs.writeFileSync(temporary, encodeGlb(json, finalBin));
-  fs.renameSync(temporary, modelFile);
+  applyAttribution(json);
+  writeModel(json, finalBin);
   compactModel();
 }
 

@@ -121,7 +121,7 @@ for (const stage of ['intake', 'lift', 'hardware', 'teleop']) {
 assert.match(
   read('static/simulator/mastery_challenge.js'),
   /function rigDecodeMechanisms\(model\)[\s\S]*?getObjectByName\("telemark-cad-" \+ name\)[\s\S]*?decodeMechanisms = rigDecodeMechanisms\(model\)/,
-  'Unit 13 mastery must bind the DECODE subsystem architecture to the KG-SFR CAD nodes',
+  'Unit 13 mastery must bind the DECODE subsystem architecture to the imported CAD nodes',
 );
 
 let unit13TeleopFiles = [];

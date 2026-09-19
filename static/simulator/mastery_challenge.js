@@ -905,8 +905,19 @@ public class FullAutonomous extends LinearOpMode {
     delete CONFIGS[unit].starterFiles;
   });
 
+  const TEAM_30450_CAD_CREDIT = Object.freeze({
+    sourceLabel: "FTC Team 30450 Sharp Face Robotics CAD · used with explicit team permission · modified from the original",
+    sourceUrl: "https://ftc-events.firstinspires.org/2025/team/30450"
+  });
+
   const ROBOT_PROFILES = Object.freeze({
-    2: {name: "KG-SFR competition robot", detail: "Team CAD model driven by student motor commands", accent: 0x22d3ee, driveYaw: 0},
+    2: {
+      name: "DECODE competition robot · Fundamentals",
+      detail: "Team CAD model driven by student motor commands",
+      accent: 0x22d3ee,
+      driveYaw: 0,
+      ...TEAM_30450_CAD_CREDIT
+    },
     3: {
       name: "Quixilver 8404 · Into the Deep robot",
       detail: "Full Team 8404 competition robot CAD, optimized for the browser",
@@ -957,12 +968,12 @@ public class FullAutonomous extends LinearOpMode {
     10: {name: "Encoder distance robot", detail: "Marked drive wheels for measured RUN_TO_POSITION travel", accent: 0x4ade80},
     11: {name: "Multi-sensor intake robot", detail: "Touch, potentiometer, color, and distance sensing around the intake", accent: 0xfbbf24},
     12: {name: "Field-centric mecanum robot", detail: "Four-wheel drive with a visible Control Hub IMU and orientation axes", accent: 0x818cf8},
-    // The uploaded KG assembly is on the simulator's drive axes but faces the
+    // The imported DECODE assembly is on the simulator's drive axes but faces the
     // opposite direction. A half-turn preserves forward/strafe axes while
     // aligning both signs with the visible chassis and intake opening.
-    13: {name: "KG-SFR DECODE robot", detail: "Student code drives the three-stage intake, anti-jam transfer, flywheel, trigger, and mecanum chassis", accent: 0x22d3ee, driveYaw: 0, modelYaw: Math.PI},
-    14: {name: "KG-SFR DECODE · Vision", detail: "The finished TeleOp robot gains a camera and three analysis zones", accent: 0x22c55e, driveYaw: 0, modelYaw: Math.PI},
-    15: {name: "KG-SFR DECODE · Full Autonomous", detail: "The same robot follows a Bézier path with Limelight pose correction", accent: 0x06b6d4, driveYaw: 0, modelYaw: Math.PI}
+    13: {name: "DECODE competition robot", detail: "Student code drives the three-stage intake, anti-jam transfer, flywheel, trigger, and mecanum chassis", accent: 0x22d3ee, driveYaw: 0, modelYaw: Math.PI, ...TEAM_30450_CAD_CREDIT},
+    14: {name: "DECODE competition robot · Vision", detail: "The finished TeleOp robot gains a camera and three analysis zones", accent: 0x22c55e, driveYaw: 0, modelYaw: Math.PI, ...TEAM_30450_CAD_CREDIT},
+    15: {name: "DECODE competition robot · Full Autonomous", detail: "The same robot follows a Bézier path with Limelight pose correction", accent: 0x06b6d4, driveYaw: 0, modelYaw: Math.PI, ...TEAM_30450_CAD_CREDIT}
   });
 
   const GENERATED_MECHANISM_UNITS = Object.freeze([7, 9, 11]);
@@ -1047,7 +1058,7 @@ public class FullAutonomous extends LinearOpMode {
 
   const CAD_WHEEL_ORDER = Object.freeze(["left-front", "left-back", "right-front", "right-back"]);
 
-  const KG_ROBOT_MODEL_URL = "./models/kg-sfr-telemark.glb";
+  const DECODE_ROBOT_MODEL_URL = "./models/30450-decode-robot-telemark.glb";
   const QUIXILVER_ROBOT_MODEL_URL = "./models/quixilver-8404-itd-telemark.glb";
   const FTC_2025_ROBOT_MODEL_URL = "./models/2025-ftc-robot-manning-telemark.glb";
   const FTC_2024_ROBOT_MODEL_URL = "./models/2024-centerstage-manning-telemark.glb";
@@ -1197,10 +1208,10 @@ public class FullAutonomous extends LinearOpMode {
     });
   }
 
-  function loadKgRobot(THREE, robot, onLoad, destinationUnit) {
+  function loadDecodeRobot(THREE, robot, onLoad, destinationUnit) {
     loadImportedRobot(THREE, robot, {
-      name: "KG-SFR model",
-      url: KG_ROBOT_MODEL_URL,
+      name: "DECODE competition robot model",
+      url: DECODE_ROBOT_MODEL_URL,
       // The DECODE field is rendered at twice its real dimensions, so the
       // 18-inch robot uses the same scale instead of the enlarged lesson view.
       footprint: Number(destinationUnit) >= 13 ? 1.18 : 2.15,
@@ -1274,7 +1285,7 @@ public class FullAutonomous extends LinearOpMode {
   }
 
   function loadCadRobotForUnit(sourceUnit, THREE, robot, onLoad, destinationUnit) {
-    if (sourceUnit === 2) return loadKgRobot(THREE, robot, onLoad, destinationUnit);
+    if (sourceUnit === 2) return loadDecodeRobot(THREE, robot, onLoad, destinationUnit);
     if (sourceUnit === 3) return loadQuixilverRobot(THREE, robot, onLoad);
     if (sourceUnit === 4) return load2025FtcRobot(THREE, robot, onLoad);
     if (sourceUnit === 5) return load2024CenterstageRobot(THREE, robot, onLoad);
@@ -1558,7 +1569,7 @@ public class FullAutonomous extends LinearOpMode {
         };
       });
       if (mechanismNames.some(function (name) { return !rig[name]; })) {
-        setImportedRobotStatus("The optimized KG-SFR CAD is missing an animated DECODE mechanism.");
+        setImportedRobotStatus("The optimized DECODE competition CAD is missing an animated mechanism.");
         return null;
       }
       rig.intakeStages = intakeStages.map(function (name) { return rig[name]; });

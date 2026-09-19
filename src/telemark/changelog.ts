@@ -30,7 +30,7 @@ export const CHANGELOG: readonly ChangeEntry[] = [
     kind: 'simulator',
     title: 'Test the full DECODE robot',
     body:
-      "Run your Java code on Sharp Face Robotics' competition robot and the full DECODE field. Every drivetrain and scoring command now produces a visible result.",
+      'Run your Java code on an attributed competition robot and the full DECODE field. Every drivetrain and scoring command now produces a visible result.',
     additions: [
       'Drive with FTC gamepad values. Pushing a stick up reaches Java as negative Y, exactly as the SDK reports it.',
       'Collect up to three artifacts through the intake stages and store them in the horizontal magazine.',
@@ -59,8 +59,8 @@ export const CHANGELOG: readonly ChangeEntry[] = [
       'Preview, copy, and export read-only snapshots from earlier passing stages.',
       'Review each grading result and choose Auto, Done, or Not done when the automatic judge needs correction.',
       'See open-loop motors slow as the virtual battery drains, then compare them with DcMotorEx velocity control and PIDF.',
-      'Drive the KG-SFR DECODE TeleOp in trajectory-assisted practice or a deterministic 120-second, 18-artifact match.',
-      'Keep that KG-SFR project intact while adding vision, then run a sensor-fused Bézier autonomous from FullAutonomous.java.',
+      'Drive the DECODE competition TeleOp in trajectory-assisted practice or a deterministic 120-second, 18-artifact match.',
+      'Keep that DECODE project intact while adding vision, then run a sensor-fused Bézier autonomous from FullAutonomous.java.',
       'See Java annotations highlighted and complete @TeleOp, @Autonomous, and @Override as you type.',
       'Get case-sensitive suggestions for FTC SDK types and the classes and methods you write.',
       'Read plain-language definitions of foundational Java keywords in Unit 0.',
@@ -134,7 +134,7 @@ export const CHANGELOG: readonly ChangeEntry[] = [
     body:
       'Mastery simulators now run your code against imported competition robot CAD, and the curriculum connects each scene to its challenge.',
     additions: [
-      "Drive Sharp Face Robotics' KG-SFR robot in the Unit 2 TeleOp challenge.",
+      'Drive the attributed DECODE competition robot in the Unit 2 TeleOp challenge.',
       "Run autonomous code on FTC 17438 Input/Output's robot in Unit 6.",
       'Open both team-code challenges directly from the homepage gallery.',
     ],

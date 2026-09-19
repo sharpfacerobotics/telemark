@@ -222,7 +222,7 @@ assert.match(
   config,
   /© 2026 Telemark\. Built with Docusaurus\. Not affiliated with FIRST®/,
 );
-assert.doesNotMatch(config, /Built by FTC Team Sharp Face Robotics #30450/);
+assert.doesNotMatch(config, /Built by FTC Team 30450/);
 assert.match(customCss, /\.telemark-navbar-center[\s\S]*left: 50%/);
 assert.equal((curriculum.match(/id: 'unit-\d{2}\/mastery-coding-challenge'/g) || []).length, 14);
 assert.equal((curriculum.match(/id: 'unit-\d{2}\/mastery-quiz'/g) || []).length, 0);
@@ -267,7 +267,8 @@ assert.match(askPanel, /if \(!user\)/, 'Sharp AI must keep its account boundary'
 assert.match(askPanel, /Sign in to ask/);
 assert.match(askPanel, /user\.getIdToken\(\)/);
 assert.match(adminPage, /if \(!user\)/, 'admin analytics must remain private');
-assert.match(adminPage, /ADMIN_EMAIL/);
+assert.match(adminPage, /configuredAdmin/);
+assert.match(adminPage, /Administrator access has not been configured/);
 
 // Guests receive the same progress controls as signed-in users. Local work is
 // merged into Firestore when a Google sign-in later occurs.

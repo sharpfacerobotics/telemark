@@ -6,7 +6,7 @@ const wheelOrder = ['left-front', 'left-back', 'right-front', 'right-back'];
 
 const jobs = [
   {
-    file: 'static/simulator/models/kg-sfr-telemark.glb',
+    file: 'static/simulator/models/30450-decode-robot-telemark.glb',
     spinAxis: 'x',
     cylinderAxis: 2,
     radius: 0.225,

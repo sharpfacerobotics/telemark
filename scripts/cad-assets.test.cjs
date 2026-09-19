@@ -5,7 +5,7 @@ const vm = require('node:vm');
 
 const repoRoot = path.resolve(__dirname, '..');
 const chassisModels = [
-  'kg-sfr-telemark.glb',
+  '30450-decode-robot-telemark.glb',
   'quixilver-8404-itd-telemark.glb',
   '2025-ftc-robot-manning-telemark.glb',
   '2024-centerstage-manning-telemark.glb',
@@ -18,7 +18,7 @@ const mechanismModels = new Set([
 ]);
 const wheelNames = ['left-front', 'left-back', 'right-front', 'right-back'];
 const wheelGeometry = {
-  'kg-sfr-telemark.glb': {rawAxle: 2, spinAxis: 'x', outerRotationX: 0, maxAxleRatio: 0.58, minTriangles: 17000},
+  '30450-decode-robot-telemark.glb': {rawAxle: 2, spinAxis: 'x', outerRotationX: 0, maxAxleRatio: 0.58, minTriangles: 17000},
   'quixilver-8404-itd-telemark.glb': {rawAxle: 1, spinAxis: 'z', outerRotationX: Math.PI / 2, maxAxleRatio: 0.60, minTriangles: 11000},
   '2025-ftc-robot-manning-telemark.glb': {rawAxle: 0, spinAxis: 'x', outerRotationX: -Math.PI / 2, maxAxleRatio: 0.78, minTriangles: 8000},
   '2024-centerstage-manning-telemark.glb': {rawAxle: 1, spinAxis: 'z', outerRotationX: -Math.PI / 2, maxAxleRatio: 0.95, minTriangles: 9000},
@@ -256,7 +256,21 @@ for (const model of chassisModels) {
   }
 }
 
-const decodeRobot = readGlb('kg-sfr-telemark.glb');
+const decodeRobot = readGlb('30450-decode-robot-telemark.glb');
+assert.match(
+  decodeRobot.json.asset?.copyright || '',
+  /Team 30450 Sharp Face Robotics.*explicit permission/i,
+);
+assert.equal(
+  decodeRobot.json.asset?.extras?.source,
+  'https://ftc-events.firstinspires.org/2025/team/30450',
+);
+assert.equal(
+  decodeRobot.json.asset?.extras?.title,
+  'FTC Team 30450 — DECODE Competition Robot',
+);
+assert.match(decodeRobot.json.asset?.extras?.permission || '', /explicit permission.*Team 30450/i);
+assert.match(decodeRobot.json.asset?.extras?.modification || '', /modified|partitioned|optimized/i);
 const decodeChassis = decodeRobot.json.nodes.find((node) => node.name === 'telemark-cad-chassis');
 const decodeChassisSignatures = triangleSignatures(decodeRobot, decodeChassis);
 const decodeMinimumTriangles = {
@@ -269,20 +283,20 @@ const decodeMinimumTriangles = {
 };
 for (const name of ['intake-stage-1', 'intake-stage-2', 'intake-stage-3', 'transfer', 'flywheel', 'trigger']) {
   const node = decodeRobot.json.nodes.find((candidate) => candidate.name === `telemark-cad-${name}`);
-  assert.ok(node, `KG-SFR must expose its real ${name} CAD as a stable animation node`);
+  assert.ok(node, `DECODE competition robot must expose its real ${name} CAD as a stable animation node`);
   assert.equal(node.extras?.telemarkDecodeMechanism, name.startsWith('intake-stage-') ? 'intake' : name);
   if (name.startsWith('intake-stage-')) assert.equal(node.extras?.intakeStage, Number(name.at(-1)));
   const triangles = decodeRobot.json.meshes[node.mesh].primitives.reduce(
     (sum, primitive) => sum + decodeRobot.json.accessors[primitive.indices].count / 3,
     0,
   );
-  assert.ok(triangles >= decodeMinimumTriangles[name], `KG-SFR ${name} must contain real CAD geometry`);
+  assert.ok(triangles >= decodeMinimumTriangles[name], `DECODE ${name} must contain real CAD geometry`);
   assert.equal(node.extras?.spinAxis, name === 'transfer' ? 'z' : 'x');
   if (name === 'trigger') {
-    assert.equal(node.extras?.telemarkCadPivot?.length, 3, 'KG-SFR trigger must pivot on its real servo axis');
+    assert.equal(node.extras?.telemarkCadPivot?.length, 3, 'DECODE trigger must pivot on its real servo axis');
   }
   for (const triangle of triangleSignatures(decodeRobot, node)) {
-    assert.equal(decodeChassisSignatures.has(triangle), false, `KG-SFR ${name} geometry must be removed from the fixed chassis`);
+    assert.equal(decodeChassisSignatures.has(triangle), false, `DECODE ${name} geometry must be removed from the fixed chassis`);
   }
 }
 const intakeCenters = [1, 2, 3].map((stage) => {
@@ -441,15 +455,17 @@ for (const unit of [7, 9, 11]) {
 }
 assert.equal(challengeApi.cadSourceUnitFor(8), 8, 'Unit 8 must use Team 11115 Gluten Free CAD');
 for (const unit of [13, 14, 15]) {
-  assert.equal(challengeApi.cadSourceUnitFor(unit), 2, `Unit ${unit} must keep the KG-SFR CAD chassis`);
+  assert.equal(challengeApi.cadSourceUnitFor(unit), 2, `Unit ${unit} must keep the imported DECODE CAD chassis`);
 }
-assert.equal(challengeApi.robotProfileForUnit(13).name, 'KG-SFR DECODE robot');
-assert.equal(challengeApi.robotProfileForUnit(14).name, 'KG-SFR DECODE · Vision');
-assert.equal(challengeApi.robotProfileForUnit(15).name, 'KG-SFR DECODE · Full Autonomous');
+assert.equal(challengeApi.robotProfileForUnit(13).name, 'DECODE competition robot');
+assert.equal(challengeApi.robotProfileForUnit(14).name, 'DECODE competition robot · Vision');
+assert.equal(challengeApi.robotProfileForUnit(15).name, 'DECODE competition robot · Full Autonomous');
 for (const unit of [13, 14, 15]) {
   assert.equal(challengeApi.robotProfileForUnit(unit).modelYaw, Math.PI, `Unit ${unit} KG CAD must preserve forward/strafe axes while correcting both signs`);
+  assert.match(challengeApi.robotProfileForUnit(unit).sourceLabel, /Team 30450 Sharp Face Robotics CAD.*explicit team permission.*modified from the original/i);
+  assert.equal(challengeApi.robotProfileForUnit(unit).sourceUrl, 'https://ftc-events.firstinspires.org/2025/team/30450');
 }
-assert.match(challengeSource, /footprint:\s*Number\(destinationUnit\) >= 13 \? 1\.18 : 2\.15/, 'the Unit 13 KG-SFR robot must be large enough to visibly store three artifacts side by side');
+assert.match(challengeSource, /footprint:\s*Number\(destinationUnit\) >= 13 \? 1\.18 : 2\.15/, 'the Unit 13 DECODE robot must be large enough to visibly store three artifacts side by side');
 assert.match(challengeSource, /robot\.rotation\.y = \(profile\.modelYaw \|\| 0\) - motion\.state\.heading/, 'the displayed CAD heading must include its drivetrain-frame correction');
 for (const unit of [2, 3, 4, 5, 6, 10, 12]) {
   assert.equal(

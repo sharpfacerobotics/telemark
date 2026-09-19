@@ -34,17 +34,15 @@ const config: Config = {
     v4: true, // Improve compatibility with the upcoming Docusaurus v4
   },
 
-  // Set the production url of your site here
-  url: process.env.TELEMARK_URL ?? 'https://sharpfacerobotics.github.io',
-  // GitHub Pages serves the site under /telemark/, but a preview host, a
-  // tunnel, or a custom domain serves it from the root. Overridable so a
-  // build can target either without editing this file.
-  baseUrl: process.env.TELEMARK_BASE_URL ?? '/telemark/',
+  // The canonical deployment is the root GitHub Pages site. The legacy
+  // repository supplies overrides in its workflow until redirects activate.
+  url: process.env.TELEMARK_URL ?? 'https://telemarkfirst.github.io',
+  baseUrl: process.env.TELEMARK_BASE_URL ?? '/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'sharpfacerobotics', // Usually your GitHub org/user name.
-  projectName: 'telemark', // Usually your repo name.
+  organizationName: 'telemarkfirst', // Usually your GitHub org/user name.
+  projectName: 'telemarkfirst.github.io', // Usually your repo name.
   deploymentBranch: 'gh-pages',
   trailingSlash: false,
 
@@ -69,6 +67,7 @@ const config: Config = {
 
   customFields: {
     buildCommit,
+    adminEmail: process.env.TELEMARK_ADMIN_EMAIL?.trim().toLowerCase() ?? '',
   },
 
   // Even if you don't use internationalization, you can use this field to set
@@ -88,7 +87,7 @@ const config: Config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/sharpfacerobotics/ftc-curriculum/tree/main/',
+            'https://github.com/telemarkfirst/telemarkfirst.github.io/tree/main/',
         },
         blog: {
           showReadingTime: true,
@@ -137,7 +136,7 @@ const config: Config = {
         routeBasePath: 'mechanical',
         sidebarPath: './sidebarsMechanical.ts',
         editUrl:
-          'https://github.com/sharpfacerobotics/ftc-curriculum/tree/main/',
+          'https://github.com/telemarkfirst/telemarkfirst.github.io/tree/main/',
       },
     ],
     [
@@ -148,7 +147,7 @@ const config: Config = {
         routeBasePath: 'blocks',
         sidebarPath: './sidebarsBlocks.ts',
         editUrl:
-          'https://github.com/sharpfacerobotics/ftc-curriculum/tree/main/',
+          'https://github.com/telemarkfirst/telemarkfirst.github.io/tree/main/',
       },
     ],
   ],
@@ -195,7 +194,7 @@ const config: Config = {
           position: 'left',
         },
         {
-          href: 'https://github.com/sharpfacerobotics/ftc-curriculum',
+          href: 'https://github.com/telemarkfirst/telemarkfirst.github.io',
           label: 'GitHub',
           position: 'left',
         },

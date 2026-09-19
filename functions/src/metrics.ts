@@ -1,4 +1,3 @@
-export const ADMIN_EMAIL = 'sharpfacerobotics@gmail.com';
 export const ALLOWED_RANGES = ['7d', '28d', '90d'] as const;
 
 export type MetricsRange = (typeof ALLOWED_RANGES)[number];
@@ -58,11 +57,17 @@ export function parseRange(value: unknown): MetricsRange {
   throw new Error('Range must be one of 7d, 28d, or 90d.');
 }
 
-export function isAuthorizedAdmin(email: unknown, emailVerified: unknown): boolean {
+export function isAuthorizedAdmin(
+  email: unknown,
+  emailVerified: unknown,
+  configuredAdmin = process.env.TELEMARK_ADMIN_EMAIL,
+): boolean {
   return (
+    typeof configuredAdmin === 'string' &&
+    configuredAdmin.trim().length > 0 &&
     emailVerified === true &&
     typeof email === 'string' &&
-    email.trim().toLowerCase() === ADMIN_EMAIL
+    email.trim().toLowerCase() === configuredAdmin.trim().toLowerCase()
   );
 }
 

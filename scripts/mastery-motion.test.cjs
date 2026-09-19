@@ -398,7 +398,7 @@ function testGeneratedChallengeMotionIsObservable() {
   assert.doesNotMatch(
     visualSource,
     /visibleRoller\(0\.17,\s*1\.38/,
-    'DECODE units must animate the KG-SFR mechanism CAD instead of adding generated rollers',
+    'DECODE units must animate the imported competition mechanism CAD instead of adding generated rollers',
   );
   assert.match(visualSource, /animation\(currentTime, dt\)/, 'visible game-piece motion must use frame time');
 }

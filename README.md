@@ -1,7 +1,6 @@
 # Telemark
 
-Telemark is Sharp Face Robotics' Docusaurus-based FTC curriculum. It has two
-parallel tracks:
+Telemark is a Docusaurus-based FTC curriculum with two parallel tracks:
 
 - **Software** (`docs/`, served at `/docs`): 16 units and 118 lessons of FTC
   Java, from classes and OpModes through sensors, vision, and autonomous, with
@@ -74,7 +73,7 @@ Other lesson rubrics retain their existing lesson-specific checks.
 The Unit 13 DECODE scene uses the uploaded full-field GLB through
 `npm run prepare:decode-field`; preparation removes the external driver-station
 tape while retaining the competition field. `npm run rig:decode-mechanisms`
-partitions the existing KG-SFR intake into three independently pivoted stages
+partitions the imported DECODE intake into three independently pivoted stages
 and rigs the anti-jam transfer spinner, flywheel, and servo trigger as stable
 animation nodes. Neither command fabricates replacement robot mechanisms.
 
@@ -316,7 +315,7 @@ JSON file is the no-account recovery path.
 Sharp AI still asks for Google sign-in because its question limit is enforced
 per authenticated account. Signing in also merges the device record into
 Firestore for automatic cross-device progress. `/admin` separately requires
-the authorized Sharp Face Robotics account.
+the administrator account configured for that deployment.
 
 ### Tests
 
@@ -357,11 +356,11 @@ verifies every mechanical calculator is reachable from a lesson.
 
 ## Analytics administration
 
-The private analytics dashboard is available at `/telemark/admin`. Both the
-browser and callable backend restrict it to `sharpfacerobotics@gmail.com`. It
-reports GA4 estimated visitors, curriculum users, engagement, verified Google
-accounts, and aggregate cloud-synced progress; it never returns learner names,
-emails, or UIDs.
+The private analytics dashboard is available at `/admin`. Both the browser and
+callable backend read `TELEMARK_ADMIN_EMAIL`; leaving it unset disables admin
+authorization. The dashboard reports GA4 estimated visitors, curriculum users,
+engagement, verified Google accounts, and aggregate cloud-synced progress; it
+never returns learner names, emails, or UIDs.
 
 See [ANALYTICS_SETUP.md](./ANALYTICS_SETUP.md) for the required one-time Google
 Analytics, Firebase, IAM, and GitHub Actions configuration.

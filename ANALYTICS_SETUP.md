@@ -12,7 +12,7 @@ Firebase callable function for secure aggregate reporting.
    Analytics Data API.
 3. Under Authentication → Sign-in method, enable Google.
 4. Under Authentication → Settings → Authorized domains, confirm
-   `sharpfacerobotics.github.io` is listed.
+   `telemarkfirst.github.io` is listed.
 5. Deploy the owner-only progress rules:
 
    ```bash
@@ -40,6 +40,8 @@ also needs the property's numeric ID:
 
    ```dotenv
    GA4_PROPERTY_ID=123456789
+   TELEMARK_ADMIN_EMAIL=admin@example.com
+   TELEMARK_ALLOWED_ORIGINS=https://telemarkfirst.github.io
    ```
 
    Replace the example with the real numeric property ID, then run:
@@ -58,6 +60,15 @@ Create these repository secrets:
 - `FIREBASE_SERVICE_ACCOUNT_TELEMARK`: JSON credentials for a deployment
   service account permitted to deploy Firebase Cloud Functions.
 
+Create these repository variables:
+
+- `TELEMARK_ADMIN_EMAIL`: the verified Google account allowed to open `/admin`.
+- `TELEMARK_ALLOWED_ORIGINS`: comma-separated production origins accepted by
+  Firebase callable functions. During the staged migration this may contain
+  both GitHub Pages origins; remove the legacy origin after redirects activate.
+- `TELEMARK_REDIRECTS_ENABLED`: leave unset or `false` until the destination
+  site is live, then set it to `true` in the legacy repository only.
+
 When the service-account secret exists, pushes to `main` deploy both GitHub Pages
 and the callable function. Without it, the function job safely skips deployment.
 
@@ -65,10 +76,10 @@ and the callable function. Without it, the function job safely skips deployment.
 
 1. Open GA4 DebugView and confirm `curriculum_start`, `lesson_complete`,
    `unit_complete`, `simulator_launch`, `progress_export`, and `progress_import`.
-2. Visit `/telemark/admin` signed out and confirm the login page appears.
+2. Visit `/admin` signed out and confirm the login page appears.
 3. Sign in with a different Google account and confirm access is denied.
-4. Sign in as `sharpfacerobotics@gmail.com` and test the 7, 28, and 90-day
-   reports.
+4. Sign in with the configured administrator account and test the 7, 28, and
+   90-day reports.
 5. Confirm the function response contains no names, email addresses, or UIDs.
 
 GA4 traffic and event history starts when tracking is deployed. `Total users`

@@ -30,7 +30,7 @@ assert.match(homepage, /telemark-hero(?:-light)?\.mp4/, 'Homepage must retain th
 assert.doesNotMatch(homepage, /Student-built FTC software and mechanical curriculum/);
 assert.doesNotMatch(homepage, /Learn to program an FTC robot/);
 assert.doesNotMatch(homepage, /software lessons|Units and modules|Calculators and checks|Version 1\.10/);
-assert.doesNotMatch(homepage, /Built by FTC Team Sharp Face Robotics #30450/);
+assert.doesNotMatch(homepage, /Built by FTC Team 30450/);
 assert.match(homepage, /telemark-build-commit/);
 
 findRoute('/curriculum');

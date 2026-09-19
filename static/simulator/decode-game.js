@@ -1,5 +1,5 @@
 /**
- * Deterministic KG-SFR DECODE TeleOp game physics.
+ * Deterministic DECODE competition-robot TeleOp game physics.
  *
  * The core is dependency-free so the browser view and Node regression tests
  * exercise exactly the same artifact transitions and projectile calculations.

@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import {signOut} from 'firebase/auth';
 import {auth} from '../telemark/firebase';
@@ -11,7 +12,6 @@ import {
 } from '../telemark/adminMetrics';
 import styles from './admin.module.css';
 
-const ADMIN_EMAIL = 'sharpfacerobotics@gmail.com';
 const RANGES: MetricsRange[] = ['7d', '28d', '90d'];
 
 function formatNumber(value: number): string {
@@ -118,12 +118,20 @@ function GoogleIcon(): React.JSX.Element {
 }
 
 export default function AdminPage(): React.JSX.Element {
+  const {siteConfig} = useDocusaurusContext();
   const {user, loading: authLoading} = useAuth();
   const [range, setRange] = useState<MetricsRange>('28d');
   const [metrics, setMetrics] = useState<AdminMetrics | null>(null);
   const [metricsLoading, setMetricsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const isAdmin = user?.email?.trim().toLowerCase() === ADMIN_EMAIL && user.emailVerified;
+  const configuredAdmin = typeof siteConfig.customFields?.adminEmail === 'string'
+    ? siteConfig.customFields.adminEmail.trim().toLowerCase()
+    : '';
+  const isAdmin = Boolean(
+    configuredAdmin
+    && user?.email?.trim().toLowerCase() === configuredAdmin
+    && user.emailVerified,
+  );
 
   const loadMetrics = useCallback(async () => {
     if (!isAdmin) return;
@@ -178,11 +186,20 @@ export default function AdminPage(): React.JSX.Element {
     return shell(<div className={styles.centerCard}>Checking authorization…</div>);
   }
 
+  if (!configuredAdmin) {
+    return shell(
+      <section className={styles.loginCard}>
+        <h1>Analytics Console Unavailable</h1>
+        <p>Administrator access has not been configured for this deployment.</p>
+      </section>,
+    );
+  }
+
   if (!user) {
     return shell(
       <section className={styles.loginCard}>
         <h1>Analytics Console</h1>
-        <p>Sign in with the authorized Sharp Face Robotics Google account.</p>
+        <p>Sign in with the authorized Telemark administrator account.</p>
         <button className={styles.googleButton} onClick={handleAdminSignIn}>
           <GoogleIcon />
           Continue with Google

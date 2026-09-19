@@ -22,7 +22,6 @@ const RESERVED_USERNAMES = new Set([
   'help',
   'moderator',
   'root',
-  'sharpface',
   'student',
   'support',
   'telemark',

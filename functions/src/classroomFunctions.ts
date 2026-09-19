@@ -14,9 +14,10 @@ import {
   type AccountRole,
   type ClassroomProgress,
 } from './classroom';
+import {callableCors} from './runtimeConfig';
 
 const CALLABLE_OPTIONS = {
-  cors: ['https://sharpfacerobotics.github.io', /^http:\/\/localhost:\d+$/],
+  cors: callableCors(),
   region: 'us-central1',
   maxInstances: 5,
   memory: '256MiB' as const,

@@ -1,4 +1,4 @@
-/** Browser presentation for the deterministic KG-SFR DECODE game core. */
+/** Browser presentation for the deterministic DECODE competition game core. */
 (function (global) {
   "use strict";
 
@@ -30,7 +30,7 @@
     hud.className = "decode-game-hud";
     hud.setAttribute("aria-label", "DECODE TeleOp match status");
     hud.innerHTML = ""
-      + "<div class=\"decode-mode-row\"><strong>KG-SFR · DECODE</strong>"
+      + "<div class=\"decode-mode-row\"><strong>DECODE · Competition robot</strong>"
       + "<button class=\"decode-mode-button\" type=\"button\" data-decode-mode=\"practice\">Practice</button>"
       + "<button class=\"decode-mode-button\" type=\"button\" data-decode-mode=\"match\">Match</button></div>"
       + "<div class=\"decode-stats\">"

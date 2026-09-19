@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  ADMIN_EMAIL,
   CURRICULUM_UNITS,
   TOTAL_LESSONS,
   aggregateProgress,
@@ -10,17 +9,23 @@ import {
   parseRange,
 } from './metrics';
 
+const TEST_ADMIN_EMAIL = 'admin@example.com';
+
 test('accepts only supported date ranges', () => {
   assert.equal(parseRange('7d'), '7d');
   assert.throws(() => parseRange('30d'));
 });
 
 test('authorizes only the verified admin email', () => {
-  assert.equal(isAuthorizedAdmin(ADMIN_EMAIL, true), true);
-  assert.equal(isAuthorizedAdmin(` ${ADMIN_EMAIL.toUpperCase()} `, true), true);
-  assert.equal(isAuthorizedAdmin(ADMIN_EMAIL, false), false);
-  assert.equal(isAuthorizedAdmin('someone@example.com', true), false);
-  assert.equal(isAuthorizedAdmin(undefined, true), false);
+  assert.equal(isAuthorizedAdmin(TEST_ADMIN_EMAIL, true, TEST_ADMIN_EMAIL), true);
+  assert.equal(
+    isAuthorizedAdmin(` ${TEST_ADMIN_EMAIL.toUpperCase()} `, true, TEST_ADMIN_EMAIL),
+    true,
+  );
+  assert.equal(isAuthorizedAdmin(TEST_ADMIN_EMAIL, false, TEST_ADMIN_EMAIL), false);
+  assert.equal(isAuthorizedAdmin('someone@example.com', true, TEST_ADMIN_EMAIL), false);
+  assert.equal(isAuthorizedAdmin(undefined, true, TEST_ADMIN_EMAIL), false);
+  assert.equal(isAuthorizedAdmin(TEST_ADMIN_EMAIL, true, ''), false);
 });
 
 test('builds an inclusive UTC date series', () => {
@@ -44,5 +49,5 @@ test('aggregates progress without returning learner identity', () => {
   assert.equal(result.accountsWithProgress, 3);
   assert.equal(result.startedLearners, 2);
   assert.equal(result.fullyCompletedLearners, 1);
-  assert.equal(JSON.stringify(result).includes(ADMIN_EMAIL), false);
+  assert.equal(JSON.stringify(result).includes(TEST_ADMIN_EMAIL), false);
 });

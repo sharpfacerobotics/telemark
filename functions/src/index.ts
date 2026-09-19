@@ -14,6 +14,7 @@ import {
   toDateKey,
   type MetricsRange,
 } from './metrics';
+import {adminEmail, callableCors} from './runtimeConfig';
 
 export {
   cancelClassroomInvite,
@@ -58,7 +59,7 @@ function assertAdmin(auth: {token: Record<string, unknown>} | undefined): void {
   if (!auth) {
     throw new HttpsError('unauthenticated', 'Sign in with Google to view analytics.');
   }
-  if (!isAuthorizedAdmin(auth.token.email, auth.token.email_verified)) {
+  if (!isAuthorizedAdmin(auth.token.email, auth.token.email_verified, adminEmail.value())) {
     throw new HttpsError('permission-denied', 'This account is not authorized.');
   }
 }
@@ -229,7 +230,7 @@ async function runGaReport(propertyId: string, range: MetricsRange) {
 
 export const getAdminMetrics = onCall(
   {
-    cors: ['https://sharpfacerobotics.github.io', /http:\/\/localhost:\d+/],
+    cors: callableCors(),
   },
   async (request) => {
     assertAdmin(request.auth);
